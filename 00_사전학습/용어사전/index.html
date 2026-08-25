@@ -218,7 +218,12 @@
     <div class="footer-legal">AI 프로덕트 마스터 · frontierall</div>
   </footer>
 
-  <script src="terms.js"></script>
+  <script>
+    // 자료 파일은 캐시를 우회해 불러옵니다.
+    // GitHub Pages가 파일을 10분쯤 캐시하기 때문에, 이 처리가 없으면
+    // 용어를 추가하고 바로 열어 본 수강생에게는 예전 목록이 보입니다.
+    document.write('<script src="terms.js?t=' + Date.now() + '"><\/script>');
+  </script>
   <script>
     const listEl = document.getElementById('term-list');
     const tabsEl = document.getElementById('group-tabs');
