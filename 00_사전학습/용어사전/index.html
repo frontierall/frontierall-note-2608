@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>용어 사전 · AI 프로덕트 마스터</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@1.3.9/dist/web/static/pretendard.css">
+<style>
+  :root {
+    --primary: #0066cc; --primary-focus: #0071e3;
+    --canvas: #ffffff; --parchment: #f5f5f7;
+    --black: #000000; --ink: #1d1d1f; --ink-80: #333333; --ink-48: #7a7a7a;
+    --hairline: #e0e0e0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--canvas); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', 'Apple SD Gothic Neo', 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-size: 17px; line-height: 1.47; letter-spacing: -0.374px;
+  }
+  .global-nav {
+    position: sticky; top: 0; z-index: 20; height: 44px; background: var(--black);
+    display: flex; align-items: center; justify-content: space-between; padding: 0 22px;
+  }
+  .global-nav .brand { color: #fff; font-size: 12px; font-weight: 600; letter-spacing: -0.12px; text-decoration: none; }
+  .global-nav .meta { color: rgba(255,255,255,0.72); font-size: 12px; letter-spacing: -0.12px; }
+  .sub-nav {
+    position: sticky; top: 44px; z-index: 19; height: 52px;
+    display: flex; align-items: center; justify-content: space-between; padding: 0 22px;
+    background: rgba(245,245,247,0.8);
+    -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+  .sub-nav .category { font-size: 21px; font-weight: 600; letter-spacing: 0.231px; color: var(--ink); text-decoration: none; }
+  .btn-primary {
+    display: inline-block; background: var(--primary); color: #fff; border: none;
+    border-radius: 9999px; padding: 8px 18px; font-size: 14px; font-family: inherit;
+    text-decoration: none; cursor: pointer; transition: transform .15s;
+  }
+  .btn-primary:active { transform: scale(0.95); }
+  .btn-primary:focus-visible { outline: 2px solid var(--primary-focus); outline-offset: 2px; }
+
+  main.content { max-width: 760px; margin: 0 auto; padding: 64px 24px 96px; }
+  .eyebrow { display: block; font-size: 14px; font-weight: 600; letter-spacing: -0.224px; color: var(--ink-48); margin-bottom: 12px; }
+  h1.headline { font-size: 40px; font-weight: 600; line-height: 1.10; letter-spacing: 0; margin: 0 0 14px; }
+  p.tagline { font-size: 22px; font-weight: 400; line-height: 1.3; letter-spacing: 0.196px; margin: 0 0 28px; color: var(--ink-80); }
+
+  .group-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 16px; scrollbar-width: none; }
+  .group-tabs::-webkit-scrollbar { display: none; }
+  .group-tabs button {
+    all: unset; flex: 0 0 auto; cursor: pointer; font-size: 13px; letter-spacing: -0.224px;
+    color: var(--ink-48); padding: 7px 14px; border-radius: 999px; border: 1px solid var(--hairline);
+    transition: background .15s, color .15s, border-color .15s;
+  }
+  .group-tabs button:hover { border-color: var(--primary); color: var(--ink); }
+  .group-tabs button.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+  .group-tabs button:focus-visible { outline: 2px solid var(--primary-focus); outline-offset: 2px; }
+  .group-tabs button .count { opacity: 0.6; font-variant-numeric: tabular-nums; }
+
+  .search-input {
+    display: flex; align-items: center; gap: 8px; background: var(--canvas);
+    border: 1px solid var(--hairline); border-radius: 9999px; padding: 10px 18px;
+    margin-bottom: 14px;
+  }
+  .search-input svg { flex: 0 0 auto; color: var(--ink-48); }
+  .search-input input {
+    all: unset; flex: 1 1 auto; font-size: 15px; font-family: inherit; color: var(--ink);
+    letter-spacing: -0.224px;
+  }
+  .search-input input::placeholder { color: var(--ink-48); }
+
+  .list-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+  .result-count { font-size: 13px; color: var(--ink-48); letter-spacing: -0.224px; margin: 0; }
+  .sort-toggle { display: flex; gap: 4px; }
+  .sort-toggle button {
+    all: unset; cursor: pointer; font-size: 12px; letter-spacing: -0.12px; color: var(--ink-48);
+    padding: 5px 11px; border-radius: 999px; border: 1px solid transparent; transition: color .15s, border-color .15s;
+  }
+  .sort-toggle button:hover { color: var(--ink); }
+  .sort-toggle button.active { color: var(--ink); border-color: var(--hairline); }
+  .sort-toggle button:focus-visible { outline: 2px solid var(--primary-focus); outline-offset: 2px; }
+
+  /* ---- 용어 목록 ---- */
+  .term-list { border-top: 1px solid var(--hairline); }
+  .term { border-bottom: 1px solid var(--hairline); scroll-margin-top: 108px; }
+  .term.hidden { display: none; }
+  .term-head {
+    all: unset; display: block; width: 100%; box-sizing: border-box; cursor: pointer;
+    padding: 18px 40px 18px 2px; position: relative;
+  }
+  .term-head:focus-visible { outline: 2px solid var(--primary-focus); outline-offset: -2px; border-radius: 8px; }
+  .term-head::after {
+    content: ""; position: absolute; right: 8px; top: 27px;
+    width: 8px; height: 8px; border-right: 1.5px solid var(--ink-48); border-bottom: 1.5px solid var(--ink-48);
+    transform: rotate(45deg); transition: transform .18s;
+  }
+  .term.open .term-head::after { transform: rotate(-135deg); }
+  .term-title { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; margin-bottom: 5px; }
+  .term-title .name { font-size: 20px; font-weight: 600; letter-spacing: -0.374px; }
+  .term-title .en { font-size: 13px; color: var(--ink-48); letter-spacing: -0.12px; }
+  .term-short { display: block; font-size: 15px; color: var(--ink-80); letter-spacing: -0.224px; margin-bottom: 8px; }
+  .badges { display: flex; gap: 6px; flex-wrap: wrap; }
+  .badge {
+    display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: -0.12px;
+    padding: 2px 8px; border-radius: 999px;
+  }
+  .badge.cat { color: var(--primary); background: rgba(0,102,204,0.08); }
+  .badge.part { color: var(--ink-48); background: var(--parchment); border: 1px solid var(--hairline); font-weight: 400; }
+
+  .term-body { display: none; padding: 0 40px 24px 2px; }
+  .term.open .term-body { display: block; }
+  .term-body p { font-size: 15px; line-height: 1.6; letter-spacing: -0.224px; margin: 0 0 12px; color: var(--ink-80); }
+  .term-body p strong { color: var(--ink); font-weight: 600; }
+  .term-note {
+    font-size: 14px; line-height: 1.6; letter-spacing: -0.224px; color: var(--ink-80);
+    background: var(--parchment); border-radius: 12px; padding: 12px 16px; margin: 0 0 12px;
+  }
+  .term-note b { font-weight: 600; color: var(--ink); }
+  .term-related { font-size: 13px; color: var(--ink-48); letter-spacing: -0.224px; }
+  .term-related a { color: var(--primary); text-decoration: none; }
+  .term-related a:hover { text-decoration: underline; }
+  .term-link {
+    display: inline-block; margin-top: 10px; font-size: 12px; color: var(--ink-48);
+    letter-spacing: -0.12px; text-decoration: none;
+  }
+  .term-link:hover { color: var(--primary); }
+
+  .empty-note { font-size: 14px; color: var(--ink-48); letter-spacing: -0.224px; padding: 24px 0; }
+
+  footer.site-footer { background: var(--parchment); color: var(--ink-80); padding: 64px 24px 32px; }
+  .footer-links { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px 32px; }
+  .footer-links a { display: block; font-size: 17px; line-height: 2.41; color: var(--ink-80); text-decoration: none; }
+  .footer-links a:hover { color: var(--ink); }
+  .footer-legal { max-width: 1000px; margin: 32px auto 0; padding-top: 16px; border-top: 1px solid var(--hairline); font-size: 12px; color: var(--ink-48); letter-spacing: -0.12px; }
+
+  @media (max-width: 640px) {
+    main.content { padding: 48px 20px 72px; }
+    h1.headline { font-size: 28px; }
+    p.tagline { font-size: 17px; }
+    .sub-nav { padding: 0 16px; }
+    .sub-nav .category { font-size: 17px; }
+    .footer-links { grid-template-columns: repeat(2, 1fr); gap: 4px 20px; }
+  }
+  @media (max-width: 380px) {
+    .global-nav .meta { display: none; }
+  }
+</style>
+</head>
+<body>
+  <nav class="global-nav">
+    <a class="brand" href="../../index.html">AI 프로덕트 마스터</a>
+    <span class="meta">인공지능 심화(160H)</span>
+  </nav>
+  <nav class="sub-nav">
+    <a class="category" href="../index.html">사전 학습</a>
+    <a class="btn-primary" href="../../index.html">전체 커리큘럼</a>
+  </nav>
+
+  <main class="content">
+    <span class="eyebrow">사전 학습</span>
+    <h1 class="headline">기본 용어 사전</h1>
+    <p class="tagline">수업에서 계속 나오는 말들을 미리 한 번 훑어 두면 첫 주가 훨씬 편합니다. 용어를 누르면 자세한 설명이 열립니다.</p>
+
+    <nav class="group-tabs" id="group-tabs"></nav>
+
+    <label class="search-input">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="search" id="search" placeholder="용어, 원어, 설명으로 검색">
+    </label>
+
+    <div class="list-toolbar">
+      <p class="result-count" id="result-count"></p>
+      <div class="sort-toggle" id="sort-toggle">
+        <button data-sort="default" class="active">분류순</button>
+        <button data-sort="alpha">가나다순</button>
+      </div>
+    </div>
+
+    <div class="term-list" id="term-list"></div>
+    <p class="empty-note" id="empty-note" style="display:none;">일치하는 용어가 없습니다.</p>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-links">
+      <a href="../index.html">00 사전 학습</a>
+      <a href="../../01_오리엔테이션/index.html">01 오리엔테이션</a>
+      <a href="../../02_바이브코딩/index.html">02 바이브코딩</a>
+      <a href="../../03_UXUI디자인/index.html">03 UXUI디자인</a>
+      <a href="../../04_노코드프로토타이핑/index.html">04 노코드프로토타이핑</a>
+      <a href="../../05_서비스기획/index.html">05 서비스기획</a>
+      <a href="../../06_데이터ML/index.html">06 데이터ML</a>
+      <a href="../../07_LLM_RAG_Agent/index.html">07 LLM_RAG_Agent</a>
+      <a href="../../08_해커톤/index.html">08 해커톤</a>
+      <a href="../../이슈로그/index.html">이슈로그</a>
+      <a href="../../팁/index.html">팁</a>
+    </div>
+    <div class="footer-legal">AI 프로덕트 마스터 · frontierall</div>
+  </footer>
+
+  <script src="terms.js"></script>
+  <script>
+    const listEl = document.getElementById('term-list');
+    const tabsEl = document.getElementById('group-tabs');
+    const searchInput = document.getElementById('search');
+    const resultCount = document.getElementById('result-count');
+    const emptyNote = document.getElementById('empty-note');
+    const sortToggle = document.getElementById('sort-toggle');
+
+    const catLabel = id => (TERM_CATEGORIES.find(c => c.id === id) || {}).label || id;
+    const termById = id => TERMS.find(t => t.id === id);
+    let activeCat = 'all';
+    let sortMode = 'default';
+
+    /* ---- 분류 탭 ---- */
+    function renderTabs() {
+      // 아직 용어가 없는 분류는 탭을 만들지 않습니다.
+      const used = TERM_CATEGORIES.filter(c => TERMS.some(t => t.cat === c.id));
+      const groups = [{ id: 'all', label: '전체' }, ...used];
+      tabsEl.innerHTML = groups.map(g => {
+        const n = g.id === 'all' ? TERMS.length : TERMS.filter(t => t.cat === g.id).length;
+        const cls = g.id === activeCat ? ' class="active"' : '';
+        return '<button data-cat="' + g.id + '"' + cls + '>' +
+               '<span class="label">' + g.label + '</span> ' +
+               '<span class="count">(' + n + ')</span></button>';
+      }).join('');
+    }
+
+    /* ---- 용어 목록 ---- */
+    function renderList() {
+      const items = [...TERMS];
+      if (sortMode === 'alpha') items.sort((a, b) => a.term.localeCompare(b.term, 'ko'));
+
+      listEl.innerHTML = items.map(t => {
+        const body = (t.body || []).map(p => '<p>' + p + '</p>').join('');
+        const note = t.note ? '<p class="term-note"><b>주의</b> · ' + t.note + '</p>' : '';
+        const related = (t.related || [])
+          .map(id => termById(id))
+          .filter(Boolean)
+          .map(r => '<a href="#' + r.id + '" data-jump="' + r.id + '">' + r.term + '</a>')
+          .join(', ');
+        const relatedLine = related ? '<p class="term-related">관련 용어 · ' + related + '</p>' : '';
+        const partBadge = t.part ? '<span class="badge part">PART ' + t.part + '</span>' : '';
+        const enLine = t.en ? '<span class="en">' + t.en + '</span>' : '';
+
+        return [
+          '<article class="term" id="' + t.id + '" data-cat="' + t.cat + '">',
+          '  <button class="term-head" type="button" aria-expanded="false" aria-controls="body-' + t.id + '">',
+          '    <span class="term-title"><span class="name">' + t.term + '</span>' + enLine + '</span>',
+          '    <span class="term-short">' + t.short + '</span>',
+          '    <span class="badges"><span class="badge cat">' + catLabel(t.cat) + '</span>' + partBadge + '</span>',
+          '  </button>',
+          '  <div class="term-body" id="body-' + t.id + '">',
+          body + note + relatedLine,
+          '    <a class="term-link" href="#' + t.id + '">이 용어 링크 · #' + t.id + '</a>',
+          '  </div>',
+          '</article>'
+        ].join('');
+      }).join('');
+    }
+
+    /* ---- 분류 탭 · 검색 필터 ---- */
+    function applyFilters() {
+      const q = searchInput.value.trim().toLowerCase();
+      let visible = 0;
+      document.querySelectorAll('.term').forEach(el => {
+        const t = termById(el.id);
+        const haystack = [t.term, t.en || '', t.short, ...(t.body || []), t.note || '', catLabel(t.cat)]
+          .join(' ').toLowerCase();
+        const show = (activeCat === 'all' || t.cat === activeCat) && (!q || haystack.includes(q));
+        el.classList.toggle('hidden', !show);
+        if (show) visible++;
+      });
+      resultCount.textContent = visible + '개 용어';
+      emptyNote.style.display = visible === 0 ? 'block' : 'none';
+    }
+
+    /* ---- 펼치기 ---- */
+    function openTerm(id, scroll) {
+      const el = document.getElementById(id);
+      if (!el || !el.classList.contains('term')) return;
+      el.classList.add('open');
+      el.querySelector('.term-head').setAttribute('aria-expanded', 'true');
+      if (scroll) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    listEl.addEventListener('click', e => {
+      const jump = e.target.closest('[data-jump]');
+      if (jump) {
+        // 다른 분류에 있는 관련 용어라도 보이도록 필터를 전체로 되돌립니다.
+        activeCat = 'all';
+        searchInput.value = '';
+        renderTabs();
+        applyFilters();
+        openTerm(jump.dataset.jump, true);
+        return;
+      }
+      const head = e.target.closest('.term-head');
+      if (!head) return;
+      const term = head.closest('.term');
+      const open = term.classList.toggle('open');
+      head.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+
+    tabsEl.addEventListener('click', e => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      activeCat = btn.dataset.cat;
+      tabsEl.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
+      applyFilters();
+    });
+
+    sortToggle.addEventListener('click', e => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      sortMode = btn.dataset.sort;
+      sortToggle.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
+      renderList();
+      applyFilters();
+    });
+
+    searchInput.addEventListener('input', applyFilters);
+
+    renderTabs();
+    renderList();
+    applyFilters();
+
+    // #ux 처럼 특정 용어를 지목한 링크로 들어오면 그 용어를 열어 줍니다.
+    if (location.hash) openTerm(decodeURIComponent(location.hash.slice(1)), true);
+    window.addEventListener('hashchange', () => {
+      if (location.hash) openTerm(decodeURIComponent(location.hash.slice(1)), true);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>사전 학습 영상 · AI 프로덕트 마스터</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@1.3.9/dist/web/static/pretendard.css">
+<style>
+  :root {
+    --primary: #0066cc; --primary-focus: #0071e3;
+    --canvas: #ffffff; --parchment: #f5f5f7;
+    --black: #000000; --ink: #1d1d1f; --ink-80: #333333; --ink-48: #7a7a7a;
+    --hairline: #e0e0e0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--canvas); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', 'Apple SD Gothic Neo', 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-size: 17px; line-height: 1.47; letter-spacing: -0.374px;
+  }
+  .global-nav {
+    position: sticky; top: 0; z-index: 20; height: 44px; background: var(--black);
+    display: flex; align-items: center; justify-content: space-between; padding: 0 22px;
+  }
+  .global-nav .brand { color: #fff; font-size: 12px; font-weight: 600; letter-spacing: -0.12px; text-decoration: none; }
+  .global-nav .meta { color: rgba(255,255,255,0.72); font-size: 12px; letter-spacing: -0.12px; }
+  .sub-nav {
+    position: sticky; top: 44px; z-index: 19; height: 52px;
+    display: flex; align-items: center; justify-content: space-between; padding: 0 22px;
+    background: rgba(245,245,247,0.8);
+    -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+  .sub-nav .category { font-size: 21px; font-weight: 600; letter-spacing: 0.231px; color: var(--ink); text-decoration: none; }
+  .btn-primary {
+    display: inline-block; background: var(--primary); color: #fff; border: none;
+    border-radius: 9999px; padding: 8px 18px; font-size: 14px; font-family: inherit;
+    text-decoration: none; cursor: pointer; transition: transform .15s;
+  }
+  .btn-primary:active { transform: scale(0.95); }
+  .btn-primary:focus-visible { outline: 2px solid var(--primary-focus); outline-offset: 2px; }
+
+  main.content { max-width: 760px; margin: 0 auto; padding: 64px 24px 96px; }
+  .eyebrow { display: block; font-size: 14px; font-weight: 600; letter-spacing: -0.224px; color: var(--ink-48); margin-bottom: 12px; }
+  h1.headline { font-size: 40px; font-weight: 600; line-height: 1.10; letter-spacing: 0; margin: 0 0 14px; }
+  p.tagline { font-size: 22px; font-weight: 400; line-height: 1.3; letter-spacing: 0.196px; margin: 0 0 28px; color: var(--ink-80); }
+
+  .group-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 16px; scrollbar-width: none; }
+  .group-tabs::-webkit-scrollbar { display: none; }
+  .group-tabs button {
+    all: unset; flex: 0 0 auto; cursor: pointer; font-size: 13px; letter-spacing: -0.224px;
+    color: var(--ink-48); padding: 7px 14px; border-radius: 999px; border: 1px solid var(--hairline);
+    transition: background .15s, color .15s, border-color .15s;
+  }
+  .group-tabs button:hover { border-color: var(--primary); color: var(--ink); }
+  .group-tabs button.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+  .group-tabs button:focus-visible { outline: 2px solid var(--primary-focus); outline-offset: 2px; }
+  .group-tabs button .count { opacity: 0.6; font-variant-numeric: tabular-nums; }
+
+  .result-count { font-size: 13px; color: var(--ink-48); letter-spacing: -0.224px; margin: 0 0 16px; }
+
+  /* ---- 영상 카드 ---- */
+  .video-list { display: grid; gap: 28px; }
+  .video { border: 1px solid var(--hairline); border-radius: 18px; overflow: hidden; }
+  .video.hidden { display: none; }
+
+  .frame { position: relative; width: 100%; aspect-ratio: 16 / 9; background: #000; }
+  .frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  .facade { all: unset; display: block; position: absolute; inset: 0; cursor: pointer; }
+  .facade img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .facade:focus-visible { outline: 3px solid var(--primary-focus); outline-offset: -3px; }
+  .facade .play {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: 64px; height: 44px; border-radius: 12px; background: rgba(0,0,0,0.72);
+    display: flex; align-items: center; justify-content: center; transition: background .15s;
+  }
+  .facade:hover .play { background: #ff0000; }
+  .facade .play::after {
+    content: ""; width: 0; height: 0; margin-left: 3px;
+    border-left: 15px solid #fff; border-top: 9px solid transparent; border-bottom: 9px solid transparent;
+  }
+
+  .video-info { padding: 20px; }
+  .badges { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .badge { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: -0.12px; padding: 2px 8px; border-radius: 999px; }
+  .badge.cat { color: var(--primary); background: rgba(0,102,204,0.08); }
+  .badge.part { color: var(--ink-48); background: var(--parchment); border: 1px solid var(--hairline); font-weight: 400; }
+  .video-info h2 { font-size: 19px; font-weight: 600; letter-spacing: -0.374px; margin: 0 0 8px; line-height: 1.35; }
+  .video-info .why { font-size: 15px; color: var(--ink-80); letter-spacing: -0.224px; margin: 0 0 14px; }
+  .points { margin: 0 0 14px; padding-left: 18px; }
+  .points li { font-size: 14px; color: var(--ink-80); letter-spacing: -0.224px; line-height: 1.7; }
+  .video-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 12px; color: var(--ink-48); letter-spacing: -0.12px; }
+  .video-meta a { color: var(--ink-48); text-decoration: none; }
+  .video-meta a:hover { color: var(--primary); }
+  .video-meta .sep { color: var(--hairline); }
+
+  .empty-note { font-size: 14px; color: var(--ink-48); letter-spacing: -0.224px; padding: 24px 0; }
+
+  footer.site-footer { background: var(--parchment); color: var(--ink-80); padding: 64px 24px 32px; }
+  .footer-links { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px 32px; }
+  .footer-links a { display: block; font-size: 17px; line-height: 2.41; color: var(--ink-80); text-decoration: none; }
+  .footer-links a:hover { color: var(--ink); }
+  .footer-legal { max-width: 1000px; margin: 32px auto 0; padding-top: 16px; border-top: 1px solid var(--hairline); font-size: 12px; color: var(--ink-48); letter-spacing: -0.12px; }
+
+  @media (max-width: 640px) {
+    main.content { padding: 48px 20px 72px; }
+    h1.headline { font-size: 28px; }
+    p.tagline { font-size: 17px; }
+    .sub-nav { padding: 0 16px; }
+    .sub-nav .category { font-size: 17px; }
+    .footer-links { grid-template-columns: repeat(2, 1fr); gap: 4px 20px; }
+  }
+  @media (max-width: 380px) {
+    .global-nav .meta { display: none; }
+  }
+</style>
+</head>
+<body>
+  <nav class="global-nav">
+    <a class="brand" href="../../index.html">AI 프로덕트 마스터</a>
+    <span class="meta">인공지능 심화(160H)</span>
+  </nav>
+  <nav class="sub-nav">
+    <a class="category" href="../index.html">사전 학습</a>
+    <a class="btn-primary" href="../../index.html">전체 커리큘럼</a>
+  </nav>
+
+  <main class="content">
+    <span class="eyebrow">사전 학습</span>
+    <h1 class="headline">사전 학습 영상</h1>
+    <p class="tagline">개강 전에 한 번 보고 오시면 좋은 영상입니다. 썸네일을 누르면 이 페이지에서 바로 재생됩니다.</p>
+
+    <nav class="group-tabs" id="group-tabs"></nav>
+    <p class="result-count" id="result-count"></p>
+
+    <div class="video-list" id="video-list"></div>
+    <p class="empty-note" id="empty-note" style="display:none;">일치하는 영상이 없습니다.</p>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-links">
+      <a href="../index.html">00 사전 학습</a>
+      <a href="../../01_오리엔테이션/index.html">01 오리엔테이션</a>
+      <a href="../../02_바이브코딩/index.html">02 바이브코딩</a>
+      <a href="../../03_UXUI디자인/index.html">03 UXUI디자인</a>
+      <a href="../../04_노코드프로토타이핑/index.html">04 노코드프로토타이핑</a>
+      <a href="../../05_서비스기획/index.html">05 서비스기획</a>
+      <a href="../../06_데이터ML/index.html">06 데이터ML</a>
+      <a href="../../07_LLM_RAG_Agent/index.html">07 LLM_RAG_Agent</a>
+      <a href="../../08_해커톤/index.html">08 해커톤</a>
+      <a href="../../이슈로그/index.html">이슈로그</a>
+      <a href="../../팁/index.html">팁</a>
+    </div>
+    <div class="footer-legal">AI 프로덕트 마스터 · frontierall</div>
+  </footer>
+
+  <script src="videos.js"></script>
+  <script>
+    const listEl = document.getElementById('video-list');
+    const tabsEl = document.getElementById('group-tabs');
+    const resultCount = document.getElementById('result-count');
+    const emptyNote = document.getElementById('empty-note');
+
+    const catLabel = id => (VIDEO_CATEGORIES.find(c => c.id === id) || {}).label || id;
+    let activeCat = 'all';
+
+    function renderTabs() {
+      // 아직 영상이 없는 분류는 탭을 만들지 않습니다.
+      const used = VIDEO_CATEGORIES.filter(c => VIDEOS.some(v => v.cat === c.id));
+      const groups = [{ id: 'all', label: '전체' }, ...used];
+      tabsEl.innerHTML = groups.map(g => {
+        const n = g.id === 'all' ? VIDEOS.length : VIDEOS.filter(v => v.cat === g.id).length;
+        const cls = g.id === activeCat ? ' class="active"' : '';
+        return '<button data-cat="' + g.id + '"' + cls + '>' +
+               '<span class="label">' + g.label + '</span> ' +
+               '<span class="count">(' + n + ')</span></button>';
+      }).join('');
+    }
+
+    function renderList() {
+      listEl.innerHTML = VIDEOS.map(v => {
+        const points = (v.points || []).map(p => '<li>' + p + '</li>').join('');
+        const pointsList = points ? '<ul class="points">' + points + '</ul>' : '';
+        const partBadge = v.part ? '<span class="badge part">PART ' + v.part + '</span>' : '';
+        const channel = v.channel ? '<span>' + v.channel + '</span><span class="sep">·</span>' : '';
+        const length = v.length ? '<span>' + v.length + '</span><span class="sep">·</span>' : '';
+        const watchUrl = 'https://www.youtube.com/watch?v=' + v.id;
+
+        return [
+          '<article class="video" data-cat="' + v.cat + '" data-id="' + v.id + '">',
+          '  <div class="frame">',
+          '    <button class="facade" type="button" data-play="' + v.id + '" aria-label="' + v.title + ' 재생">',
+          '      <img src="https://i.ytimg.com/vi/' + v.id + '/hqdefault.jpg" alt="" loading="lazy">',
+          '      <span class="play"></span>',
+          '    </button>',
+          '  </div>',
+          '  <div class="video-info">',
+          '    <div class="badges"><span class="badge cat">' + catLabel(v.cat) + '</span>' + partBadge + '</div>',
+          '    <h2>' + v.title + '</h2>',
+          '    <p class="why">' + v.why + '</p>',
+          pointsList,
+          '    <div class="video-meta">' + channel + length +
+          '      <a href="' + watchUrl + '" target="_blank" rel="noopener">YouTube에서 보기 ↗</a>',
+          '    </div>',
+          '  </div>',
+          '</article>'
+        ].join('');
+      }).join('');
+    }
+
+    function applyFilters() {
+      let visible = 0;
+      document.querySelectorAll('.video').forEach(el => {
+        const show = activeCat === 'all' || el.dataset.cat === activeCat;
+        el.classList.toggle('hidden', !show);
+        if (show) visible++;
+      });
+      resultCount.textContent = visible + '개 영상';
+      emptyNote.style.display = visible === 0 ? 'block' : 'none';
+    }
+
+    // 썸네일을 누를 때만 iframe을 만듭니다. 영상이 늘어나도 첫 로딩이 무거워지지 않습니다.
+    listEl.addEventListener('click', e => {
+      const facade = e.target.closest('[data-play]');
+      if (!facade) return;
+      const id = facade.dataset.play;
+      const frame = facade.closest('.frame');
+      const iframe = document.createElement('iframe');
+      iframe.src = 'https://www.youtube-nocookie.com/embed/' + id + '?autoplay=1&rel=0';
+      iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+      iframe.allowFullscreen = true;
+      iframe.title = 'YouTube 영상';
+      frame.innerHTML = '';
+      frame.appendChild(iframe);
+    });
+
+    tabsEl.addEventListener('click', e => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      activeCat = btn.dataset.cat;
+      tabsEl.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
+      applyFilters();
+    });
+
+    renderTabs();
+    renderList();
+    applyFilters();
+  </script>
+</body>
+</html>

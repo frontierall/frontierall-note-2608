@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>08 해커톤 · AI 프로덕트 마스터</title>
+<title>사전 학습 · AI 프로덕트 마스터</title>
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@1.3.9/dist/web/static/pretendard.css">
 <style>
   :root {
@@ -41,28 +41,36 @@
   .btn-primary:active { transform: scale(0.95); }
   .btn-primary:focus-visible { outline: 2px solid var(--primary-focus); outline-offset: 2px; }
 
-  main.content { max-width: 720px; margin: 0 auto; padding: 64px 24px 96px; }
+  main.content { max-width: 760px; margin: 0 auto; padding: 64px 24px 96px; }
   .eyebrow { display: block; font-size: 14px; font-weight: 600; letter-spacing: -0.224px; color: var(--ink-48); margin-bottom: 12px; }
   h1.headline { font-size: 40px; font-weight: 600; line-height: 1.10; letter-spacing: 0; margin: 0 0 14px; }
-  p.tagline { font-size: 28px; font-weight: 400; line-height: 1.14; letter-spacing: 0.196px; margin: 0 0 20px; color: var(--ink-80); }
+  p.tagline { font-size: 22px; font-weight: 400; line-height: 1.3; letter-spacing: 0.196px; margin: 0 0 32px; color: var(--ink-80); }
 
-  section.block { margin-top: 56px; }
-  h3.section-label { font-size: 14px; font-weight: 600; letter-spacing: -0.224px; color: var(--ink-48); margin: 0 0 16px; }
-
-  ul.topics { list-style: none; margin: 0; padding: 0; }
-  ul.topics li { font-size: 17px; line-height: 1.47; letter-spacing: -0.374px; padding: 14px 0; border-top: 1px solid var(--hairline); }
-  ul.topics li:last-child { border-bottom: 1px solid var(--hairline); }
-
-  .utility-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
+  .utility-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom: 40px; }
   a.utility-card {
     display: block; background: var(--canvas); border: 1px solid var(--hairline);
-    border-radius: 18px; padding: 24px; text-decoration: none; color: var(--ink);
+    border-radius: 18px; padding: 20px; text-decoration: none; color: var(--ink);
     transition: border-color .15s;
   }
   a.utility-card:hover { border-color: var(--primary); }
+  a.utility-card .tag {
+    display: inline-block; font-size: 11px; font-weight: 700; color: var(--primary);
+    background: rgba(0,102,204,0.08); padding: 2px 8px; border-radius: 999px; margin-bottom: 10px;
+  }
   a.utility-card .name { font-size: 17px; font-weight: 600; letter-spacing: -0.374px; margin-bottom: 6px; }
   a.utility-card .meta { font-size: 14px; color: var(--ink-48); letter-spacing: -0.224px; }
-  .empty-note { font-size: 14px; color: var(--ink-48); letter-spacing: -0.224px; }
+  a.utility-card .count {
+    display: inline-block; font-size: 11px; color: var(--ink-48); letter-spacing: -0.12px;
+    background: var(--parchment); border: 1px solid var(--hairline); padding: 2px 8px;
+    border-radius: 999px; margin-top: 10px;
+  }
+
+  .guide { border-top: 1px solid var(--hairline); padding-top: 28px; }
+  .guide h2 { font-size: 19px; font-weight: 600; letter-spacing: -0.374px; margin: 0 0 12px; }
+  .guide p { font-size: 15px; color: var(--ink-80); letter-spacing: -0.224px; line-height: 1.6; margin: 0 0 12px; }
+  .guide ol { margin: 0; padding-left: 20px; }
+  .guide li { font-size: 15px; color: var(--ink-80); letter-spacing: -0.224px; line-height: 1.8; }
+  .guide li strong { color: var(--ink); font-weight: 600; }
 
   footer.site-footer { background: var(--parchment); color: var(--ink-80); padding: 64px 24px 32px; }
   .footer-links { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px 32px; }
@@ -73,10 +81,11 @@
   @media (max-width: 640px) {
     main.content { padding: 48px 20px 72px; }
     h1.headline { font-size: 28px; }
-    p.tagline { font-size: 20px; }
+    p.tagline { font-size: 17px; }
     .sub-nav { padding: 0 16px; }
     .sub-nav .category { font-size: 17px; }
     .footer-links { grid-template-columns: repeat(2, 1fr); gap: 4px 20px; }
+    .utility-grid { grid-template-columns: 1fr; }
   }
   @media (max-width: 380px) {
     .global-nav .meta { display: none; }
@@ -89,36 +98,43 @@
     <span class="meta">인공지능 심화(160H)</span>
   </nav>
   <nav class="sub-nav">
-    <a class="category" href="#">08 해커톤</a>
+    <a class="category" href="#">사전 학습</a>
     <a class="btn-primary" href="../index.html">전체 커리큘럼</a>
   </nav>
 
   <main class="content">
-    <span class="eyebrow">PART 08 · 28H</span>
-    <h1 class="headline">해커톤</h1>
-    <p class="tagline">모든 역량 통합, 실제 서비스 런칭 및 IR 피칭</p>
+    <span class="eyebrow">개강 전에 보고 오세요</span>
+    <h1 class="headline">사전 학습</h1>
+    <p class="tagline">첫 수업 전에 훑어 두면 좋은 자료를 모았습니다. 미리 다 이해하지 않아도 괜찮습니다. 낯선 말을 한 번이라도 본 상태로 오시는 것이 목적입니다.</p>
 
-    <section class="block">
-      <h3 class="section-label">학습 항목</h3>
-      <ul class="topics">
-        <li>특강: 실무자 바이브 코딩</li>
-        <li>캡스톤 프로젝트 기획 & 팀 빌딩</li>
-        <li>전문가 기술 멘토링 및 아이디어 중간 발표</li>
-        <li>집중 개발 및 팀별 자율 최적화 멘토링</li>
-        <li>프로토타입 완성 및 결과물 문서화</li>
-        <li>최종 결과물 발표, 성과 시상 및 피드백</li>
-      </ul>
-    </section>
+    <div class="utility-grid">
+      <a class="utility-card" href="용어사전/index.html">
+        <span class="tag">용어</span>
+        <div class="name">기본 용어 사전</div>
+        <div class="meta">바이브코딩, UX, UI, Lovable, V0 — 수업에서 계속 나오는 말들</div>
+        <span class="count">5개 용어</span>
+      </a>
+      <a class="utility-card" href="영상/index.html">
+        <span class="tag">영상</span>
+        <div class="name">사전 학습 영상</div>
+        <div class="meta">터미널 기본 개념, GitHub Pages 배포 — 첫 실습 전에 보면 좋은 영상</div>
+        <span class="count">2개 영상</span>
+      </a>
+    </div>
 
-    <section class="block">
-      <h3 class="section-label">자료</h3>
-      <p class="empty-note">아직 등록된 HTML 교안이 없습니다.</p>
+    <section class="guide">
+      <h2>이 순서로 보시면 좋습니다</h2>
+      <p>총 1시간 정도면 충분합니다. 순서대로 보실 필요는 없지만, 아래 순서가 가장 자연스럽습니다.</p>
+      <ol>
+        <li><strong>기본 용어 사전</strong> — 모르는 말이 나왔을 때 돌아와 찾아보는 용도로도 씁니다.</li>
+        <li><strong>터미널 기본 개념</strong> — 검은 화면이 낯설지 않게 만드는 것이 목표입니다.</li>
+        <li><strong>GitHub Pages 배포</strong> — 만든 것을 남에게 보여 주는 방법입니다.</li>
+      </ol>
     </section>
   </main>
 
   <footer class="site-footer">
     <div class="footer-links">
-      <a href="../00_사전학습/index.html">00 사전 학습</a>
       <a href="../01_오리엔테이션/index.html">01 오리엔테이션</a>
       <a href="../02_바이브코딩/index.html">02 바이브코딩</a>
       <a href="../03_UXUI디자인/index.html">03 UXUI디자인</a>
@@ -127,6 +143,8 @@
       <a href="../06_데이터ML/index.html">06 데이터ML</a>
       <a href="../07_LLM_RAG_Agent/index.html">07 LLM_RAG_Agent</a>
       <a href="../08_해커톤/index.html">08 해커톤</a>
+      <a href="../이슈로그/index.html">이슈로그</a>
+      <a href="../팁/index.html">팁</a>
     </div>
     <div class="footer-legal">AI 프로덕트 마스터 · frontierall</div>
   </footer>
