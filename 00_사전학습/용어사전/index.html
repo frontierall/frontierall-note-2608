@@ -96,10 +96,14 @@
     transform: rotate(45deg); transition: transform .18s;
   }
   .term.open .term-head::after { transform: rotate(-135deg); }
-  .term-title { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; margin-bottom: 5px; }
+  .term-title { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; margin-bottom: 7px; }
+  .term-title .emoji { font-size: 19px; line-height: 1; }
   .term-title .name { font-size: 20px; font-weight: 600; letter-spacing: -0.374px; }
   .term-title .en { font-size: 13px; color: var(--ink-48); letter-spacing: -0.12px; }
-  .term-short { display: block; font-size: 15px; color: var(--ink-80); letter-spacing: -0.224px; margin-bottom: 8px; }
+  .term-short {
+    display: block; font-size: 15px; line-height: 1.65; color: var(--ink-80);
+    letter-spacing: -0.224px; margin-bottom: 12px; max-width: 62ch;
+  }
   .badges { display: flex; gap: 6px; flex-wrap: wrap; }
   .badge {
     display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: -0.12px;
@@ -172,7 +176,7 @@
     <div class="list-toolbar">
       <p class="result-count" id="result-count"></p>
       <div class="sort-toggle" id="sort-toggle">
-        <button data-sort="default" class="active">분류순</button>
+        <button data-sort="default" class="active">PART순</button>
         <button data-sort="alpha">가나다순</button>
       </div>
     </div>
@@ -207,18 +211,19 @@
     const emptyNote = document.getElementById('empty-note');
     const sortToggle = document.getElementById('sort-toggle');
 
-    const catLabel = id => (TERM_CATEGORIES.find(c => c.id === id) || {}).label || id;
+    const partOf = id => TERM_CATEGORIES.find(c => c.id === id) || { no: '', name: id };
+    const partLabel = id => { const p = partOf(id); return p.no ? p.no + ' ' + p.name : p.name; };
     const termById = id => TERMS.find(t => t.id === id);
     let activeCat = 'all';
     let sortMode = 'default';
 
     /* ---- 분류 탭 ---- */
     function renderTabs() {
-      // 아직 용어가 없는 분류는 탭을 만들지 않습니다.
-      const used = TERM_CATEGORIES.filter(c => TERMS.some(t => t.cat === c.id));
-      const groups = [{ id: 'all', label: '전체' }, ...used];
+      // 아직 용어가 없는 PART는 탭을 만들지 않습니다.
+      const used = TERM_CATEGORIES.filter(c => TERMS.some(t => t.part === c.id));
+      const groups = [{ id: 'all', label: '전체' }, ...used.map(c => ({ id: c.id, label: partLabel(c.id) }))];
       tabsEl.innerHTML = groups.map(g => {
-        const n = g.id === 'all' ? TERMS.length : TERMS.filter(t => t.cat === g.id).length;
+        const n = g.id === 'all' ? TERMS.length : TERMS.filter(t => t.part === g.id).length;
         const cls = g.id === activeCat ? ' class="active"' : '';
         return '<button data-cat="' + g.id + '"' + cls + '>' +
                '<span class="label">' + g.label + '</span> ' +
@@ -240,15 +245,17 @@
           .map(r => '<a href="#' + r.id + '" data-jump="' + r.id + '">' + r.term + '</a>')
           .join(', ');
         const relatedLine = related ? '<p class="term-related">관련 용어 · ' + related + '</p>' : '';
-        const partBadge = t.part ? '<span class="badge part">PART ' + t.part + '</span>' : '';
+        const p = partOf(t.part);
+        const partBadge = p.no ? '<span class="badge part">' + p.name + '</span>' : '';
         const enLine = t.en ? '<span class="en">' + t.en + '</span>' : '';
+        const emoji = t.emoji ? '<span class="emoji">' + t.emoji + '</span>' : '';
 
         return [
-          '<article class="term" id="' + t.id + '" data-cat="' + t.cat + '">',
+          '<article class="term" id="' + t.id + '" data-part="' + t.part + '">',
           '  <button class="term-head" type="button" aria-expanded="false" aria-controls="body-' + t.id + '">',
-          '    <span class="term-title"><span class="name">' + t.term + '</span>' + enLine + '</span>',
+          '    <span class="term-title">' + emoji + '<span class="name">' + t.term + '</span>' + enLine + '</span>',
           '    <span class="term-short">' + t.short + '</span>',
-          '    <span class="badges"><span class="badge cat">' + catLabel(t.cat) + '</span>' + partBadge + '</span>',
+          '    <span class="badges"><span class="badge cat">PART ' + p.no + '</span>' + partBadge + '</span>',
           '  </button>',
           '  <div class="term-body" id="body-' + t.id + '">',
           body + note + relatedLine,
@@ -265,9 +272,9 @@
       let visible = 0;
       document.querySelectorAll('.term').forEach(el => {
         const t = termById(el.id);
-        const haystack = [t.term, t.en || '', t.short, ...(t.body || []), t.note || '', catLabel(t.cat)]
+        const haystack = [t.term, t.en || '', t.short, ...(t.body || []), t.note || '', partLabel(t.part)]
           .join(' ').toLowerCase();
-        const show = (activeCat === 'all' || t.cat === activeCat) && (!q || haystack.includes(q));
+        const show = (activeCat === 'all' || t.part === activeCat) && (!q || haystack.includes(q));
         el.classList.toggle('hidden', !show);
         if (show) visible++;
       });
