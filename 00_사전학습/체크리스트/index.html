@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>사전 준비 체크리스트 · AI 프로덕트 마스터</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@1.3.9/dist/web/static/pretendard.css">
+<style>
+  :root {
+    --primary: #0066cc; --primary-focus: #0071e3;
+    --canvas: #ffffff; --parchment: #f5f5f7;
+    --black: #000000; --ink: #1d1d1f; --ink-80: #333333; --ink-48: #7a7a7a;
+    --hairline: #e0e0e0; --done: #1db954;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--canvas); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', 'Apple SD Gothic Neo', 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-size: 17px; line-height: 1.47; letter-spacing: -0.374px;
+  }
+  .global-nav {
+    position: sticky; top: 0; z-index: 20; height: 44px; background: var(--black);
+    display: flex; align-items: center; justify-content: space-between; padding: 0 22px;
+  }
+  .global-nav .brand { color: #fff; font-size: 12px; font-weight: 600; letter-spacing: -0.12px; text-decoration: none; }
+  .global-nav .meta { color: rgba(255,255,255,0.72); font-size: 12px; letter-spacing: -0.12px; }
+  .sub-nav {
+    position: sticky; top: 44px; z-index: 19; height: 52px;
+    display: flex; align-items: center; justify-content: space-between; padding: 0 22px;
+    background: rgba(245,245,247,0.8);
+    -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+  .sub-nav .category { font-size: 21px; font-weight: 600; letter-spacing: 0.231px; color: var(--ink); text-decoration: none; }
+  .btn-primary {
+    display: inline-block; background: var(--primary); color: #fff; border: none;
+    border-radius: 9999px; padding: 8px 18px; font-size: 14px; font-family: inherit;
+    text-decoration: none; cursor: pointer; transition: transform .15s;
+  }
+  .btn-primary:active { transform: scale(0.95); }
+  .btn-primary:focus-visible { outline: 2px solid var(--primary-focus); outline-offset: 2px; }
+
+  main.content { max-width: 760px; margin: 0 auto; padding: 64px 24px 96px; }
+  .eyebrow { display: block; font-size: 14px; font-weight: 600; letter-spacing: -0.224px; color: var(--ink-48); margin-bottom: 12px; }
+  h1.headline { font-size: 40px; font-weight: 600; line-height: 1.10; letter-spacing: 0; margin: 0 0 14px; }
+  p.tagline { font-size: 22px; font-weight: 400; line-height: 1.3; letter-spacing: 0.196px; margin: 0 0 28px; color: var(--ink-80); }
+
+  /* ---- 진행률 ---- */
+  .progress-box {
+    position: sticky; top: 96px; z-index: 10;
+    background: var(--parchment); border-radius: 16px; padding: 16px 20px; margin-bottom: 32px;
+  }
+  .progress-line { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+  .progress-text { font-size: 15px; font-weight: 600; letter-spacing: -0.224px; }
+  .progress-text .done-count { color: var(--primary); font-variant-numeric: tabular-nums; }
+  .progress-text.all-done .done-count { color: var(--done); }
+  .reset-btn {
+    all: unset; cursor: pointer; font-size: 12px; color: var(--ink-48); letter-spacing: -0.12px;
+    padding: 4px 10px; border-radius: 999px; border: 1px solid var(--hairline); background: var(--canvas);
+  }
+  .reset-btn:hover { color: var(--ink); border-color: var(--ink-48); }
+  .reset-btn:focus-visible { outline: 2px solid var(--primary-focus); outline-offset: 2px; }
+  .bar { height: 6px; border-radius: 999px; background: var(--hairline); overflow: hidden; }
+  .bar span { display: block; height: 100%; width: 0; background: var(--primary); border-radius: 999px; transition: width .25s, background .25s; }
+  .bar.all-done span { background: var(--done); }
+
+  /* ---- 그룹 ---- */
+  .group { margin-bottom: 36px; }
+  .group-head { margin-bottom: 12px; }
+  .group-head h2 { font-size: 19px; font-weight: 600; letter-spacing: -0.374px; margin: 0 0 2px; }
+  .group-head p { font-size: 13px; color: var(--ink-48); letter-spacing: -0.224px; margin: 0; }
+
+  /* ---- 항목 ---- */
+  .item {
+    display: flex; gap: 14px; align-items: flex-start;
+    border: 1px solid var(--hairline); border-radius: 18px; padding: 18px 20px; margin-bottom: 12px;
+    transition: border-color .15s, background .15s;
+  }
+  .item.done { background: var(--parchment); border-color: transparent; }
+  .item .check {
+    all: unset; flex: 0 0 auto; cursor: pointer; width: 26px; height: 26px; margin-top: 2px;
+    border: 1.5px solid var(--ink-48); border-radius: 50%; position: relative;
+    transition: background .15s, border-color .15s;
+  }
+  .item .check:hover { border-color: var(--primary); }
+  .item .check:focus-visible { outline: 2px solid var(--primary-focus); outline-offset: 3px; }
+  .item.done .check { background: var(--done); border-color: var(--done); }
+  .item .check::after {
+    content: ""; position: absolute; left: 8px; top: 4px; width: 6px; height: 12px;
+    border-right: 2px solid #fff; border-bottom: 2px solid #fff;
+    transform: rotate(45deg) scale(0); transition: transform .15s;
+  }
+  .item.done .check::after { transform: rotate(45deg) scale(1); }
+
+  .item .detail { flex: 1 1 auto; min-width: 0; }
+  .item .name { font-size: 17px; font-weight: 600; letter-spacing: -0.374px; margin-bottom: 6px; }
+  .item.done .name { color: var(--ink-48); text-decoration: line-through; text-decoration-color: var(--hairline); }
+  .item .why { font-size: 14px; line-height: 1.6; color: var(--ink-80); letter-spacing: -0.224px; margin: 0 0 8px; }
+  .item .tip {
+    font-size: 13px; line-height: 1.6; color: var(--ink-48); letter-spacing: -0.224px;
+    margin: 0 0 12px; padding-left: 12px; border-left: 2px solid var(--hairline);
+  }
+  .item .go {
+    display: inline-block; font-size: 13px; font-weight: 600; letter-spacing: -0.224px;
+    color: var(--primary); text-decoration: none; border: 1px solid var(--hairline);
+    border-radius: 999px; padding: 6px 14px; transition: border-color .15s, background .15s;
+  }
+  .item .go:hover { border-color: var(--primary); background: rgba(0,102,204,0.06); }
+
+  .closing {
+    border-top: 1px solid var(--hairline); padding-top: 24px;
+    font-size: 14px; line-height: 1.7; color: var(--ink-48); letter-spacing: -0.224px;
+  }
+  .closing strong { color: var(--ink-80); font-weight: 600; }
+
+  footer.site-footer { background: var(--parchment); color: var(--ink-80); padding: 64px 24px 32px; }
+  .footer-links { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px 32px; }
+  .footer-links a { display: block; font-size: 17px; line-height: 2.41; color: var(--ink-80); text-decoration: none; }
+  .footer-links a:hover { color: var(--ink); }
+  .footer-legal { max-width: 1000px; margin: 32px auto 0; padding-top: 16px; border-top: 1px solid var(--hairline); font-size: 12px; color: var(--ink-48); letter-spacing: -0.12px; }
+
+  @media (max-width: 640px) {
+    main.content { padding: 48px 20px 72px; }
+    h1.headline { font-size: 28px; }
+    p.tagline { font-size: 17px; }
+    .sub-nav { padding: 0 16px; }
+    .sub-nav .category { font-size: 17px; }
+    .progress-box { top: 88px; }
+    .footer-links { grid-template-columns: repeat(2, 1fr); gap: 4px 20px; }
+  }
+  @media (max-width: 380px) {
+    .global-nav .meta { display: none; }
+  }
+</style>
+</head>
+<body>
+  <nav class="global-nav">
+    <a class="brand" href="../../index.html">AI 프로덕트 마스터</a>
+    <span class="meta">인공지능 심화(160H)</span>
+  </nav>
+  <nav class="sub-nav">
+    <a class="category" href="../index.html">사전 학습</a>
+    <a class="btn-primary" href="../../index.html">전체 커리큘럼</a>
+  </nav>
+
+  <main class="content">
+    <span class="eyebrow">사전 학습</span>
+    <h1 class="headline">사전 준비 체크리스트</h1>
+    <p class="tagline">첫 수업 전에 계정만 만들어 두시면 됩니다. 다 무료로 시작할 수 있고, 전부 해도 20분이면 끝납니다.</p>
+
+    <div class="progress-box">
+      <div class="progress-line">
+        <span class="progress-text" id="progress-text"></span>
+        <button class="reset-btn" type="button" id="reset">전체 지우기</button>
+      </div>
+      <div class="bar" id="bar"><span></span></div>
+    </div>
+
+    <div id="groups"></div>
+
+    <p class="closing">
+      체크 표시는 <strong>이 브라우저에만</strong> 저장됩니다. 서버로 보내지 않으니 누가 무엇을 체크했는지는 아무도 볼 수 없어요.
+      다른 기기에서 열면 처음부터 다시 보입니다. 🙂<br>
+      가입이 막히거나 화면이 다르게 나오면 그대로 두고 오셔도 됩니다. 첫 수업 때 같이 해결합니다.
+    </p>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-links">
+      <a href="../index.html">00 사전 학습</a>
+      <a href="../../01_오리엔테이션/index.html">01 오리엔테이션</a>
+      <a href="../../02_바이브코딩/index.html">02 바이브코딩</a>
+      <a href="../../03_UXUI디자인/index.html">03 UXUI디자인</a>
+      <a href="../../04_노코드프로토타이핑/index.html">04 노코드프로토타이핑</a>
+      <a href="../../05_서비스기획/index.html">05 서비스기획</a>
+      <a href="../../06_데이터ML/index.html">06 데이터ML</a>
+      <a href="../../07_LLM_RAG_Agent/index.html">07 LLM_RAG_Agent</a>
+      <a href="../../08_해커톤/index.html">08 해커톤</a>
+      <a href="../../이슈로그/index.html">이슈로그</a>
+      <a href="../../팁/index.html">팁</a>
+    </div>
+    <div class="footer-legal">AI 프로덕트 마스터 · frontierall</div>
+  </footer>
+
+  <script src="checklist.js"></script>
+  <script>
+    const STORAGE_KEY = 'frontierall-note-2608:precheck';
+    const groupsEl = document.getElementById('groups');
+    const progressText = document.getElementById('progress-text');
+    const bar = document.getElementById('bar');
+    const resetBtn = document.getElementById('reset');
+
+    // 브라우저 설정에 따라 저장소 접근 자체가 막히는 경우가 있어 전부 감쌉니다.
+    function loadState() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+      } catch (e) {
+        return {};
+      }
+    }
+    function saveState(state) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {
+        /* 저장이 안 되어도 체크 표시는 화면에서 동작합니다. */
+      }
+    }
+
+    let state = loadState();
+
+    function render() {
+      const used = CHECK_GROUPS.filter(g => CHECK_ITEMS.some(i => i.group === g.id));
+      groupsEl.innerHTML = used.map(g => {
+        const items = CHECK_ITEMS.filter(i => i.group === g.id).map(item => {
+          const done = state[item.id] ? ' done' : '';
+          const tip = item.tip ? '<p class="tip">' + item.tip + '</p>' : '';
+          const go = item.url
+            ? '<a class="go" href="' + item.url + '" target="_blank" rel="noopener">바로 가기 ↗</a>'
+            : '';
+          return [
+            '<div class="item' + done + '" data-id="' + item.id + '">',
+            '  <button class="check" type="button" role="checkbox" aria-checked="' + (done ? 'true' : 'false') + '"',
+            '          aria-label="' + item.name + ' 준비 완료"></button>',
+            '  <div class="detail">',
+            '    <div class="name">' + item.emoji + ' ' + item.name + '</div>',
+            '    <p class="why">' + item.why + '</p>',
+            tip,
+            go,
+            '  </div>',
+            '</div>'
+          ].join('');
+        }).join('');
+
+        return [
+          '<section class="group">',
+          '  <div class="group-head">',
+          '    <h2>' + g.label + '</h2>',
+          '    <p>' + g.desc + '</p>',
+          '  </div>',
+          items,
+          '</section>'
+        ].join('');
+      }).join('');
+
+      updateProgress();
+    }
+
+    function updateProgress() {
+      const total = CHECK_ITEMS.length;
+      const done = CHECK_ITEMS.filter(i => state[i.id]).length;
+      const allDone = done === total;
+      progressText.innerHTML = allDone
+        ? '<span class="done-count">' + done + '개</span> 전부 준비되었습니다. 첫 수업에서 만나요! 🎉'
+        : '<span class="done-count">' + done + '</span> / ' + total + '개 준비 완료';
+      progressText.classList.toggle('all-done', allDone);
+      bar.classList.toggle('all-done', allDone);
+      bar.firstElementChild.style.width = (total ? (done / total) * 100 : 0) + '%';
+    }
+
+    groupsEl.addEventListener('click', e => {
+      const btn = e.target.closest('.check');
+      if (!btn) return;
+      const row = btn.closest('.item');
+      const id = row.dataset.id;
+      state[id] = !state[id];
+      if (!state[id]) delete state[id];
+      row.classList.toggle('done', !!state[id]);
+      btn.setAttribute('aria-checked', state[id] ? 'true' : 'false');
+      saveState(state);
+      updateProgress();
+    });
+
+    resetBtn.addEventListener('click', () => {
+      state = {};
+      saveState(state);
+      render();
+    });
+
+    render();
+  </script>
+</body>
+</html>

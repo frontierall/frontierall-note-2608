@@ -46,7 +46,15 @@
   h1.headline { font-size: 40px; font-weight: 600; line-height: 1.10; letter-spacing: 0; margin: 0 0 14px; }
   p.tagline { font-size: 22px; font-weight: 400; line-height: 1.3; letter-spacing: 0.196px; margin: 0 0 28px; color: var(--ink-80); }
 
-  .group-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 16px; scrollbar-width: none; }
+  .filter-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .filter-row:last-of-type { margin-bottom: 18px; }
+  .filter-label {
+    flex: 0 0 auto; width: 34px; font-size: 11px; font-weight: 700; color: var(--ink-48);
+    letter-spacing: -0.12px;
+  }
+  .group-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+  .group-tabs button.empty { opacity: 0.4; }
+  .group-tabs.kind button.active { background: var(--ink); border-color: var(--ink); }
   .group-tabs::-webkit-scrollbar { display: none; }
   .group-tabs button {
     all: unset; flex: 0 0 auto; cursor: pointer; font-size: 13px; letter-spacing: -0.224px;
@@ -111,6 +119,7 @@
   }
   .badge.cat { color: var(--primary); background: rgba(0,102,204,0.08); }
   .badge.part { color: var(--ink-48); background: var(--parchment); border: 1px solid var(--hairline); font-weight: 400; }
+  .badge.kind { color: var(--ink-80); background: transparent; border: 1px solid var(--hairline); font-weight: 400; }
 
   .term-body { display: none; padding: 0 40px 24px 2px; }
   .term.open .term-body { display: block; }
@@ -166,7 +175,14 @@
     <h1 class="headline">기본 용어 사전</h1>
     <p class="tagline">수업에서 계속 나오는 말들을 미리 한 번 훑어 두면 첫 주가 훨씬 편합니다. 용어를 누르면 자세한 설명이 열립니다.</p>
 
-    <nav class="group-tabs" id="group-tabs"></nav>
+    <div class="filter-row">
+      <span class="filter-label">PART</span>
+      <nav class="group-tabs" id="group-tabs"></nav>
+    </div>
+    <div class="filter-row">
+      <span class="filter-label">성격</span>
+      <nav class="group-tabs kind" id="kind-tabs"></nav>
+    </div>
 
     <label class="search-input">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -206,6 +222,7 @@
   <script>
     const listEl = document.getElementById('term-list');
     const tabsEl = document.getElementById('group-tabs');
+    const kindTabsEl = document.getElementById('kind-tabs');
     const searchInput = document.getElementById('search');
     const resultCount = document.getElementById('result-count');
     const emptyNote = document.getElementById('empty-note');
@@ -214,21 +231,50 @@
     const partOf = id => TERM_CATEGORIES.find(c => c.id === id) || { no: '', name: id };
     const partLabel = id => { const p = partOf(id); return p.no ? p.no + ' ' + p.name : p.name; };
     const termById = id => TERMS.find(t => t.id === id);
-    let activeCat = 'all';
+    let activePart = 'all';
+    let activeKind = 'all';
     let sortMode = 'default';
 
-    /* ---- 분류 탭 ---- */
+    const kindLabel = id => (TERM_KINDS.find(k => k.id === id) || {}).label || id;
+
+    /* ---- 걸러 보기: PART(언제 배우나) × 성격(개념인가 도구인가) ---- */
+    function matches(t, opts) {
+      const o = opts || {};
+      const part = o.part !== undefined ? o.part : activePart;
+      const kind = o.kind !== undefined ? o.kind : activeKind;
+      const q = searchInput.value.trim().toLowerCase();
+      if (part !== 'all' && t.part !== part) return false;
+      if (kind !== 'all' && t.kind !== kind) return false;
+      if (q) {
+        const haystack = [t.term, t.en || '', t.short, ...(t.body || []), t.note || '',
+                          partLabel(t.part), kindLabel(t.kind)].join(' ').toLowerCase();
+        if (!haystack.includes(q)) return false;
+      }
+      return true;
+    }
+
+    /* ---- 두 줄의 탭. 개수는 다른 줄의 선택을 반영해 그때그때 셉니다 ---- */
     function renderTabs() {
-      // 아직 용어가 없는 PART는 탭을 만들지 않습니다.
-      const used = TERM_CATEGORIES.filter(c => TERMS.some(t => t.part === c.id));
-      const groups = [{ id: 'all', label: '전체' }, ...used.map(c => ({ id: c.id, label: partLabel(c.id) }))];
-      tabsEl.innerHTML = groups.map(g => {
-        const n = g.id === 'all' ? TERMS.length : TERMS.filter(t => t.part === g.id).length;
-        const cls = g.id === activeCat ? ' class="active"' : '';
-        return '<button data-cat="' + g.id + '"' + cls + '>' +
-               '<span class="label">' + g.label + '</span> ' +
-               '<span class="count">(' + n + ')</span></button>';
-      }).join('');
+      // 아직 용어가 없는 PART · 성격은 탭을 만들지 않습니다.
+      const usedParts = TERM_CATEGORIES.filter(c => TERMS.some(t => t.part === c.id));
+      const usedKinds = TERM_KINDS.filter(k => TERMS.some(t => t.kind === k.id));
+
+      const rows = [
+        { el: tabsEl, attr: 'part', active: activePart,
+          groups: [{ id: 'all', label: '전체' }].concat(usedParts.map(c => ({ id: c.id, label: partLabel(c.id) }))) },
+        { el: kindTabsEl, attr: 'kind', active: activeKind,
+          groups: [{ id: 'all', label: '전체' }].concat(usedKinds.map(k => ({ id: k.id, label: k.label }))) },
+      ];
+
+      rows.forEach(row => {
+        row.el.innerHTML = row.groups.map(g => {
+          const n = TERMS.filter(t => matches(t, row.attr === 'part' ? { part: g.id } : { kind: g.id })).length;
+          const cls = [g.id === row.active ? 'active' : '', n === 0 ? 'empty' : ''].join(' ').trim();
+          return '<button data-' + row.attr + '="' + g.id + '"' + (cls ? ' class="' + cls + '"' : '') + '>' +
+                 '<span class="label">' + g.label + '</span> ' +
+                 '<span class="count">(' + n + ')</span></button>';
+        }).join('');
+      });
     }
 
     /* ---- 용어 목록 ---- */
@@ -255,7 +301,8 @@
           '  <button class="term-head" type="button" aria-expanded="false" aria-controls="body-' + t.id + '">',
           '    <span class="term-title">' + emoji + '<span class="name">' + t.term + '</span>' + enLine + '</span>',
           '    <span class="term-short">' + t.short + '</span>',
-          '    <span class="badges"><span class="badge cat">PART ' + p.no + '</span>' + partBadge + '</span>',
+          '    <span class="badges"><span class="badge cat">PART ' + p.no + '</span>' + partBadge +
+          '<span class="badge kind">' + kindLabel(t.kind) + '</span></span>',
           '  </button>',
           '  <div class="term-body" id="body-' + t.id + '">',
           body + note + relatedLine,
@@ -266,20 +313,16 @@
       }).join('');
     }
 
-    /* ---- 분류 탭 · 검색 필터 ---- */
     function applyFilters() {
-      const q = searchInput.value.trim().toLowerCase();
       let visible = 0;
       document.querySelectorAll('.term').forEach(el => {
-        const t = termById(el.id);
-        const haystack = [t.term, t.en || '', t.short, ...(t.body || []), t.note || '', partLabel(t.part)]
-          .join(' ').toLowerCase();
-        const show = (activeCat === 'all' || t.part === activeCat) && (!q || haystack.includes(q));
+        const show = matches(termById(el.id));
         el.classList.toggle('hidden', !show);
         if (show) visible++;
       });
       resultCount.textContent = visible + '개 용어';
       emptyNote.style.display = visible === 0 ? 'block' : 'none';
+      renderTabs();
     }
 
     /* ---- 펼치기 ---- */
@@ -294,10 +337,10 @@
     listEl.addEventListener('click', e => {
       const jump = e.target.closest('[data-jump]');
       if (jump) {
-        // 다른 분류에 있는 관련 용어라도 보이도록 필터를 전체로 되돌립니다.
-        activeCat = 'all';
+        // 다른 PART·성격에 있는 관련 용어라도 보이도록 필터를 전체로 되돌립니다.
+        activePart = 'all';
+        activeKind = 'all';
         searchInput.value = '';
-        renderTabs();
         applyFilters();
         openTerm(jump.dataset.jump, true);
         return;
@@ -312,8 +355,14 @@
     tabsEl.addEventListener('click', e => {
       const btn = e.target.closest('button');
       if (!btn) return;
-      activeCat = btn.dataset.cat;
-      tabsEl.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
+      activePart = btn.dataset.part;
+      applyFilters();
+    });
+
+    kindTabsEl.addEventListener('click', e => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      activeKind = btn.dataset.kind;
       applyFilters();
     });
 
