@@ -55,6 +55,11 @@ const PDF_YEARS = [
         label: '생성형 AI 프로덕트 마스터 2기',
         docs: [
           {
+            title: '과정 소개 (V10)',
+            file: '2026/프로덕트과정2기/00_Introduce_V10_260826.pdf',
+            added: '2026-08-26',
+          },
+          {
             title: '1주차 커리큘럼 (08/26~08/29)',
             file: '2026/프로덕트과정2기/260826_250829_Week_01.html',
             desc: 'Week 01 - 학습 일정',
