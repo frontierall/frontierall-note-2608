@@ -57,7 +57,12 @@ const TERMS = [
       '2025년 초 앤드레이 카파시(Andrej Karpathy)라는 개발자가 쓴 표현에서 퍼졌습니다. 이 과정에서 배우는 도구 대부분이 이 방식을 전제로 하고 있어요.',
     ],
     note: 'AI가 만든 코드를 전혀 이해하지 않은 채 계속 쌓기만 하면, 나중에 문제가 생겼을 때 어디를 고쳐야 할지 알 수 없게 됩니다. 실습에서는 "왜 이렇게 동작하는지" 한 번씩 확인하는 습관을 함께 기릅니다. 🧐',
-    related: ['prompt-engineering', 'llm', 'lovable', 'v0'],
+    flow: 'flowchart LR\n' +
+          'A["말로 설명하기"] --> B["AI가 코드 작성"]\n' +
+          'B --> C["실행해서 확인"]\n' +
+          'C -- "고칠 점 발견" --> A\n' +
+          'C -- "마음에 듦" --> D["완성"]',
+    related: ['prompt-engineering', 'llm', 'lovable', 'v0', 'electron'],
   },
   {
     id: 'prompt-engineering',
@@ -88,7 +93,7 @@ const TERMS = [
       '계산을 하거나 판단을 내리는 프로그래밍 언어라기보다는, 문서의 구조를 적어 두는 표기법에 가깝습니다. 그래서 처음 보기에 어렵지 않아요.',
       '전부 외울 필요는 없습니다. AI가 만들어 준 결과를 열어 보고 <strong>"아, 제목이 여기고 버튼이 저기구나"</strong> 정도만 알아볼 수 있으면 수업을 따라가는 데 충분합니다.',
     ],
-    related: ['github-pages', 'vibe-coding'],
+    related: ['github-pages', 'vibe-coding', 'electron'],
   },
   {
     id: 'github-pages',
@@ -104,7 +109,23 @@ const TERMS = [
       '다만 HTML·이미지처럼 <strong>완성된 파일을 보여 주는 것</strong>까지가 역할입니다. 회원가입이나 데이터 저장처럼 뒷단이 필요한 기능은 다른 방법을 씁니다.',
       '사전 학습 영상에 10분짜리 실습 영상을 넣어 두었으니 함께 보시면 좋습니다.',
     ],
-    related: ['html', 'landing-page'],
+    related: ['html', 'landing-page', 'github-actions'],
+  },
+  {
+    id: 'github-actions',
+    emoji: '⚙️',
+    term: 'GitHub Actions',
+    en: 'github.com/features/actions',
+    part: 'part02',
+    kind: 'tool',
+    short: 'GitHub 저장소에 코드를 올리면(push), 미리 정해 둔 작업을 자동으로 대신 실행해 주는 기능이에요. ' +
+           '"코드를 고쳐서 올리면 알아서 사이트에 반영해라" 같은 심부름을 로봇에게 맡기는 것과 비슷합니다. 🤖',
+    body: [
+      '사람이 매번 손으로 "확인하고 → 반영하고" 같은 절차를 반복하지 않도록, GitHub이 정해진 순간(코드 push, PR 생성 등)마다 미리 적어 둔 절차를 대신 실행해 줍니다. 이 절차는 저장소 안 <code>.github/workflows</code> 폴더의 설정 파일 하나로 정해 둡니다.',
+      'GitHub Pages 사이트도 뒤에서는 이 기능이 함께 돌아가는 경우가 많습니다. 파일을 올리기만 하면 GitHub Actions가 그걸 감지해서 사이트에 반영하는 작업을 대신 처리하는 식이에요.',
+    ],
+    note: '설정 파일을 직접 쓸 일이 당장 없어도, "왜 커밋했는데 사이트 반영까지 몇 분 걸리지?"의 답이 바로 이 자동 실행 시간이라는 것만 알아도 충분합니다. ⏱️',
+    related: ['github-pages', 'html'],
   },
   {
     id: 'claude-code',
@@ -135,6 +156,37 @@ const TERMS = [
       'AI 코딩 도구는 계속 새로 나오고 이름도 자주 바뀝니다. 도구 이름을 외우기보다 <strong>시키는 방법</strong>을 익히면 새 도구가 나와도 금방 적응할 수 있습니다.',
     ],
     related: ['claude-code', 'vibe-coding'],
+  },
+  {
+    id: 'electron',
+    emoji: '📦',
+    term: 'Electron',
+    en: 'electronjs.org',
+    part: 'part02',
+    kind: 'tool',
+    short: 'HTML·CSS·JS로 만든 웹 화면을 그대로 감싸서, 윈도우·맥에 설치하는 진짜 데스크톱 앱으로 만들어 주는 도구예요. ' +
+           'VS Code, Slack, Discord 같은 유명 프로그램도 이걸로 만들어졌습니다. 🖥️',
+    body: [
+      '웹페이지를 만들 줄 알면 데스크톱 앱을 위한 언어를 새로 배우지 않아도 됩니다. 브라우저 엔진(Chromium)을 앱 안에 통째로 넣어서, 같은 웹 코드가 어느 컴퓨터에서나 똑같이 돌아가게 해 주기 때문이에요.',
+      '그 대신 앱 하나마다 브라우저 엔진을 함께 담고 다니기 때문에 설치 파일 용량이 크고 메모리를 많이 씁니다. 가볍게 만들고 싶다는 요구가 생기면 <strong>Tauri</strong> 같은 대안을 함께 고려합니다.',
+    ],
+    note: 'GitHub Pages는 "웹 주소로 열어 보는" 방식이고, Electron은 "설치해서 쓰는 프로그램"으로 만드는 방식이에요. 오프라인에서도 써야 하거나 파일 시스템에 직접 접근해야 하는 앱이라면 Electron 쪽을 고려합니다. 💾',
+    related: ['tauri', 'html', 'vibe-coding'],
+  },
+  {
+    id: 'tauri',
+    emoji: '🦀',
+    term: 'Tauri',
+    en: 'tauri.app',
+    part: 'part02',
+    kind: 'tool',
+    short: 'Electron과 목적은 같지만(웹 코드로 데스크톱 앱 만들기), 브라우저 엔진을 따로 담지 않고 운영체제에 이미 있는 ' +
+           '웹뷰(운영체제에 내장된, 웹페이지를 보여주는 부품)를 빌려 써서 설치 파일이 훨씬 작고 가벼운 도구예요. 🪶',
+    body: [
+      '화면(프론트엔드, 사용자 눈에 보이는 부분)은 Electron과 똑같이 HTML·CSS·JS로 만듭니다. 다만 뒷단(백엔드, 눈에 안 보이는 처리 부분)은 속도와 안전성으로 유명한 <strong>Rust</strong>라는 언어로 되어 있어서, 파일 접근처럼 시스템과 맞닿는 부분을 더 빠르고 안전하게 처리합니다. 1Password 같은 앱의 최신 버전이 이 방식으로 만들어졌습니다.',
+      'Electron보다 역사가 짧아서 참고할 자료나 라이브러리는 아직 상대적으로 적지만, 2024년 나온 Tauri 2 버전부터는 아이폰·안드로이드 앱까지 만들 수 있을 정도로 빠르게 성장하고 있습니다. "일단 빨리 만들어 본다"에는 Electron, "가볍고 빠른 완성형을 노린다"에는 Tauri를 저울질해 보면 좋습니다.',
+    ],
+    related: ['electron', 'vibe-coding'],
   },
 
   /* ---- PART 03. UX/UI 디자인 ---- */
@@ -251,6 +303,7 @@ const TERMS = [
   {
     id: 'python',
     emoji: '🐍',
+    logo: 'logos/python.svg',
     term: 'Python',
     en: '파이썬',
     part: 'part06',
@@ -262,7 +315,68 @@ const TERMS = [
       '필요한 기능은 대부분 다른 사람들이 미리 만들어 둔 꾸러미(라이브러리)를 가져다 씁니다. 그래서 밑바닥부터 만들 일은 거의 없어요.',
       '문법을 다 외운 다음에 시작할 필요는 없습니다. AI에게 물어 가며 쓰다 보면 필요한 만큼 자연스럽게 익혀집니다.',
     ],
-    related: ['data-analysis', 'machine-learning'],
+    related: ['data-analysis', 'machine-learning', 'pandas'],
+  },
+  {
+    id: 'numpy',
+    emoji: '🔢',
+    term: 'NumPy',
+    en: 'numpy.org',
+    part: 'part06',
+    kind: 'tool',
+    short: '파이썬에서 숫자로 가득한 커다란 표(배열)를 아주 빠르게 계산할 수 있게 해 주는 기초 도구예요. ' +
+           '뒤에서 다룰 pandas, matplotlib 같은 도구들이 이 위에 서 있습니다. ⚙️',
+    body: [
+      '파이썬 반복문으로 숫자를 하나씩 계산하면 데이터가 많아질수록 느려집니다. NumPy는 이런 계산을 통째로 빠르게 처리하도록 특별히 만들어진 도구예요.',
+      'NumPy 문법을 직접 외워서 쓸 일은 생각보다 적습니다. "다른 데이터 도구들이 속으로 이걸 쓰고 있구나" 정도만 알아도 수업을 따라가는 데 충분합니다.',
+    ],
+    related: ['python', 'pandas'],
+  },
+  {
+    id: 'pandas',
+    emoji: '🐼',
+    term: 'pandas',
+    en: 'pandas.pydata.org',
+    part: 'part06',
+    kind: 'tool',
+    short: '엑셀 표처럼 생긴 데이터를 파이썬에서 불러오고, 정리하고, 계산할 수 있게 해 주는 도구예요. ' +
+           '데이터 분석을 시작할 때 가장 먼저 배우는 도구입니다. 🗂️',
+    body: [
+      'CSV나 엑셀 파일을 몇 줄의 코드로 불러온 뒤, 조건에 맞는 행만 골라내거나 평균·합계를 구하는 일을 아주 빠르게 할 수 있습니다.',
+      'NumPy 위에 만들어진 도구라서, 수만 줄짜리 데이터를 다뤄도 크게 느려지지 않습니다.',
+    ],
+    related: ['numpy', 'data-analysis', 'python'],
+  },
+  {
+    id: 'matplotlib',
+    emoji: '📐',
+    term: 'Matplotlib',
+    en: 'matplotlib.org',
+    part: 'part06',
+    kind: 'tool',
+    short: '파이썬으로 숫자 데이터를 선 그래프, 막대 그래프 같은 그림으로 그려 주는 가장 기본적인 도구예요. ' +
+           '분석한 결과를 눈으로 확인할 때 씁니다. 📊',
+    body: [
+      '색깔, 글씨 크기, 축 눈금까지 세세하게 직접 지정할 수 있어서 자유도가 높은 대신, 원하는 모양을 만들려면 코드가 다소 길어질 수 있습니다.',
+      '마우스로 확대하거나 값을 찍어 보는 것 같은 상호작용은 되지 않는, 한 장의 정지된 그림에 가깝습니다. 그런 상호작용이 필요하면 <strong>Plotly</strong>를 함께 씁니다.',
+    ],
+    spectrum: { leftLabel: '정적', rightLabel: '인터랙티브', value: 15 },
+    related: ['pandas', 'plotly'],
+  },
+  {
+    id: 'plotly',
+    emoji: '🖱️',
+    term: 'Plotly',
+    en: 'plotly.com',
+    part: 'part06',
+    kind: 'tool',
+    short: '마우스로 확대하거나 그래프 위에 갖다 대면 값이 뜨는 것처럼, 직접 눌러 보고 움직여 볼 수 있는 그래프를 만들어 주는 도구예요. ' +
+           '발표 자료나 대시보드에 넣기 좋습니다. 🎛️',
+    body: [
+      'Matplotlib이 정지된 사진 같은 그래프라면, Plotly는 화면 안에서 움직이는 그래프에 가깝습니다. 같은 그래프라도 상대방이 직접 들여다볼 수 있게 하고 싶을 때 씁니다.',
+      '파이썬뿐 아니라 웹페이지(자바스크립트)에서도 똑같은 방식으로 쓸 수 있어서, 만든 그래프를 그대로 웹사이트에 옮겨 놓기도 쉽습니다.',
+    ],
+    related: ['matplotlib', 'data-analysis'],
   },
   {
     id: 'data-analysis',
@@ -294,7 +408,38 @@ const TERMS = [
       '그래서 결과의 품질은 <strong>데이터의 양과 질</strong>에 크게 좌우됩니다. 한쪽으로 치우친 데이터를 학습하면 결과도 치우칩니다.',
       '요즘 이야기되는 AI 대부분이 머신러닝 위에 서 있습니다. ChatGPT 같은 LLM도 머신러닝의 한 갈래예요.',
     ],
-    related: ['data-analysis', 'llm'],
+    related: ['data-analysis', 'llm', 'tensorflow', 'pytorch'],
+  },
+  {
+    id: 'tensorflow',
+    emoji: '🌊',
+    term: 'TensorFlow',
+    en: 'tensorflow.org · Google',
+    part: 'part06',
+    kind: 'tool',
+    short: '구글이 만든, 머신러닝 모델을 직접 설계하고 학습시킬 수 있게 해 주는 대표적인 도구예요. ' +
+           '사진 인식, 음성 인식 같은 복잡한 모델도 이걸로 만듭니다. 🏗️',
+    body: [
+      '"규칙을 코드로 직접 적는 것"이 아니라, 데이터를 많이 보여 주면서 <strong>모델 스스로 규칙을 찾게 만드는</strong> 머신러닝 학습 과정을 실제로 돌려 주는 도구입니다.',
+      '처음부터 모델을 새로 설계하기보다, 이미 만들어진 모델을 가져와서 내 데이터에 맞게 살짝 손보는 식으로도 충분히 실습할 수 있습니다.',
+    ],
+    note: 'TensorFlow와 PyTorch는 하는 일이 거의 같습니다. 최근에는 연구 쪽에서 PyTorch, 실제 서비스에 모델을 올리는 쪽에서 TensorFlow가 조금 더 흔히 쓰이는 편이지만, 절대적인 기준은 아닙니다.',
+    related: ['machine-learning', 'pytorch', 'python'],
+  },
+  {
+    id: 'pytorch',
+    emoji: '🔥',
+    term: 'PyTorch',
+    en: 'pytorch.org · Meta',
+    part: 'part06',
+    kind: 'tool',
+    short: '메타(옛 페이스북)가 만든, TensorFlow와 목적이 같은 머신러닝 도구예요. ' +
+           '문법이 파이썬 코드처럼 자연스럽게 읽혀서 최근 연구 쪽에서 특히 많이 쓰입니다. 🐍',
+    body: [
+      'ChatGPT 같은 최신 LLM 대부분이 이 도구로 만들어졌을 만큼, 요즘 AI 연구에서 사실상 표준처럼 쓰이는 도구입니다.',
+      'TensorFlow보다 어느 쪽이 낫다기보다, 하는 일은 거의 같고 문법과 생태계가 다른 정도로 이해하면 됩니다.',
+    ],
+    related: ['tensorflow', 'machine-learning'],
   },
 
   /* ---- PART 07. LLM · RAG · Agent ---- */
