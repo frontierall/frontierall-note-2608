@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Week 01 - 학습 일정</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  :root{
+    --navy:#274a7d;
+    --banner:#1c6dad;
+    --accent-blue:#3b6fc4;
+    --accent-orange:#d9822b;
+    --accent-green:#4b9350;
+    --text:#1f2430;
+    --bg:#e8ecf3;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;padding:0;height:100%;
+    background:var(--bg);
+    font-family:"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+    color:var(--text);
+    overflow:hidden;
+  }
+  .stage{
+    position:relative;
+    width:100vw;height:100vh;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .frame{
+    position:relative;
+    width:min(92vw, 177.78vh);
+    height:min(52.7vw, 100vh);
+    background:#fff;
+    box-shadow:0 20px 60px rgba(0,0,0,.25);
+    border-radius:6px;
+    overflow:hidden;
+  }
+  .slide{
+    position:absolute;
+    inset:0;
+    display:none;
+    flex-direction:column;
+    padding:0;
+  }
+  .slide.active{display:flex;}
+
+  /* Title slide */
+  .slide.title{
+    background:var(--navy);
+    align-items:center;justify-content:center;
+    color:#fff;
+  }
+  .slide.title h1{
+    font-size:clamp(2.6rem, 6vw, 4.8rem);
+    font-weight:700;
+    letter-spacing:.05em;
+  }
+
+  /* Standard header banner */
+  .banner{
+    background:var(--banner);
+    color:#fff;
+    text-align:center;
+    font-size:clamp(1.7rem, 3.2vw, 2.9rem);
+    font-weight:700;
+    padding:1.1em .6em;
+    line-height:1.25;
+  }
+  .body{
+    flex:1;
+    padding:clamp(1rem,3vw,3rem) clamp(1.5rem,4vw,4rem);
+    display:flex;
+    flex-direction:column;
+    gap:1.1em;
+    overflow:auto;
+  }
+  .bullet{
+    display:flex; gap:.5em; align-items:flex-start;
+    font-size:clamp(1.2rem,2.1vw,1.85rem);
+    font-weight:700;
+  }
+  .bullet .mark{ color:currentColor; flex-shrink:0; }
+  .bullet.blue{color:var(--accent-blue);}
+  .bullet.orange{color:var(--accent-orange);}
+  .bullet.green{color:var(--accent-green);}
+  .bullet.dark{color:var(--text);}
+  .sub{
+    font-size:clamp(.9rem,1.4vw,1.2rem);
+    font-weight:400;
+    color:var(--text);
+    padding-left:1.6em;
+  }
+  .sub.strong{font-weight:600;}
+  .line{
+    font-size:clamp(.9rem,1.4vw,1.3rem);
+    font-weight:600;
+    padding-left:1.2em;
+    color:var(--text);
+  }
+  .line b{font-weight:700;}
+
+  .tagrow{display:flex; gap:.6em; flex-wrap:wrap; padding-left:1.6em;}
+  .tag{
+    padding:.5em 1em;
+    border-radius:6px;
+    color:#fff;
+    font-weight:700;
+    font-size:clamp(.75rem,1.1vw,1rem);
+  }
+  .tag.light{background:#3f7fc9;}
+  .tag.dark{background:#173b66;}
+
+  .day-badge{
+    position:absolute;
+    right:clamp(1rem,3vw,3rem);
+    bottom:clamp(1.2rem,3vw,3rem);
+    color:#fff;
+    font-weight:800;
+    font-size:clamp(.75rem,1.3vw,1.1rem);
+    padding:.5em 1em;
+    border-radius:4px;
+  }
+  .day-badge.blue{background:var(--accent-blue);}
+  .day-badge.orange{background:var(--accent-orange);}
+  .day-badge.green{background:var(--accent-green);}
+
+  .pagenum{
+    position:absolute;
+    right:1em;bottom:.5em;
+    font-size:.8rem;
+    color:#9aa2b1;
+  }
+  .slide.title .pagenum{color:rgba(255,255,255,.5);}
+
+  /* Navigation controls */
+  .nav-btn{
+    position:absolute;
+    top:50%;
+    transform:translateY(-50%);
+    width:56px;height:56px;
+    border-radius:50%;
+    border:none;
+    background:rgba(20,30,50,.35);
+    color:#fff;
+    font-size:1.6rem;
+    cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    z-index:20;
+    transition:background .15s, transform .15s;
+    user-select:none;
+  }
+  .nav-btn:hover{background:rgba(20,30,50,.65); transform:translateY(-50%) scale(1.08);}
+  .nav-btn:active{transform:translateY(-50%) scale(.96);}
+  .nav-btn.prev{left:18px;}
+  .nav-btn.next{right:18px;}
+  .nav-btn:disabled{opacity:.25; cursor:default;}
+  .nav-btn:disabled:hover{background:rgba(20,30,50,.35); transform:translateY(-50%);}
+
+  .bottom-bar{
+    position:absolute;
+    left:50%; bottom:22px;
+    transform:translateX(-50%);
+    display:flex;
+    align-items:center;
+    gap:14px;
+    background:rgba(20,30,50,.55);
+    backdrop-filter:blur(4px);
+    padding:10px 18px;
+    border-radius:999px;
+    z-index:20;
+    color:#fff;
+    font-weight:600;
+    font-size:.95rem;
+  }
+  .bottom-bar button{
+    background:rgba(255,255,255,.15);
+    border:none;
+    color:#fff;
+    width:34px;height:34px;
+    border-radius:50%;
+    cursor:pointer;
+    font-size:1.1rem;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .bottom-bar button:hover{background:rgba(255,255,255,.32);}
+  .bottom-bar button:disabled{opacity:.3; cursor:default;}
+  .counter{min-width:3.5em; text-align:center;}
+
+  .progress-track{
+    position:absolute;
+    top:0; left:0; right:0; height:5px;
+    background:rgba(0,0,0,.08);
+    z-index:20;
+  }
+  .progress-fill{
+    height:100%;
+    background:linear-gradient(90deg,var(--accent-blue),var(--accent-green));
+    width:8.33%;
+    transition:width .25s ease;
+  }
+
+  .hint{
+    position:absolute;
+    top:14px; left:50%; transform:translateX(-50%);
+    font-size:.78rem;
+    color:#8a93a6;
+    z-index:5;
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="frame" id="frame">
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+
+    <!-- Slide 1 -->
+    <section class="slide title active">
+      <h1>학습 일정</h1>
+      <div class="pagenum">1</div>
+    </section>
+
+    <!-- Slide 2 -->
+    <section class="slide">
+      <div class="banner">주간 일정</div>
+      <div class="body">
+        <div class="bullet dark"><span class="mark">■</span><span>PART 1~2 일정 (5회차 · 총 28H)</span></div>
+        <div class="sub strong">2026-08-26(수) ~ 09-05(토) · 평일 19:00~23:00 / 토요일 09:00~18:00</div>
+        <div class="bullet dark" style="margin-top:.8em;"><span class="mark">■</span><span>핵심 키워드</span></div>
+        <div class="tagrow">
+          <span class="tag light">오리엔테이션</span>
+          <span class="tag light">AI 산업 트렌드</span>
+          <span class="tag light">Github Pages</span>
+        </div>
+        <div class="tagrow">
+          <span class="tag dark">모바일 웹앱 게임</span>
+          <span class="tag dark">Streamlit 챗봇</span>
+          <span class="tag dark">Claude Code 챗봇</span>
+        </div>
+      </div>
+      <div class="pagenum">2</div>
+    </section>
+
+    <!-- Slide 3 -->
+    <section class="slide">
+      <div class="banner">주간 목표</div>
+      <div class="body">
+        <div class="bullet dark"><span class="mark">■</span><span>학습 목표</span></div>
+        <div class="line">- 과정의 목표와 커리큘럼 전체 구성을 이해합니다.</div>
+        <div class="line">- AI 산업 트렌드를 파악하고 포트폴리오 방향을 설계합니다.</div>
+        <div class="line">- Github 세팅부터 Github Pages 배포까지 직접 경험합니다.</div>
+        <div class="line">- Vibe Coding 개념과 AI 개발 환경(Visual Code · Antigravity)을 익힙니다.</div>
+        <div class="line">- Streamlit과 Claude Code로 챗봇을 직접 만들어 배포합니다.</div>
+      </div>
+      <div class="pagenum">3</div>
+    </section>
+
+    <!-- Slide 4 -->
+    <section class="slide">
+      <div class="banner">PART 1 일정 (08/26 · 08/29 · 총 12H)</div>
+      <div class="body">
+        <div class="bullet dark"><span class="mark">■</span><span>8/26(수) 19:00~21:00 과정 오리엔테이션 &amp; 커리큘럼 소개 &amp; 개인별 소개</span></div>
+        <div class="bullet dark"><span class="mark">■</span><span>8/26(수) 21:00~23:00 AI 산업 트렌드 세미나 &amp; 포트폴리오 가이드</span></div>
+        <div class="bullet dark"><span class="mark">■</span><span>8/29(토) 09:00~13:00 Github 세팅 &amp; 모바일 웹앱 게임 제작</span></div>
+        <div class="bullet dark"><span class="mark">■</span><span>8/29(토) 14:00~18:00 게임 완성·Github Pages 배포 &amp; 팀 빌딩</span></div>
+        <div class="bullet dark"><span class="mark">■</span><span>산출물 : 모바일 웹앱 게임 + Github Pages 공개 URL</span></div>
+      </div>
+      <div class="pagenum">4</div>
+    </section>
+
+    <!-- Slide 5 -->
+    <section class="slide">
+      <div class="banner">주간 일정</div>
+      <div class="body">
+        <div class="bullet blue"><span class="mark">■</span><span>1일차 8/26(수) 19:00~23:00 – 개강 &amp; AI 산업 트렌드</span></div>
+        <div class="line">(A) 19:00~21:00 과정 오리엔테이션 &amp; 커리큘럼 소개 (2H)</div>
+        <div class="line">(B) 21:00~23:00 AI 산업 트렌드 세미나 &amp; 포트폴리오 가이드 (2H)</div>
+      </div>
+      <div class="day-badge blue">DAY 1 / 5</div>
+      <div class="pagenum">5</div>
+    </section>
+
+    <!-- Slide 6 -->
+    <section class="slide">
+      <div class="banner">주간 일정</div>
+      <div class="body">
+        <div class="bullet orange"><span class="mark">■</span><span>2일차 오전 8/29(토) 09:00~13:00 – Github 세팅 &amp; 게임 제작</span></div>
+        <div class="line">(A) 09:00~11:00 Github 계정·리포지토리 세팅 실습 (2H)</div>
+        <div class="line">(B) 11:00~13:00 모바일 웹앱 게임 제작 실습 (2H)</div>
+      </div>
+      <div class="day-badge orange">DAY 2 / 5</div>
+      <div class="pagenum">6</div>
+    </section>
+
+    <!-- Slide 7 -->
+    <section class="slide">
+      <div class="banner">주간 일정</div>
+      <div class="body">
+        <div class="bullet green"><span class="mark">■</span><span>2일차 오후 8/29(토) 14:00~18:00 – 게임 완성·배포 &amp; 팀 빌딩</span></div>
+        <div class="line">- 14:00~16:00 게임 완성 &amp; Github Pages 배포 (2H)</div>
+        <div class="line">- 16:00~18:00 팀 빌딩 &amp; 결과물 공유·피드백 (2H)</div>
+        <div class="line">- 산출물 : 모바일 웹앱 게임 + Github Pages 공개 URL</div>
+      </div>
+      <div class="day-badge green">DAY 2 / 5</div>
+      <div class="pagenum">7</div>
+    </section>
+
+    <!-- Slide 8 -->
+    <section class="slide">
+      <div class="banner">PART 2 일정 (08/31 · 09/02 · 09/05 · 총 16H)</div>
+      <div class="body">
+        <div class="bullet dark"><span class="mark">■</span><span>8/31(월) 19:00~23:00 Vibe Coding 개념 &amp; 개발 환경 세팅</span></div>
+        <div class="bullet dark"><span class="mark">■</span><span>9/2(수) 19:00~23:00 Claude Code 환경 세팅 &amp; Codex 실습</span></div>
+        <div class="bullet dark"><span class="mark">■</span><span>9/5(토) 09:00~18:00 Streamlit · Claude Code로 챗봇 만들기 &amp; 배포</span></div>
+      </div>
+      <div class="pagenum">8</div>
+    </section>
+
+    <!-- Slide 9 -->
+    <section class="slide">
+      <div class="banner">주간 일정</div>
+      <div class="body">
+        <div class="bullet blue"><span class="mark">■</span><span>3일차 8/31(월) 19:00~23:00 – Vibe Coding &amp; AI 개발 환경</span></div>
+        <div class="line">(A) 19:00~21:00 Vibe Coding 개념 &amp; AI 개발 생태계 (2H)</div>
+        <div class="line">(B) 21:00~23:00 Visual Code · Antigravity 설치 &amp; 기본 실습 (2H)</div>
+      </div>
+      <div class="day-badge blue">DAY 3 / 5</div>
+      <div class="pagenum">9</div>
+    </section>
+
+    <!-- Slide 10 -->
+    <section class="slide">
+      <div class="banner">주간 일정</div>
+      <div class="body">
+        <div class="bullet blue"><span class="mark">■</span><span>4일차 9/2(수) 19:00~23:00 – Claude Code &amp; Codex</span></div>
+        <div class="line">(A) 19:00~21:00 Claude Code 환경 세팅 &amp; 첫 자동화 프로그램 (2H)</div>
+        <div class="line">(B) 21:00~23:00 Codex 소개 &amp; 실습 (2H)</div>
+      </div>
+      <div class="day-badge blue">DAY 4 / 5</div>
+      <div class="pagenum">10</div>
+    </section>
+
+    <!-- Slide 11 -->
+    <section class="slide">
+      <div class="banner">주간 일정</div>
+      <div class="body">
+        <div class="bullet blue"><span class="mark">■</span><span>5일차 오전 9/5(토) 09:00~13:00 – Streamlit으로 챗봇 만들기</span></div>
+        <div class="line">(A) 09:00~11:00 Streamlit 기본 &amp; 앱 구조 실습 (2H)</div>
+        <div class="line">(B) 11:00~13:00 Streamlit 챗봇 제작 실습 (2H)</div>
+      </div>
+      <div class="day-badge blue">DAY 5 / 5</div>
+      <div class="pagenum">11</div>
+    </section>
+
+    <!-- Slide 12 -->
+    <section class="slide">
+      <div class="banner">주간 일정</div>
+      <div class="body">
+        <div class="bullet green"><span class="mark">■</span><span>5일차 오후 9/5(토) 14:00~18:00 – Claude Code로 챗봇 만들기</span></div>
+        <div class="line">- 14:00~16:00 Claude Code로 챗봇 제작 실습 (2H)</div>
+        <div class="line">- 16:00~18:00 기능 확장·배포 &amp; 코드 리뷰·발표 (2H)</div>
+        <div class="line">- 산출물 : Streamlit 챗봇 + Claude Code 챗봇 배포</div>
+      </div>
+      <div class="day-badge green">DAY 5 / 5</div>
+      <div class="pagenum">12</div>
+    </section>
+
+    <button class="nav-btn prev" id="prevBtn" aria-label="이전 슬라이드">&#10094;</button>
+    <button class="nav-btn next" id="nextBtn" aria-label="다음 슬라이드">&#10095;</button>
+
+    <div class="bottom-bar">
+      <button id="barPrev" aria-label="이전">&#10094;</button>
+      <span class="counter"><span id="cur">1</span> / <span id="total">12</span></span>
+      <button id="barNext" aria-label="다음">&#10095;</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let idx = 0;
+
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const barPrev = document.getElementById('barPrev');
+  const barNext = document.getElementById('barNext');
+  const curEl = document.getElementById('cur');
+  const totalEl = document.getElementById('total');
+  const progressFill = document.getElementById('progressFill');
+
+  totalEl.textContent = total;
+
+  function render(){
+    slides.forEach((s,i)=> s.classList.toggle('active', i===idx));
+    curEl.textContent = idx+1;
+    progressFill.style.width = ((idx+1)/total*100)+'%';
+    prevBtn.disabled = idx===0;
+    barPrev.disabled = idx===0;
+    nextBtn.disabled = idx===total-1;
+    barNext.disabled = idx===total-1;
+  }
+
+  function go(delta){
+    idx = Math.min(total-1, Math.max(0, idx+delta));
+    render();
+  }
+
+  prevBtn.addEventListener('click', ()=>go(-1));
+  nextBtn.addEventListener('click', ()=>go(1));
+  barPrev.addEventListener('click', ()=>go(-1));
+  barNext.addEventListener('click', ()=>go(1));
+
+  document.addEventListener('keydown', (e)=>{
+    if(['ArrowRight','ArrowDown','PageDown',' '].includes(e.key)){ e.preventDefault(); go(1); }
+    else if(['ArrowLeft','ArrowUp','PageUp'].includes(e.key)){ e.preventDefault(); go(-1); }
+    else if(e.key==='Home'){ idx=0; render(); }
+    else if(e.key==='End'){ idx=total-1; render(); }
+  });
+
+  // Swipe support
+  let touchStartX = null;
+  const frame = document.getElementById('frame');
+  frame.addEventListener('touchstart', (e)=>{ touchStartX = e.changedTouches[0].clientX; }, {passive:true});
+  frame.addEventListener('touchend', (e)=>{
+    if(touchStartX===null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if(Math.abs(dx) > 50){ go(dx < 0 ? 1 : -1); }
+    touchStartX = null;
+  }, {passive:true});
+
+  render();
+</script>
+
+</body>
+</html>
