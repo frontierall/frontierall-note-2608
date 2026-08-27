@@ -140,6 +140,26 @@
 
   .empty-note { font-size: 14px; color: var(--ink-48); letter-spacing: -0.224px; padding: 24px 0; }
 
+  /* ---- 비교 스펙트럼 ---- */
+  .term-spectrum { margin: 0 0 16px; }
+  .term-spectrum .spectrum-labels {
+    display: flex; justify-content: space-between; font-size: 12px; color: var(--ink-48);
+    letter-spacing: -0.12px; margin-bottom: 7px;
+  }
+  .term-spectrum .spectrum-track { position: relative; height: 6px; border-radius: 999px; background: var(--parchment); }
+  .term-spectrum .spectrum-dot {
+    position: absolute; top: 50%; width: 14px; height: 14px; border-radius: 50%;
+    background: var(--primary); border: 2px solid var(--canvas); box-shadow: 0 0 0 1px var(--hairline);
+    transform: translate(-50%, -50%);
+  }
+
+  /* ---- 관계·흐름 다이어그램 ---- */
+  .term-flow {
+    margin: 0 0 16px; border: 1px solid var(--hairline); border-radius: 12px;
+    padding: 14px; background: var(--parchment); overflow-x: auto;
+  }
+  .term-flow .mermaid { display: flex; justify-content: center; }
+
   footer.site-footer { background: var(--parchment); color: var(--ink-80); padding: 64px 24px 32px; }
   .footer-links { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px 32px; }
   .footer-links a { display: block; font-size: 17px; line-height: 2.41; color: var(--ink-80); text-decoration: none; }
@@ -223,6 +243,22 @@
     // 용어를 추가하고 바로 열어 본 수강생에게는 예전 목록이 보입니다.
     document.write('<script src="terms.js?t=' + Date.now() + '"><\/script>');
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script>
+    // 관계·흐름 다이어그램(flow 필드)을 그리는 데 씁니다. 용어를 펼칠 때만 그립니다 —
+    // 접힌(display:none) 상태에서 미리 그리면 크기를 잘못 계산해 다이어그램이 깨집니다.
+    if (window.mermaid) {
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: 'base',
+        themeVariables: {
+          primaryColor: '#eaf2fc', primaryBorderColor: '#0066cc', primaryTextColor: '#1d1d1f',
+          lineColor: '#7a7a7a', fontFamily: 'inherit', fontSize: '14px',
+        },
+        flowchart: { curve: 'basis' },
+      });
+    }
+  </script>
   <script>
     const listEl = document.getElementById('term-list');
     const tabsEl = document.getElementById('group-tabs');
@@ -289,6 +325,17 @@
       listEl.innerHTML = items.map(t => {
         const body = (t.body || []).map(p => '<p>' + p + '</p>').join('');
         const note = t.note ? '<p class="term-note"><b>주의</b> · ' + t.note + '</p>' : '';
+        const spectrum = t.spectrum ? (
+          '<div class="term-spectrum">' +
+          '  <div class="spectrum-labels"><span>' + t.spectrum.leftLabel + '</span><span>' + t.spectrum.rightLabel + '</span></div>' +
+          '  <div class="spectrum-track"><span class="spectrum-dot" style="left:' + t.spectrum.value + '%"></span></div>' +
+          '</div>'
+        ) : '';
+        const flow = t.flow ? (
+          '<div class="term-flow"><pre class="mermaid">' +
+          t.flow.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') +
+          '</pre></div>'
+        ) : '';
         const related = (t.related || [])
           .map(id => termById(id))
           .filter(Boolean)
@@ -309,7 +356,7 @@
           '<span class="badge kind">' + kindLabel(t.kind) + '</span></span>',
           '  </button>',
           '  <div class="term-body" id="body-' + t.id + '">',
-          body + note + relatedLine,
+          spectrum + body + flow + note + relatedLine,
           '    <a class="term-link" href="#' + t.id + '">이 용어 링크 · #' + t.id + '</a>',
           '  </div>',
           '</article>'
@@ -330,11 +377,19 @@
     }
 
     /* ---- 펼치기 ---- */
+    // 접힌 상태(display:none)에서는 mermaid가 크기를 잘못 재기 때문에,
+    // 펼쳐질 때(open 클래스가 붙어 실제로 보이게 된 다음)에만 다이어그램을 그립니다.
+    // 이미 그려진 다이어그램은 mermaid가 알아서 건너뜁니다.
+    function renderFlow(el) {
+      if (window.mermaid) mermaid.run({ nodes: el.querySelectorAll('pre.mermaid') }).catch(() => {});
+    }
+
     function openTerm(id, scroll) {
       const el = document.getElementById(id);
       if (!el || !el.classList.contains('term')) return;
       el.classList.add('open');
       el.querySelector('.term-head').setAttribute('aria-expanded', 'true');
+      renderFlow(el);
       if (scroll) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
@@ -354,6 +409,7 @@
       const term = head.closest('.term');
       const open = term.classList.toggle('open');
       head.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (open) renderFlow(term);
     });
 
     tabsEl.addEventListener('click', e => {

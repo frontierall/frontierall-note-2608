@@ -57,6 +57,18 @@
   .group-tabs button.active { background: var(--primary); border-color: var(--primary); color: #fff; }
   .group-tabs button .count { opacity: 0.6; font-variant-numeric: tabular-nums; }
 
+  /* ---- 카테고리 분포 ---- */
+  .cat-chart { display: flex; flex-direction: column; gap: 7px; margin-bottom: 24px; }
+  .cat-chart .row { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+  .cat-chart .row:hover .cat-label { color: var(--ink); }
+  .cat-chart .cat-label {
+    flex: 0 0 110px; font-size: 12px; color: var(--ink-48); letter-spacing: -0.12px;
+    text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color .15s;
+  }
+  .cat-chart .cat-bar { flex: 1 1 auto; height: 10px; border-radius: 999px; background: var(--parchment); overflow: hidden; }
+  .cat-chart .cat-bar span { display: block; height: 100%; background: var(--primary); border-radius: 999px; transition: width .25s; }
+  .cat-chart .cat-count { flex: 0 0 18px; font-size: 12px; color: var(--ink-48); font-variant-numeric: tabular-nums; }
+
   .search-input {
     display: flex; align-items: center; gap: 8px; background: var(--canvas);
     border: 1px solid var(--hairline); border-radius: 9999px; padding: 10px 18px;
@@ -106,6 +118,7 @@
     .sub-nav .category { font-size: 17px; }
     .footer-links { grid-template-columns: repeat(2, 1fr); gap: 4px 20px; }
     .utility-grid { grid-template-columns: 1fr; }
+    .cat-chart .cat-label { flex-basis: 84px; }
   }
   @media (max-width: 380px) {
     .global-nav .meta { display: none; }
@@ -134,6 +147,8 @@
       <button data-cat="subagent"><span class="label">서브에이전트</span> <span class="count"></span></button>
       <button data-cat="script-pipeline"><span class="label">스크립트 파이프라인</span> <span class="count"></span></button>
     </nav>
+
+    <div class="cat-chart" id="cat-chart"></div>
 
     <label class="search-input">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -200,6 +215,29 @@
       const cat = tab.dataset.cat;
       const n = cat === 'all' ? cards.length : [...cards].filter(c => c.dataset.cat === cat).length;
       tab.querySelector('.count').textContent = `(${n})`;
+    });
+
+    // 탭 옆 숫자만으로는 어느 카테고리에 팁이 몰려있는지 한눈에 안 보여서,
+    // 막대 하나씩으로도 보여줍니다. 막대를 눌러도 탭을 누른 것과 같이 동작합니다.
+    const chartEl = document.getElementById('cat-chart');
+    const catRows = [...tabs].filter(t => t.dataset.cat !== 'all').map(t => ({
+      cat: t.dataset.cat,
+      label: t.querySelector('.label').textContent,
+      n: [...cards].filter(c => c.dataset.cat === t.dataset.cat).length,
+    }));
+    const maxN = Math.max(1, ...catRows.map(r => r.n));
+    chartEl.innerHTML = catRows.map(r => (
+      '<div class="row" data-cat="' + r.cat + '">' +
+      '  <span class="cat-label">' + r.label + '</span>' +
+      '  <span class="cat-bar"><span style="width:' + (r.n / maxN * 100) + '%"></span></span>' +
+      '  <span class="cat-count">' + r.n + '</span>' +
+      '</div>'
+    )).join('');
+    chartEl.addEventListener('click', e => {
+      const row = e.target.closest('.row');
+      if (!row) return;
+      const tab = [...tabs].find(t => t.dataset.cat === row.dataset.cat);
+      if (tab) tab.click();
     });
 
     function applyFilters() {

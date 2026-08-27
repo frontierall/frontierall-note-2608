@@ -69,7 +69,12 @@
   .group { margin-bottom: 36px; }
   .group-head { margin-bottom: 12px; }
   .group-head h2 { font-size: 19px; font-weight: 600; letter-spacing: -0.374px; margin: 0 0 2px; }
-  .group-head p { font-size: 13px; color: var(--ink-48); letter-spacing: -0.224px; margin: 0; }
+  .group-head p { font-size: 13px; color: var(--ink-48); letter-spacing: -0.224px; margin: 0 0 10px; }
+  .group-bar-row { display: flex; align-items: center; gap: 8px; }
+  .group-bar { flex: 1 1 auto; height: 4px; border-radius: 999px; background: var(--hairline); overflow: hidden; }
+  .group-bar span { display: block; height: 100%; width: 0; background: var(--primary); border-radius: 999px; transition: width .25s, background .25s; }
+  .group-bar.all-done span { background: var(--done); }
+  .group-progress-text { flex: 0 0 auto; font-size: 11px; color: var(--ink-48); font-variant-numeric: tabular-nums; letter-spacing: -0.12px; }
 
   /* ---- 항목 ---- */
   .item {
@@ -239,10 +244,14 @@
         }).join('');
 
         return [
-          '<section class="group">',
+          '<section class="group" data-group="' + g.id + '">',
           '  <div class="group-head">',
           '    <h2>' + g.label + '</h2>',
           '    <p>' + g.desc + '</p>',
+          '    <div class="group-bar-row">',
+          '      <div class="group-bar"><span></span></div>',
+          '      <span class="group-progress-text"></span>',
+          '    </div>',
           '  </div>',
           items,
           '</section>'
@@ -262,6 +271,25 @@
       progressText.classList.toggle('all-done', allDone);
       bar.classList.toggle('all-done', allDone);
       bar.firstElementChild.style.width = (total ? (done / total) * 100 : 0) + '%';
+      updateGroupBars();
+    }
+
+    // 그룹마다(가장 먼저 / AI 도구 / 작업 도구) 진행 속도가 다를 수 있어서
+    // 전체 막대 하나로는 어디가 밀렸는지 안 보입니다. 그룹별로도 따로 보여줍니다.
+    function updateGroupBars() {
+      document.querySelectorAll('.group').forEach(el => {
+        const items = CHECK_ITEMS.filter(i => i.group === el.dataset.group);
+        const done = items.filter(i => state[i.id]).length;
+        const total = items.length;
+        const allDone = total > 0 && done === total;
+        const bar = el.querySelector('.group-bar');
+        const text = el.querySelector('.group-progress-text');
+        if (bar) {
+          bar.classList.toggle('all-done', allDone);
+          bar.firstElementChild.style.width = (total ? (done / total) * 100 : 0) + '%';
+        }
+        if (text) text.textContent = done + ' / ' + total;
+      });
     }
 
     groupsEl.addEventListener('click', e => {
