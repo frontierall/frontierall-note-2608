@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>용어 관계도 · AI 프로덕트 마스터</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@1.3.9/dist/web/static/pretendard.css">
+<style>
+  :root {
+    --primary: #0066cc; --primary-focus: #0071e3;
+    --canvas: #ffffff; --parchment: #f5f5f7;
+    --black: #000000; --ink: #1d1d1f; --ink-80: #333333; --ink-48: #7a7a7a;
+    --hairline: #e0e0e0;
+    --kind-concept: #0066cc; --kind-tool: #e8842c; --kind-deploy: #16a34a; --kind-lang: #8b5cf6;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--canvas); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', 'Apple SD Gothic Neo', 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-size: 17px; line-height: 1.47; letter-spacing: -0.374px;
+  }
+  .global-nav {
+    position: sticky; top: 0; z-index: 20; height: 44px; background: var(--black);
+    display: flex; align-items: center; justify-content: space-between; padding: 0 22px;
+  }
+  .global-nav .brand { color: #fff; font-size: 12px; font-weight: 600; letter-spacing: -0.12px; text-decoration: none; }
+  .global-nav .meta { color: rgba(255,255,255,0.72); font-size: 12px; letter-spacing: -0.12px; }
+  .sub-nav {
+    position: sticky; top: 44px; z-index: 19; height: 52px;
+    display: flex; align-items: center; justify-content: space-between; padding: 0 22px;
+    background: rgba(245,245,247,0.8);
+    -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+  .sub-nav .category { font-size: 21px; font-weight: 600; letter-spacing: 0.231px; color: var(--ink); text-decoration: none; }
+  .btn-primary {
+    display: inline-block; background: var(--primary); color: #fff; border: none;
+    border-radius: 9999px; padding: 8px 18px; font-size: 14px; font-family: inherit;
+    text-decoration: none; cursor: pointer; transition: transform .15s;
+  }
+  .btn-primary:active { transform: scale(0.95); }
+  .btn-primary:focus-visible { outline: 2px solid var(--primary-focus); outline-offset: 2px; }
+
+  main.content { max-width: 1040px; margin: 0 auto; padding: 40px 24px 64px; }
+  .eyebrow { display: block; font-size: 14px; font-weight: 600; letter-spacing: -0.224px; color: var(--ink-48); margin-bottom: 12px; }
+  h1.headline { font-size: 32px; font-weight: 600; line-height: 1.15; letter-spacing: 0; margin: 0 0 10px; }
+  p.tagline { font-size: 15px; line-height: 1.6; letter-spacing: -0.224px; margin: 0 0 20px; color: var(--ink-80); max-width: 62ch; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 16px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-80); letter-spacing: -0.12px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex: 0 0 auto; }
+
+  .graph-wrap {
+    position: relative; border: 1px solid var(--hairline); border-radius: 16px;
+    background: var(--parchment); overflow: hidden;
+  }
+  .graph-wrap svg { display: block; width: 100%; height: 70vh; min-height: 420px; cursor: grab; }
+  .graph-wrap svg:active { cursor: grabbing; }
+  .node { cursor: pointer; }
+  .node circle { stroke: #fff; stroke-width: 1.5px; }
+  .node text {
+    font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif;
+    font-size: 11px; fill: var(--ink); paint-order: stroke; stroke: #fff; stroke-width: 3px;
+    pointer-events: none;
+  }
+  .link { stroke: var(--hairline); stroke-width: 1.2px; }
+  .node.dim circle, .node.dim text { opacity: 0.15; }
+  .link.dim { opacity: 0.08; }
+
+  .graph-hint {
+    position: absolute; left: 12px; bottom: 12px; font-size: 12px; color: var(--ink-48);
+    background: rgba(255,255,255,0.85); padding: 5px 10px; border-radius: 999px;
+    letter-spacing: -0.12px; pointer-events: none;
+  }
+
+  @media (max-width: 640px) {
+    main.content { padding: 32px 16px 48px; }
+    h1.headline { font-size: 24px; }
+    .sub-nav { padding: 0 16px; }
+    .sub-nav .category { font-size: 17px; }
+  }
+  @media (max-width: 380px) {
+    .global-nav .meta { display: none; }
+  }
+</style>
+</head>
+<body>
+  <nav class="global-nav">
+    <a class="brand" href="../../index.html">AI 프로덕트 마스터</a>
+    <span class="meta">인공지능 심화(160H)</span>
+  </nav>
+  <nav class="sub-nav">
+    <a class="category" href="../index.html">← 용어 사전</a>
+    <a class="btn-primary" href="../../index.html">전체 커리큘럼</a>
+  </nav>
+
+  <main class="content">
+    <span class="eyebrow">용어 사전 · 관계도</span>
+    <h1 class="headline">용어 관계도</h1>
+    <p class="tagline">점(용어) 하나하나가 서로 <code>관련 용어</code>로 이어진 모습을 한눈에 봅니다. 점을 드래그해서 움직이거나, 점 위에 마우스를 올리면 그 용어와 연결된 것만 밝게 남습니다. 점을 클릭하면 용어사전에서 그 설명이 펼쳐집니다.</p>
+
+    <div class="legend" id="legend"></div>
+
+    <div class="graph-wrap">
+      <svg id="graph"></svg>
+      <span class="graph-hint">드래그로 이동 · 휠로 확대/축소 · 클릭하면 설명으로 이동</span>
+    </div>
+  </main>
+
+  <script>
+    document.write('<script src="../terms.js?t=' + Date.now() + '"><\/script>');
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+  <script>
+    // CSS 변수는 SVG fill 속성에서 바로 못 읽으므로, 노드 색상은 실제 색상 값으로 따로 관리합니다.
+    const KIND_HEX = { concept: '#0066cc', tool: '#e8842c', deploy: '#16a34a', lang: '#8b5cf6' };
+
+    function buildLegend() {
+      const legend = document.getElementById('legend');
+      legend.innerHTML = TERM_KINDS.map(k => (
+        '<span class="legend-item"><span class="legend-dot" style="background:' + (KIND_HEX[k.id] || '#999') + '"></span>' +
+        k.label + ' (' + TERMS.filter(t => t.kind === k.id).length + ')</span>'
+      )).join('');
+    }
+
+    function buildGraph() {
+      const byId = new Map(TERMS.map(t => [t.id, t]));
+      const nodes = TERMS.map(t => ({ id: t.id, term: t.term, kind: t.kind, emoji: t.emoji }));
+
+      const linkSet = new Set();
+      const links = [];
+      TERMS.forEach(t => {
+        (t.related || []).forEach(r => {
+          if (!byId.has(r) || r === t.id) return;
+          const key = [t.id, r].sort().join('::');
+          if (linkSet.has(key)) return;
+          linkSet.add(key);
+          links.push({ source: t.id, target: r });
+        });
+      });
+
+      const degree = new Map(nodes.map(n => [n.id, 0]));
+      links.forEach(l => {
+        degree.set(l.source, (degree.get(l.source) || 0) + 1);
+        degree.set(l.target, (degree.get(l.target) || 0) + 1);
+      });
+
+      const svg = d3.select('#graph');
+      const wrap = svg.node().parentElement;
+      const width = wrap.clientWidth;
+      const height = wrap.clientHeight || 520;
+      svg.attr('viewBox', [0, 0, width, height]);
+
+      const zoomLayer = svg.append('g');
+      svg.call(d3.zoom().scaleExtent([0.3, 4]).on('zoom', e => zoomLayer.attr('transform', e.transform)));
+
+      const radius = id => 6 + Math.sqrt(degree.get(id) || 0) * 2.6;
+
+      const simulation = d3.forceSimulation(nodes)
+        .force('link', d3.forceLink(links).id(d => d.id).distance(56).strength(0.5))
+        .force('charge', d3.forceManyBody().strength(-160))
+        .force('center', d3.forceCenter(width / 2, height / 2))
+        .force('collide', d3.forceCollide(d => radius(d.id) + 14));
+
+      const link = zoomLayer.append('g').attr('class', 'links')
+        .selectAll('line').data(links).join('line').attr('class', 'link');
+
+      const node = zoomLayer.append('g').attr('class', 'nodes')
+        .selectAll('g').data(nodes).join('g')
+        .attr('class', 'node')
+        .call(d3.drag()
+          .on('start', (event, d) => { if (!event.active) simulation.alphaTarget(0.25).restart(); d.fx = d.x; d.fy = d.y; })
+          .on('drag', (event, d) => { d.fx = event.x; d.fy = event.y; })
+          .on('end', (event, d) => { if (!event.active) simulation.alphaTarget(0); d.fx = null; d.fy = null; }));
+
+      node.append('circle')
+        .attr('r', d => radius(d.id))
+        .attr('fill', d => KIND_HEX[d.kind] || '#999');
+
+      node.append('text')
+        .attr('x', d => radius(d.id) + 4)
+        .attr('y', 4)
+        .text(d => d.term);
+
+      node.append('title').text(d => d.term + ' — 클릭하면 설명으로 이동');
+
+      const neighborsOf = id => {
+        const s = new Set([id]);
+        links.forEach(l => {
+          const a = typeof l.source === 'object' ? l.source.id : l.source;
+          const b = typeof l.target === 'object' ? l.target.id : l.target;
+          if (a === id) s.add(b);
+          if (b === id) s.add(a);
+        });
+        return s;
+      };
+
+      node.on('mouseenter', (event, d) => {
+        const near = neighborsOf(d.id);
+        node.classed('dim', n => !near.has(n.id));
+        link.classed('dim', l => {
+          const a = typeof l.source === 'object' ? l.source.id : l.source;
+          const b = typeof l.target === 'object' ? l.target.id : l.target;
+          return a !== d.id && b !== d.id;
+        });
+      });
+      node.on('mouseleave', () => {
+        node.classed('dim', false);
+        link.classed('dim', false);
+      });
+      node.on('click', (event, d) => {
+        window.location.href = '../index.html#' + d.id;
+      });
+
+      simulation.on('tick', () => {
+        link
+          .attr('x1', d => d.source.x).attr('y1', d => d.source.y)
+          .attr('x2', d => d.target.x).attr('y2', d => d.target.y);
+        node.attr('transform', d => 'translate(' + d.x + ',' + d.y + ')');
+      });
+    }
+
+    function init() {
+      if (typeof TERMS === 'undefined' || typeof d3 === 'undefined') {
+        setTimeout(init, 50);
+        return;
+      }
+      buildLegend();
+      buildGraph();
+    }
+    init();
+  </script>
+</body>
+</html>

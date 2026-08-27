@@ -11,6 +11,7 @@
  *   part    이 용어를 다루는 PART. TERM_CATEGORIES의 id 중 하나
  *   kind    용어의 성격. TERM_KINDS의 id 중 하나 (concept / tool / lang)
  *   short   목록에 바로 보이는 설명. 2~3줄, 초보자가 읽고 바로 이해할 수 있게.
+ *   logo    공식 로고 SVG의 상대 경로 (예: 'logos/python.svg'). 이름 옆에 작게 표시됩니다. (없으면 생략)
  *   body    펼쳤을 때 나오는 자세한 설명. 문단 배열.
  *   note    주의할 점 (없으면 생략)
  *   spectrum 두 용어를 한 축으로 비교하는 막대. { leftLabel, rightLabel, value(0~100) }
@@ -33,11 +34,14 @@
  * ------------------------------------------------------------------------- */
 
 const TERM_CATEGORIES = [
+  { id: 'part01', no: '01', name: '오리엔테이션' },
   { id: 'part02', no: '02', name: 'AI 실전 활용' },
   { id: 'part03', no: '03', name: 'UX/UI 디자인' },
   { id: 'part04', no: '04', name: '노코드 프로토타이핑' },
+  { id: 'part05', no: '05', name: '서비스 기획' },
   { id: 'part06', no: '06', name: '데이터 분석 & 머신러닝' },
   { id: 'part07', no: '07', name: 'LLM · RAG · Agent' },
+  { id: 'part08', no: '08', name: '해커톤' },
 ];
 
 const TERM_KINDS = [
@@ -368,6 +372,7 @@ const TERMS = [
   {
     id: 'electron',
     emoji: '📦',
+    logo: 'logos/electron.svg',
     term: 'Electron',
     en: 'electronjs.org',
     part: 'part02',
@@ -433,6 +438,7 @@ const TERMS = [
   {
     id: 'figma',
     emoji: '🖌️',
+    logo: 'logos/figma.svg',
     term: 'Figma',
     en: 'figma.com',
     part: 'part03',
@@ -621,6 +627,7 @@ const TERMS = [
   {
     id: 'tensorflow',
     emoji: '🌊',
+    logo: 'logos/tensorflow.svg',
     term: 'TensorFlow',
     en: 'tensorflow.org · Google',
     part: 'part06',
@@ -637,6 +644,7 @@ const TERMS = [
   {
     id: 'pytorch',
     emoji: '🔥',
+    logo: 'logos/pytorch.svg',
     term: 'PyTorch',
     en: 'pytorch.org · Meta',
     part: 'part06',

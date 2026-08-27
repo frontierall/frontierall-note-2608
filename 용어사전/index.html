@@ -44,7 +44,10 @@
   main.content { max-width: 760px; margin: 0 auto; padding: 64px 24px 96px; }
   .eyebrow { display: block; font-size: 14px; font-weight: 600; letter-spacing: -0.224px; color: var(--ink-48); margin-bottom: 12px; }
   h1.headline { font-size: 40px; font-weight: 600; line-height: 1.10; letter-spacing: 0; margin: 0 0 14px; }
-  p.tagline { font-size: 22px; font-weight: 400; line-height: 1.3; letter-spacing: 0.196px; margin: 0 0 28px; color: var(--ink-80); }
+  p.tagline { font-size: 22px; font-weight: 400; line-height: 1.3; letter-spacing: 0.196px; margin: 0 0 12px; color: var(--ink-80); }
+  p.tagline-link { margin: 0 0 28px; }
+  p.tagline-link a { font-size: 15px; color: var(--primary); text-decoration: none; letter-spacing: -0.224px; }
+  p.tagline-link a:hover { text-decoration: underline; }
 
   .filter-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
   .filter-row:last-of-type { margin-bottom: 18px; }
@@ -105,6 +108,7 @@
   .term.open .term-head::after { transform: rotate(-135deg); }
   .term-title { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; margin-bottom: 7px; }
   .term-title .emoji { font-size: 19px; line-height: 1; }
+  .term-title .logo { width: 20px; height: 20px; object-fit: contain; border-radius: 4px; }
   .term-title .name { font-size: 20px; font-weight: 600; letter-spacing: -0.374px; }
   .term-title .en { font-size: 13px; color: var(--ink-48); letter-spacing: -0.12px; }
   .term-short {
@@ -193,6 +197,7 @@
     <span class="eyebrow">언제든 찾아보는 자료</span>
     <h1 class="headline">기본 용어 사전</h1>
     <p class="tagline">수업에서 계속 나오는 말들을 미리 한 번 훑어 두면 첫 주가 훨씬 편합니다. 용어를 누르면 자세한 설명이 열립니다.</p>
+    <p class="tagline-link"><a href="관계도/index.html">→ 용어 관계도로 한눈에 보기</a></p>
 
     <div class="filter-row">
       <span class="filter-label">PART</span>
@@ -346,11 +351,12 @@
         const partBadge = p.no ? '<span class="badge part">' + p.name + '</span>' : '';
         const enLine = t.en ? '<span class="en">' + t.en + '</span>' : '';
         const emoji = t.emoji ? '<span class="emoji">' + t.emoji + '</span>' : '';
+        const logo = t.logo ? '<img class="logo" src="' + t.logo + '" alt="" loading="lazy">' : '';
 
         return [
           '<article class="term" id="' + t.id + '" data-part="' + t.part + '">',
           '  <button class="term-head" type="button" aria-expanded="false" aria-controls="body-' + t.id + '">',
-          '    <span class="term-title">' + emoji + '<span class="name">' + t.term + '</span>' + enLine + '</span>',
+          '    <span class="term-title">' + logo + emoji + '<span class="name">' + t.term + '</span>' + enLine + '</span>',
           '    <span class="term-short">' + t.short + '</span>',
           '    <span class="badges"><span class="badge cat">PART ' + p.no + '</span>' + partBadge +
           '<span class="badge kind">' + kindLabel(t.kind) + '</span></span>',
