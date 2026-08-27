@@ -63,7 +63,7 @@
   .cat-chart .row { display: flex; align-items: center; gap: 10px; cursor: pointer; }
   .cat-chart .row:hover .cat-label { color: var(--ink); }
   .cat-chart .cat-label {
-    flex: 0 0 110px; font-size: 12px; color: var(--ink-48); letter-spacing: -0.12px;
+    flex: 0 0 140px; font-size: 12px; color: var(--ink-48); letter-spacing: -0.12px;
     text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color .15s;
   }
   .cat-chart .cat-bar { flex: 1 1 auto; height: 10px; border-radius: 999px; background: var(--parchment); overflow: hidden; }
@@ -120,7 +120,7 @@
     .sub-nav .category { font-size: 17px; }
     .footer-links { grid-template-columns: repeat(2, 1fr); gap: 4px 20px; }
     .utility-grid { grid-template-columns: 1fr; }
-    .cat-chart .cat-label { flex-basis: 84px; }
+    .cat-chart .cat-label { flex-basis: 104px; font-size: 11px; }
   }
   @media (max-width: 380px) {
     .global-nav .meta { display: none; }
@@ -237,7 +237,7 @@
     const maxN = Math.max(1, ...catRows.map(r => r.n));
     chartEl.innerHTML = catRows.map(r => (
       '<div class="row" data-cat="' + r.cat + '">' +
-      '  <span class="cat-label">' + r.label + '</span>' +
+      '  <span class="cat-label" title="' + r.label + '">' + r.label + '</span>' +
       '  <span class="cat-bar"><span style="width:' + (r.n / maxN * 100) + '%"></span></span>' +
       '  <span class="cat-count">' + r.n + '</span>' +
       '</div>'

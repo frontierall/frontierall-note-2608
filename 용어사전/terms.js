@@ -86,7 +86,7 @@ const TERMS = [
   /* ---- PART 02. AI 실전 활용 ---- */
   {
     id: 'generative-ai',
-    emoji: '✨',
+    emoji: '💫',
     term: '생성형 AI',
     en: 'Generative AI',
     part: 'part02',
@@ -101,7 +101,7 @@ const TERMS = [
   },
   {
     id: 'chatgpt',
-    emoji: '🤖',
+    emoji: '🗨️',
     term: 'ChatGPT',
     en: 'OpenAI',
     part: 'part02',
@@ -131,15 +131,15 @@ const TERMS = [
   },
   {
     id: 'grok',
-    emoji: '🚀',
+    emoji: '🛰️',
     term: 'Grok',
     en: 'xAI · X',
     part: 'part02',
     kind: 'tool',
-    short: '일론 머스크가 세운 xAI가 만든 대화형 AI로, X(구 트위터) 앱 안에 기본으로 들어가 있는 것이 가장 큰 특징이에요. 2023년 11월 X Premium 구독자 대상으로 처음 공개됐습니다. 🚀',
+    short: '일론 머스크가 세운 xAI가 만든 대화형 AI로, X(구 트위터) 앱 안에 기본으로 들어가 있는 것이 가장 큰 특징이에요. 2023년 11월 X Premium+ 구독자 대상으로 처음 공개됐습니다. 🛰️',
     body: [
       '다른 챗봇과 달리 X에 올라오는 실시간 게시글을 참고해 답할 수 있다는 점을 내세웁니다. 별도 앱보다 X 서비스 안에서 바로 마주치는 경우가 많습니다.',
-      'xAI는 2023년 일론 머스크가 세운 회사로, Tesla·SpaceX와는 별개 법인입니다.',
+      'xAI는 2023년 일론 머스크가 세운 회사입니다. 2026년 2월 SpaceX가 xAI를 인수하면서 지금은 SpaceX 산하 회사가 되었고, Tesla는 이 합병에 포함되지 않아 별도 회사로 남아 있습니다.',
     ],
     spectrum: { leftLabel: '먼저 나온 챗봇', rightLabel: '나중에 나온 챗봇', value: 65 },
     related: ['llm', 'generative-ai'],
@@ -153,7 +153,7 @@ const TERMS = [
     kind: 'tool',
     short: '구글이 만든 대화형 AI로, 원래 이름은 Bard였다가 2024년 초 지금의 Gemini로 바뀌었어요. 구글 검색·Gmail·문서 같은 구글 서비스 곳곳에 함께 들어가 있는 것이 특징입니다. ♊',
     body: [
-      '2023년 3월 "Bard"라는 이름으로 처음 나왔다가, 2023년 12월 새 모델 Gemini가 나오면서 2024년 2월 서비스 이름도 Gemini로 통일됐습니다.',
+      '2023년 3월 "Bard"라는 이름으로 처음 나왔다가, 2023년 12월 새 모델 Gemini가 나오면서 2024년 2월 서비스 이름도 Gemini로 통일됐습니다. 아래 스펙트럼의 위치는 전신인 Bard가 아니라, 지금 이름인 <strong>"Gemini"라는 모델이 나온 시점</strong>(2023년 12월)을 기준으로 삼았습니다.',
       '독립된 챗봇 화면뿐 아니라 이 과정에서 다루는 <strong>Google AI Studio</strong>, <strong>Firebase</strong> 같은 구글 도구 안에서도 같은 모델이 쓰입니다.',
     ],
     spectrum: { leftLabel: '먼저 나온 챗봇', rightLabel: '나중에 나온 챗봇', value: 80 },
@@ -237,7 +237,7 @@ const TERMS = [
     ],
     note: '무료 플랜은 <strong>private 저장소에서는 지원되지 않습니다.</strong> 저장소를 비공개로 바꾸면 이 기능도 함께 꺼집니다. 🔒',
     spectrum: { leftLabel: '심플', rightLabel: '기능 많음', value: 15 },
-    related: ['html', 'landing-page', 'github-actions', 'github', 'cloudflare-pages'],
+    related: ['html', 'landing-page', 'github-actions', 'github', 'cloudflare-pages', 'pwa'],
   },
   {
     id: 'github-actions',
@@ -387,14 +387,14 @@ const TERMS = [
     short: '구글이 만든 크로스플랫폼 앱 개발 도구예요. Dart라는 언어로 한 번 코드를 짜면 아이폰·안드로이드 앱을 동시에 만들어 주고, 화면을 직접 그리는 방식이라 기기가 달라도 디자인이 거의 똑같이 보이는 것이 특징입니다. 🦋',
     body: [
       '버튼이나 글자 같은 화면 요소를 운영체제에서 빌려 쓰지 않고 <strong>Flutter가 직접 화면에 그립니다.</strong> 그래서 아이폰에서 보든 안드로이드에서 보든 디자인이 거의 똑같이 나온다는 장점이 있습니다.',
-      '구글의 실험용 프로젝트였다가 2017년 정식 공개됐고, 지금은 알리바바·바이트댄스 같은 큰 회사의 앱에도 쓰일 만큼 자리를 잡았습니다.',
+      '구글의 실험용 프로젝트로 2017년 알파 버전이 처음 공개됐고, 2018년 12월 정식(1.0) 버전이 나온 뒤로 알리바바·바이트댄스 같은 큰 회사의 앱에도 쓰일 만큼 자리를 잡았습니다.',
     ],
     spectrum: { leftLabel: '설치 없이 브라우저에서 바로 씀', rightLabel: '스토어에서 설치하는 진짜 앱', value: 90 },
     related: ['cross-platform', 'react-native', 'app-store-deploy'],
   },
   {
     id: 'cross-platform',
-    emoji: '🧩',
+    emoji: '📲',
     term: '크로스플랫폼 개발',
     en: 'Cross-platform Development',
     part: 'part02',
@@ -430,7 +430,7 @@ const TERMS = [
     term: '앱스토어 배포',
     en: 'App Store · Google Play',
     part: 'part02',
-    kind: 'concept',
+    kind: 'deploy',
     short: '만든 모바일 앱을 애플 App Store나 구글 Play 스토어에 올려서 누구나 내려받을 수 있게 만드는 과정이에요. 웹사이트처럼 파일만 올리면 끝나는 게 아니라, 각 스토어의 심사를 통과해야 하고 몇 시간에서 며칠까지 걸릴 수 있습니다. 🏪',
     body: [
       '아이폰용 앱은 Mac에서 애플 공식 도구인 <strong>Xcode</strong>로 최종 빌드하고 서명해야 스토어에 올릴 수 있습니다. Flutter나 React Native로 코드를 짰더라도, iOS로 내보내는 마지막 단계에서는 결국 Mac과 Xcode가 필요합니다.',
@@ -742,8 +742,8 @@ const TERMS = [
     kind: 'concept',
     short: '다른 브랜치에서 작업한 변경 내역을 지금 있는 브랜치로 합치는 명령이에요. 두 브랜치가 서로 다른 부분을 고쳤다면 자동으로 합쳐지지만, 같은 부분을 다르게 고쳤다면 "충돌(conflict)"이 나서 직접 골라 줘야 합니다. 🔀',
     body: [
-      '겹치는 부분이 없으면 Git이 자동으로 합치는 fast-forward merge가 일어납니다. 대부분의 merge는 이렇게 조용히 끝납니다.',
-      '같은 파일의 같은 줄을 두 브랜치가 다르게 고쳤을 때는 충돌이 납니다. 파일을 열어 <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code>·<code>=======</code>·<code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code> 표시 사이에서 남길 내용을 고른 뒤 다시 commit하면 됩니다.',
+      '내가 있는 브랜치(main)에 그동안 새 commit이 없었다면, Git은 브랜치 표시를 앞으로 옮기기만 하는 <strong>fast-forward merge</strong>로 조용히 끝냅니다. 반면 main에도 다른 commit이 쌓여 있었다면, 두 브랜치가 겹치지 않는 부분을 고쳤을 때 Git이 자동으로 병합 commit을 만들어 줍니다(3-way merge).',
+      '같은 파일의 같은 줄을 두 브랜치가 다르게 고쳤을 때는 이 자동 병합이 실패하고 충돌이 납니다. 파일을 열어 <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code>·<code>=======</code>·<code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code> 표시 사이에서 남길 내용을 고른 뒤 다시 commit하면 됩니다.',
     ],
     note: '막막하면 <code>git merge --abort</code>로 merge 시도 자체를 취소하고 이전 상태로 돌아갈 수 있습니다.',
     related: ['git-branch', 'git-fetch', 'git-commit-cycle', 'github'],
@@ -824,7 +824,7 @@ const TERMS = [
       '단, 투명 배경은 지원하지 않고 압축을 반복하면 화질이 점점 떨어집니다. 로고나 화면 캡처처럼 선명함이 중요하면 PNG를 쓰는 것이 낫습니다.',
     ],
     note: '"용량은 작게, 배경은 투명하게, 화질 저하도 없이"를 동시에 원한다면 이 둘 대신 WebP 같은 더 최신 형식을 고려해볼 수 있습니다.',
-    related: ['png'],
+    related: ['png', 'figma'],
   },
   {
     id: 'prototype',
@@ -937,11 +937,12 @@ const TERMS = [
     en: 'aistudio.google.com',
     part: 'part04',
     kind: 'tool',
-    short: '구글의 Gemini AI 모델을 코드 한 줄 없이 브라우저에서 바로 써 볼 수 있는 무료 콘솔이에요. 프롬프트를 입력하면 곧바로 결과가 나와서, 이 모델이 내가 원하는 걸 할 수 있는지 가볍게 찔러 볼 때 씁니다. 앱을 통째로 만들기 전에 성능부터 확인해 보는 첫 단계로 유용해요. 🔬',
+    short: '구글의 Gemini AI 모델을 코드 한 줄 없이 브라우저에서 바로 써 볼 수 있는 콘솔이에요. 프롬프트를 입력하면 곧바로 결과가 나와서, 이 모델이 내가 원하는 걸 할 수 있는지 가볍게 찔러 볼 때 씁니다. 앱을 통째로 만들기 전에 성능부터 확인해 보는 첫 단계로 유용해요. 🔬',
     body: [
       '회원가입만 하면 설치 없이 브라우저에서 곧바로 프롬프트를 입력하고 결과를 받아 볼 수 있습니다. <strong>온도(temperature)</strong> 같은 세부 설정을 바꿔 가며 같은 질문에도 답이 어떻게 달라지는지 직접 눈으로 확인할 수 있어요.',
       '여기서 테스트한 프롬프트와 설정은 API 키와 코드 형태로 그대로 뽑아낼 수 있습니다. 실험은 가볍게 여기서 하고, 마음에 드는 결과가 나오면 실제 서비스 코드로 옮겨 붙이는 흐름으로 이어집니다.',
     ],
+    note: '무료로 쓸 수 있는 건 Flash·Flash-Lite 계열 모델까지입니다. Gemini 2.5 Pro 같은 Pro 계열 모델은 2026년 4월부터 무료 티어에서 빠지고 결제 등록이 필요해졌어요. 🔒',
     related: ['v0', 'lovable', 'gemini'],
   },
   {
@@ -954,9 +955,10 @@ const TERMS = [
     short: '구글이 만든, 데이터 저장(DB)·로그인·파일 저장 같은 뒷단 기능을 서버를 직접 만들지 않고도 갖다 쓸 수 있게 해 주는 서비스 모음이에요. 이런 서비스를 통틀어 BaaS(Backend as a Service)라고 부르는데, Firebase가 그 대표 주자입니다. 화면은 만들 줄 알아도 서버는 낯선 분들이 가장 먼저 붙여 보는 뒷단이에요. 🧱',
     body: [
       '회원가입·로그인, 데이터베이스, 파일 저장, 알림 발송 같은 기능을 각각 따로 서버를 세워서 만들 필요 없이 정해진 방식대로 <strong>불러다 쓰기만</strong> 하면 됩니다. 코드 몇 줄로 로그인 기능이 붙는 이유가 여기에 있어요.',
-      '구글 계정으로 관리하기 때문에 구글의 다른 서비스(Google Auth 등)와도 잘 맞물립니다. 무료로 시작할 수 있는 범위가 넉넉해서, 작은 프로젝트 단계에서는 비용 부담 없이 써 볼 수 있습니다.',
+      '구글 계정으로 관리하기 때문에 구글의 다른 서비스(Google Auth 등)와도 잘 맞물립니다. 로그인·데이터베이스는 무료로 시작할 수 있는 범위가 넉넉한 편입니다.',
     ],
-    related: ['authentication', 'supabase', 'lovable'],
+    note: '파일 저장(Cloud Storage) 기능은 2026년 2월부터 무료 Spark 플랜에서 아예 빠졌습니다. 사용량이 적어도 결제 카드가 연결된 Blaze 플랜으로 올려야 쓸 수 있어요. 💳',
+    related: ['authentication', 'supabase', 'lovable', 'client-server'],
   },
   {
     id: 'supabase',
@@ -970,7 +972,7 @@ const TERMS = [
       'Firebase가 자체 방식(NoSQL)으로 데이터를 저장한다면, Supabase는 이미 널리 쓰이는 표준 데이터베이스인 <strong>PostgreSQL</strong>을 그대로 씁니다. 그래서 나중에 다른 곳으로 데이터를 옮기거나 SQL 지식을 그대로 활용하기가 더 쉽습니다.',
       '인증·스토리지·실시간 데이터 갱신 같은 기능도 Firebase와 비슷하게 갖추고 있어서, 두 서비스 중 어느 쪽을 고를지는 "데이터베이스를 표준 방식으로 쓰고 싶은가"가 갈림길이 되는 경우가 많습니다.',
     ],
-    related: ['firebase', 'authentication', 'lovable'],
+    related: ['firebase', 'authentication', 'lovable', 'client-server'],
   },
   {
     id: 'authentication',
@@ -985,6 +987,38 @@ const TERMS = [
       '직접 처음부터 만들려면 비밀번호 암호화, 이메일 인증, 세션 관리처럼 신경 쓸 부분이 많습니다. 그래서 대부분은 이미 검증된 서비스(Firebase, Supabase, Google Auth 등)를 가져다 쓰는 쪽을 택합니다.',
     ],
     related: ['firebase', 'supabase', 'google-auth'],
+  },
+  {
+    id: 'client-server',
+    emoji: '🛎️',
+    term: '클라이언트-서버 구조',
+    en: 'Client-Server Architecture',
+    part: 'part04',
+    kind: 'concept',
+    short: '거의 모든 웹·앱 서비스가 돌아가는 기본 뼈대예요. 내가 쓰는 화면(클라이언트)이 "이거 해 줘"라고 요청을 보내면, 어딘가에 있는 컴퓨터(서버)가 처리해서 결과를 돌려줍니다. 식당에서 손님이 주문하면 주방이 요리해 내오는 것과 같은 구조예요. 🛎️',
+    body: [
+      '<strong>클라이언트</strong>는 브라우저, 스마트폰 앱처럼 사용자가 직접 만지는 쪽입니다. <strong>서버</strong>는 데이터를 저장하고 로그인을 확인하는 등 실제 처리를 맡는, 눈에 보이지 않는 컴퓨터예요. 클라이언트는 서버 없이는 데이터를 가져오거나 저장할 수 없고, 서버도 요청이 들어와야 비로소 일을 합니다.',
+      '서버 하나가 동시에 여러 클라이언트를 상대합니다. 같은 서비스를 지금 이 순간 수백 명이 각자의 폰으로 쓰고 있어도, 그 뒤에는 보통 같은 서버(혹은 서버 무리)가 요청을 하나씩 처리하고 있는 것이죠. Firebase, Supabase 같은 도구는 이 서버 쪽을 직접 만들지 않고도 빌려 쓸 수 있게 해 줍니다.',
+    ],
+    note: '서버가 멈추면 클라이언트 화면은 멀쩡히 떠 있어도 데이터를 못 가져와 서비스 전체가 먹통이 됩니다. "화면은 뜨는데 아무것도 안 된다"면 대개 서버 쪽 문제입니다. ⚠️',
+    flow: 'flowchart LR\n' +
+          'A["클라이언트\\n(브라우저·앱)"] -- "요청" --> B["서버"]\n' +
+          'B -- "응답" --> A',
+    related: ['frontend-backend', 'api', 'firebase', 'supabase'],
+  },
+  {
+    id: 'frontend-backend',
+    emoji: '🍽️',
+    term: '프론트엔드 / 백엔드',
+    en: 'Frontend / Backend',
+    part: 'part04',
+    kind: 'concept',
+    short: '클라이언트-서버 구조에서, 실제로 코드를 만드는 사람 입장에서 일감을 나누는 말이에요. 눈에 보이는 화면 쪽을 만드는 일이 프론트엔드, 데이터 저장·로그인 확인처럼 눈에 안 보이는 처리를 만드는 일이 백엔드입니다. 식당으로 치면 손님을 맞는 홀(프론트)과 요리하는 주방(백)이에요. 🍽️',
+    body: [
+      '<strong>프론트엔드</strong>는 클라이언트 쪽에서 돌아가는 화면을 만드는 일이라 HTML·CSS·JavaScript(React 등)를 주로 씁니다. <strong>백엔드</strong>는 서버 쪽에서 돌아가는 처리를 만드는 일로, JavaScript(Node.js)·Python 등 쓰는 언어와 실행 환경은 다양하지만 하는 역할은 "요청을 받아 데이터를 처리해서 돌려주기"로 같습니다.',
+      '한 사람이 둘 다 만들면 <strong>풀스택(Full-stack)</strong>이라고 부릅니다. Next.js처럼 화면과 뒷단 처리를 한 프로젝트 안에서 같이 다룰 수 있게 해 주는 도구가 늘면서, 요즘은 이 경계가 예전만큼 뚜렷하지 않은 편입니다.',
+    ],
+    related: ['client-server', 'javascript', 'nextjs', 'firebase'],
   },
 
   /* ---- PART 05. 서비스 기획 ---- */
@@ -1114,7 +1148,7 @@ const TERMS = [
   },
   {
     id: 'csv',
-    emoji: '📊',
+    emoji: '📋',
     term: 'CSV',
     en: 'Comma-Separated Values',
     part: 'part06',
@@ -1196,7 +1230,7 @@ const TERMS = [
       '엑셀로 시작해서 파이썬 같은 도구까지 쓰게 되지만, 도구보다 중요한 것은 <strong>무엇을 알고 싶은지 정하는 일</strong>입니다. 질문이 흐릿하면 아무리 좋은 도구를 써도 답이 나오지 않아요.',
       '머신러닝과 자주 붙어 다니지만 목적이 다릅니다. 데이터 분석은 주로 "무슨 일이 있었나"를 이해하는 쪽, 머신러닝은 "다음엔 어떻게 될까"를 예측하는 쪽에 가깝습니다.',
     ],
-    related: ['machine-learning'],
+    related: ['machine-learning', 'csv', 'ipynb', 'pandas'],
   },
   {
     id: 'machine-learning',
@@ -1416,7 +1450,7 @@ const TERMS = [
     flow: 'flowchart LR\n' +
           'A["내 앱"] -- "요청" --> B["API"]\n' +
           'B -- "응답" --> A',
-    related: ['mcp', 'llm'],
+    related: ['mcp', 'llm', 'client-server'],
   },
   {
     id: 'mcp',

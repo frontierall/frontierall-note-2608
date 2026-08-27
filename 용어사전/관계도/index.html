@@ -208,12 +208,29 @@
         .attr('class', 'cluster-bg')
         .attr('cx', d => d.x).attr('cy', d => d.y).attr('r', d => d.r);
 
-      zoomLayer.append('g').attr('class', 'cluster-labels')
+      // 라벨은 원 위 중앙에 놓습니다(왼쪽 정렬로 오른쪽으로만 뻗으면 작은 클러스터에서 캔버스 밖으로 잘리기 쉽습니다).
+      // 클러스터 반지름이 작을수록 글자 크기도 함께 줄여서, 렌더링 후 실제 폭이 원 지름보다 넓으면 한 번 더 줄입니다.
+      const clusterLabel = zoomLayer.append('g').attr('class', 'cluster-labels')
         .selectAll('text').data(clusters).join('text')
         .attr('class', 'cluster-label')
-        .attr('x', d => d.x - d.r)
+        .attr('text-anchor', 'middle')
+        .attr('x', d => d.x)
         .attr('y', d => d.y - d.r - 8)
+        .style('font-size', d => Math.max(9, Math.min(12, d.r / 6)) + 'px')
         .text(d => d.data.no + ' · ' + d.data.name + ' (' + d.children.length + ')');
+      clusterLabel.append('title').text(d => d.data.no + ' · ' + d.data.name + ' (' + d.children.length + ')');
+
+      clusterLabel.each(function (d) {
+        const el = d3.select(this);
+        const budget = d.r * 2.1;
+        let size = parseFloat(el.style('font-size'));
+        let width = this.getComputedTextLength ? this.getComputedTextLength() : 0;
+        while (width > budget && size > 7) {
+          size -= 0.5;
+          el.style('font-size', size + 'px');
+          width = this.getComputedTextLength();
+        }
+      });
 
       const link = zoomLayer.append('g').attr('class', 'links')
         .selectAll('path').data(links).join('path')
