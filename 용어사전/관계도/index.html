@@ -55,18 +55,26 @@
     position: relative; border: 1px solid var(--hairline); border-radius: 16px;
     background: var(--parchment); overflow: hidden;
   }
-  .graph-wrap svg { display: block; width: 100%; height: 70vh; min-height: 420px; cursor: grab; }
+  .graph-wrap svg { display: block; width: 100%; height: 74vh; min-height: 560px; cursor: grab; }
   .graph-wrap svg:active { cursor: grabbing; }
+  .cluster-bg { fill: #ffffff; fill-opacity: 0.55; stroke: #c7cdd6; stroke-width: 1px; stroke-dasharray: 4 3; }
+  .cluster-label {
+    font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif;
+    font-size: 12px; font-weight: 700; fill: var(--ink-80); letter-spacing: -0.12px;
+    paint-order: stroke; stroke: #fff; stroke-width: 3px; pointer-events: none;
+  }
   .node { cursor: pointer; }
-  .node circle { stroke: #fff; stroke-width: 1.5px; }
+  .node circle { stroke: #fff; stroke-width: 1.5px; transition: opacity .15s; }
   .node text {
     font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif;
     font-size: 11px; fill: var(--ink); paint-order: stroke; stroke: #fff; stroke-width: 3px;
-    pointer-events: none;
+    pointer-events: none; transition: opacity .12s;
   }
-  .link { stroke: var(--hairline); stroke-width: 1.2px; }
+  .node .node-label.small { opacity: 0; }
+  .node:hover .node-label.small, .node.active .node-label.small { opacity: 1; }
+  .link { fill: none; stroke: var(--hairline); stroke-width: 1.1px; transition: opacity .15s; }
   .node.dim circle, .node.dim text { opacity: 0.15; }
-  .link.dim { opacity: 0.08; }
+  .link.dim { opacity: 0.06; }
 
   .graph-hint {
     position: absolute; left: 12px; bottom: 12px; font-size: 12px; color: var(--ink-48);
@@ -98,13 +106,13 @@
   <main class="content">
     <span class="eyebrow">용어 사전 · 관계도</span>
     <h1 class="headline">용어 관계도</h1>
-    <p class="tagline">점(용어) 하나하나가 서로 <code>관련 용어</code>로 이어진 모습을 한눈에 봅니다. 점을 드래그해서 움직이거나, 점 위에 마우스를 올리면 그 용어와 연결된 것만 밝게 남습니다. 점을 클릭하면 용어사전에서 그 설명이 펼쳐집니다.</p>
+    <p class="tagline">커리큘럼 <strong>PART</strong>별로 용어를 묶은 다음, 그 안에서 서로 <code>관련 용어</code>로 이어진 모습을 한눈에 봅니다. 원이 클수록 다른 용어와 많이 연결된 용어예요. 점 위에 마우스를 올리면 연결된 것만 밝게 남고, 클릭하면 용어사전에서 그 설명이 펼쳐집니다.</p>
 
     <div class="legend" id="legend"></div>
 
     <div class="graph-wrap">
       <svg id="graph"></svg>
-      <span class="graph-hint">드래그로 이동 · 휠로 확대/축소 · 클릭하면 설명으로 이동</span>
+      <span class="graph-hint">드래그로 화면 이동 · 휠로 확대/축소 · 마우스 오버로 연결 강조 · 클릭하면 설명으로 이동</span>
     </div>
   </main>
 
@@ -124,9 +132,10 @@
       )).join('');
     }
 
+    // PART별로 원을 묶어서 배치하는 결정적(deterministic) 레이아웃입니다.
+    // d3.forceSimulation과 달리 같은 데이터를 넣으면 새로고침해도 항상 같은 모양이 나옵니다.
     function buildGraph() {
       const byId = new Map(TERMS.map(t => [t.id, t]));
-      const nodes = TERMS.map(t => ({ id: t.id, term: t.term, kind: t.kind, emoji: t.emoji }));
 
       const linkSet = new Set();
       const links = [];
@@ -140,84 +149,120 @@
         });
       });
 
-      const degree = new Map(nodes.map(n => [n.id, 0]));
+      const degree = new Map(TERMS.map(t => [t.id, 0]));
       links.forEach(l => {
         degree.set(l.source, (degree.get(l.source) || 0) + 1);
         degree.set(l.target, (degree.get(l.target) || 0) + 1);
       });
 
+      // root → PART 클러스터 → 용어(leaf) 3단 계층. 값이 클수록(연결이 많을수록) 원이 커집니다.
+      const hierarchyData = {
+        id: 'root',
+        children: TERM_CATEGORIES
+          .map(cat => ({
+            id: cat.id,
+            name: cat.name,
+            no: cat.no,
+            children: TERMS.filter(t => t.part === cat.id).map(t => ({
+              id: t.id,
+              term: t.term,
+              kind: t.kind,
+              value: 1 + (degree.get(t.id) || 0) * 0.7,
+            })),
+          }))
+          .filter(cat => cat.children.length > 0),
+      };
+
       const svg = d3.select('#graph');
       const wrap = svg.node().parentElement;
       const width = wrap.clientWidth;
-      const height = wrap.clientHeight || 520;
+      const height = wrap.clientHeight || 640;
       svg.attr('viewBox', [0, 0, width, height]);
 
+      const root = d3.hierarchy(hierarchyData)
+        .sum(d => d.value || 0)
+        .sort((a, b) => (b.value || 0) - (a.value || 0));
+
+      d3.pack()
+        .size([width - 16, height - 16])
+        .padding(d => (d.depth === 0 ? 24 : 3))
+        (root);
+      root.each(d => { d.x += 8; d.y += 8; });
+
+      const clusters = root.children || [];
+      const leaves = root.leaves();
+      const posById = new Map(leaves.map(d => [d.data.id, d]));
+
+      // 연결이 많아 원이 큰 상위 20%만 기본으로 라벨을 보여주고, 나머지는 마우스를 올렸을 때만 보여 줍니다.
+      // 용어가 늘어나도(README 기준 데이터만 추가) 항상 전체의 20% 안팎만 라벨이 남도록 상대 기준으로 계산합니다.
+      const labelCount = Math.max(10, Math.ceil(leaves.length * 0.2));
+      const alwaysLabeled = new Set(
+        [...leaves].sort((a, b) => b.r - a.r).slice(0, labelCount).map(d => d.data.id)
+      );
+
       const zoomLayer = svg.append('g');
-      svg.call(d3.zoom().scaleExtent([0.3, 4]).on('zoom', e => zoomLayer.attr('transform', e.transform)));
+      svg.call(d3.zoom().scaleExtent([0.4, 5]).on('zoom', e => zoomLayer.attr('transform', e.transform)));
 
-      const radius = id => 6 + Math.sqrt(degree.get(id) || 0) * 2.6;
+      zoomLayer.append('g').attr('class', 'cluster-bgs')
+        .selectAll('circle').data(clusters).join('circle')
+        .attr('class', 'cluster-bg')
+        .attr('cx', d => d.x).attr('cy', d => d.y).attr('r', d => d.r);
 
-      const simulation = d3.forceSimulation(nodes)
-        .force('link', d3.forceLink(links).id(d => d.id).distance(56).strength(0.5))
-        .force('charge', d3.forceManyBody().strength(-160))
-        .force('center', d3.forceCenter(width / 2, height / 2))
-        .force('collide', d3.forceCollide(d => radius(d.id) + 14));
+      zoomLayer.append('g').attr('class', 'cluster-labels')
+        .selectAll('text').data(clusters).join('text')
+        .attr('class', 'cluster-label')
+        .attr('x', d => d.x - d.r)
+        .attr('y', d => d.y - d.r - 8)
+        .text(d => d.data.no + ' · ' + d.data.name + ' (' + d.children.length + ')');
 
       const link = zoomLayer.append('g').attr('class', 'links')
-        .selectAll('line').data(links).join('line').attr('class', 'link');
+        .selectAll('path').data(links).join('path')
+        .attr('class', 'link')
+        .attr('d', l => {
+          const s = posById.get(l.source), t = posById.get(l.target);
+          if (!s || !t) return '';
+          return 'M' + s.x + ',' + s.y + ' L' + t.x + ',' + t.y;
+        });
 
       const node = zoomLayer.append('g').attr('class', 'nodes')
-        .selectAll('g').data(nodes).join('g')
+        .selectAll('g').data(leaves).join('g')
         .attr('class', 'node')
-        .call(d3.drag()
-          .on('start', (event, d) => { if (!event.active) simulation.alphaTarget(0.25).restart(); d.fx = d.x; d.fy = d.y; })
-          .on('drag', (event, d) => { d.fx = event.x; d.fy = event.y; })
-          .on('end', (event, d) => { if (!event.active) simulation.alphaTarget(0); d.fx = null; d.fy = null; }));
+        .attr('transform', d => 'translate(' + d.x + ',' + d.y + ')');
 
       node.append('circle')
-        .attr('r', d => radius(d.id))
-        .attr('fill', d => KIND_HEX[d.kind] || '#999');
+        .attr('r', d => d.r)
+        .attr('fill', d => KIND_HEX[d.data.kind] || '#999');
 
       node.append('text')
-        .attr('x', d => radius(d.id) + 4)
+        .attr('class', d => 'node-label' + (alwaysLabeled.has(d.data.id) ? '' : ' small'))
+        .attr('x', d => d.r + 4)
         .attr('y', 4)
-        .text(d => d.term);
+        .text(d => d.data.term);
 
-      node.append('title').text(d => d.term + ' — 클릭하면 설명으로 이동');
+      node.append('title').text(d => d.data.term + ' — 클릭하면 설명으로 이동');
 
       const neighborsOf = id => {
         const s = new Set([id]);
         links.forEach(l => {
-          const a = typeof l.source === 'object' ? l.source.id : l.source;
-          const b = typeof l.target === 'object' ? l.target.id : l.target;
-          if (a === id) s.add(b);
-          if (b === id) s.add(a);
+          if (l.source === id) s.add(l.target);
+          if (l.target === id) s.add(l.source);
         });
         return s;
       };
 
       node.on('mouseenter', (event, d) => {
-        const near = neighborsOf(d.id);
-        node.classed('dim', n => !near.has(n.id));
-        link.classed('dim', l => {
-          const a = typeof l.source === 'object' ? l.source.id : l.source;
-          const b = typeof l.target === 'object' ? l.target.id : l.target;
-          return a !== d.id && b !== d.id;
-        });
+        const near = neighborsOf(d.data.id);
+        node.classed('dim', n => !near.has(n.data.id));
+        node.classed('active', n => near.has(n.data.id));
+        link.classed('dim', l => l.source !== d.data.id && l.target !== d.data.id);
       });
       node.on('mouseleave', () => {
         node.classed('dim', false);
+        node.classed('active', false);
         link.classed('dim', false);
       });
       node.on('click', (event, d) => {
-        window.location.href = '../index.html#' + d.id;
-      });
-
-      simulation.on('tick', () => {
-        link
-          .attr('x1', d => d.source.x).attr('y1', d => d.source.y)
-          .attr('x2', d => d.target.x).attr('y2', d => d.target.y);
-        node.attr('transform', d => 'translate(' + d.x + ',' + d.y + ')');
+        window.location.href = '../index.html#' + d.data.id;
       });
     }
 

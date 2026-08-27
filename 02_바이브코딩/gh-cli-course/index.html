@@ -52,16 +52,16 @@
     <p class="eyebrow">Hands-on GitHub · 실습 교안</p>
     <h1>GitHub CLI 설치부터<br>Clone과 퍼블리시까지</h1>
     <p class="lead">터미널에서 <code>gh</code>를 설치하고 GitHub 계정을 연결한 뒤, 비공개 저장소를 clone하고 로컬 프로젝트를 원격 GitHub에 퍼블리시하는 전 과정을 직접 실습합니다.</p>
-    <div class="meta"><span class="pill">대상: Git/GitHub 입문자</span><span class="pill">예상 시간: 35–45분</span><span class="pill">macOS 중심</span><span class="pill">Windows 명령 포함</span></div>
+    <div class="meta"><span class="pill">대상: Git/GitHub 입문자</span><span class="pill">예상 시간: 50–65분</span><span class="pill">macOS 중심</span><span class="pill">Windows 명령 포함</span></div>
   </div></header>
 
   <main>
     <nav class="toc" aria-label="목차">
       <div><h2>오늘의 학습 목표</h2><ul class="checklist">
-        <li><code>git</code>과 <code>gh</code>의 역할을 구분한다.</li><li>GitHub CLI를 설치하고 정상 동작을 확인한다.</li><li>웹 기기 인증으로 계정을 안전하게 연결한다.</li><li>비공개 저장소를 조회하고 clone한다.</li><li>로컬 프로젝트를 새 GitHub 저장소로 퍼블리시한다.</li><li>변경사항을 commit하고 push한다.</li>
+        <li><code>git</code>과 <code>gh</code>의 역할을 구분한다.</li><li><code>status·add·commit·push·branch·fetch·merge</code> 7개 명령어의 역할을 설명한다.</li><li>브랜치를 만들고 fetch·merge로 변경사항을 통합한다.</li><li>merge 충돌이 나면 당황하지 않고 해결한다.</li><li>GitHub CLI를 설치하고 정상 동작을 확인한다.</li><li>웹 기기 인증으로 계정을 안전하게 연결한다.</li><li>비공개 저장소를 조회하고 clone한다.</li><li>로컬 프로젝트를 새 GitHub 저장소로 퍼블리시한다.</li>
       </ul></div>
       <div><h2>수업 순서</h2><ol>
-        <li><a href="#concept">개념 이해</a></li><li><a href="#install">설치</a></li><li><a href="#login">계정 연결</a></li><li><a href="#find">저장소 찾기</a></li><li><a href="#clone">Clone</a></li><li><a href="#publish">로컬 퍼블리시</a></li><li><a href="#rename">이름 변경</a></li><li><a href="#trouble">문제 해결</a></li><li><a href="#exercise">실습 과제</a></li>
+        <li><a href="#concept">개념 이해</a></li><li><a href="#gitbasics">Git 명령어</a></li><li><a href="#install">설치</a></li><li><a href="#login">계정 연결</a></li><li><a href="#find">저장소 찾기</a></li><li><a href="#clone">Clone</a></li><li><a href="#publish">로컬 퍼블리시</a></li><li><a href="#rename">이름 변경</a></li><li><a href="#trouble">문제 해결</a></li><li><a href="#exercise">실습 과제</a></li>
       </ol></div>
     </nav>
 
@@ -75,7 +75,50 @@
       <div class="flow"><span>CLI 설치</span><span>기기 인증</span><span>저장소 조회</span><span>Clone</span><span>Commit·Push</span><span>연결 검증</span></div>
     </section>
 
-    <section id="install"><h2>2. GitHub CLI 설치</h2><p class="section-lead">수업에서는 macOS의 Homebrew 방식을 기본으로 진행합니다.</p>
+    <section id="gitbasics"><h2>2. Git 핵심 명령어 이해하기</h2><p class="section-lead">저장소를 만든 뒤 실제 작업은 이 7개 명령어를 반복하며 진행합니다. 이후 실습에서 그대로 쓰이니 먼저 역할부터 정확히 익혀 둡니다.</p>
+
+      <div style="overflow-x:auto"><table><thead><tr><th>명령어</th><th>역할</th><th>예시</th></tr></thead><tbody>
+        <tr><td><code>git status</code></td><td>현재 작업 폴더의 변경 상태를 확인합니다.</td><td><code>git status --short</code></td></tr>
+        <tr><td><code>git add</code></td><td>변경한 파일을 다음 commit에 포함되도록 준비(stage)합니다.</td><td><code>git add README.md</code></td></tr>
+        <tr><td><code>git commit</code></td><td>staged된 변경사항을 하나의 기록(스냅샷)으로 저장합니다.</td><td><code>git commit -m "메시지"</code></td></tr>
+        <tr><td><code>git push</code></td><td>로컬 commit을 원격 저장소(GitHub)에 업로드합니다.</td><td><code>git push</code></td></tr>
+        <tr><td><code>git branch</code></td><td>브랜치를 만들거나 목록을 확인합니다.</td><td><code>git branch feature/login</code></td></tr>
+        <tr><td><code>git fetch</code></td><td>원격 저장소의 변경 내역을 가져오되, 아직 내 작업에 합치지는 않습니다.</td><td><code>git fetch origin</code></td></tr>
+        <tr><td><code>git merge</code></td><td>다른 브랜치의 변경 내역을 현재 브랜치에 합칩니다.</td><td><code>git merge feature/login</code></td></tr>
+      </tbody></table></div>
+      <div class="callout"><strong>status·add·commit·push는 이미 실습합니다</strong>이 4개 명령어는 <a href="#publish">7. 로컬 프로젝트를 GitHub에 퍼블리시</a>에서 실제로 손으로 실행해 봅니다. 여기서는 나머지 <code>branch</code>·<code>fetch</code>·<code>merge</code>를 집중적으로 다룹니다.</div>
+
+      <article class="step"><span class="step-no">1</span><h3>브랜치 만들고 이동하기</h3><p><code>main</code> 브랜치를 바로 건드리는 대신, 작업마다 독립된 브랜치를 만들면 실수해도 되돌리기 쉽습니다.</p><div class="code-wrap"><span class="code-label">Terminal</span><button class="copy">복사</button><pre><code>git branch feature/login
+git switch feature/login</code></pre></div><p>두 명령을 합친 <code>git switch -c feature/login</code>(또는 예전 방식인 <code>git checkout -b feature/login</code>)도 자주 씁니다.</p></article>
+
+      <article class="step"><span class="step-no">2</span><h3>원격 변경사항 가져오기 — fetch</h3><p>다른 사람이 <code>push</code>한 내용은 자동으로 반영되지 않습니다. <code>fetch</code>로 먼저 받아와서 확인합니다.</p><div class="code-wrap"><span class="code-label">Terminal</span><button class="copy">복사</button><pre><code>git fetch origin
+git log origin/main --oneline -5</code></pre></div><div class="callout"><strong>fetch와 pull의 차이</strong><code>fetch</code>는 원격 내역만 내려받고 내 브랜치는 그대로 둡니다. <code>pull</code>은 <code>fetch</code> 다음에 <code>merge</code>까지 자동으로 실행하는 단축 명령입니다.</div></article>
+
+      <article class="step"><span class="step-no">3</span><h3>브랜치 병합하기 — merge</h3><p>작업이 끝난 브랜치를 <code>main</code>에 합칩니다. 합치기 전에 <code>main</code>도 최신 상태인지 확인하는 습관을 들입니다.</p><div class="code-wrap"><span class="code-label">Terminal</span><button class="copy">복사</button><pre><code>git switch main
+git fetch origin
+git merge feature/login</code></pre></div><p>변경 지점이 겹치지 않으면 자동으로 합쳐지는 <strong>fast-forward merge</strong>가 일어나고, 같은 부분을 서로 다르게 고쳤다면 아래처럼 <strong>충돌(conflict)</strong>이 발생합니다.</p></article>
+
+      <div class="flow"><span>브랜치 생성</span><span>작업 · Commit</span><span>Push</span><span>Fetch</span><span>Merge</span><span>브랜치 정리</span></div>
+
+      <article class="step"><span class="step-no">4</span><h3>merge 충돌 해결 실습</h3><p>충돌은 실수가 아니라 여러 사람이 같은 코드를 함께 고칠 때 자연스럽게 생기는 상황입니다. 침착하게 아래 순서로 해결합니다.</p>
+        <div class="code-wrap"><span class="code-label">Terminal · merge 시도</span><button class="copy">복사</button><pre><code>git merge feature/login
+# Auto-merging README.md
+# CONFLICT (content): Merge conflict in README.md
+# Automatic merge failed; fix conflicts and then commit the result.</code></pre></div>
+        <div class="code-wrap"><span class="code-label">충돌이 표시된 파일 내용</span><button class="copy">복사</button><pre><code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+현재 브랜치(main)의 내용
+=======
+합치려는 브랜치(feature/login)의 내용
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; feature/login</code></pre></div>
+        <p>파일을 열어 원하는 내용만 남기고 <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code>·<code>=======</code>·<code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code> 표시를 모두 지운 뒤 마무리합니다.</p>
+        <div class="code-wrap"><span class="code-label">Terminal · 해결 후</span><button class="copy">복사</button><pre><code>git status
+git add README.md
+git commit</code></pre></div>
+        <div class="callout safe"><strong>안전망</strong>해결이 막막하면 <code>git merge --abort</code>로 merge 시도 자체를 취소하고 병합 전 상태로 되돌릴 수 있습니다.</div>
+      </article>
+    </section>
+
+    <section id="install"><h2>3. GitHub CLI 설치</h2><p class="section-lead">수업에서는 macOS의 Homebrew 방식을 기본으로 진행합니다.</p>
       <article class="step"><span class="step-no">1</span><h3>운영체제에 맞게 설치</h3><div class="grid-2">
         <div><strong>macOS · Homebrew</strong><div class="code-wrap"><span class="code-label">Terminal</span><button class="copy">복사</button><pre><code>brew install gh</code></pre></div></div>
         <div><strong>Windows · PowerShell</strong><div class="code-wrap"><span class="code-label">PowerShell</span><button class="copy">복사</button><pre><code>winget install --id GitHub.cli --source winget</code></pre></div></div>
@@ -84,7 +127,7 @@
 git --version</code></pre></div><p>두 명령 모두 버전 번호를 출력하면 준비 완료입니다.</p></article>
     </section>
 
-    <section id="login"><h2>3. 웹 기기 인증으로 GitHub 연결</h2><p class="section-lead">비밀번호나 토큰을 터미널에 직접 붙여 넣지 않는 브라우저 인증 흐름입니다.</p>
+    <section id="login"><h2>4. 웹 기기 인증으로 GitHub 연결</h2><p class="section-lead">비밀번호나 토큰을 터미널에 직접 붙여 넣지 않는 브라우저 인증 흐름입니다.</p>
       <article class="step"><span class="step-no">1</span><h3>로그인 명령 실행</h3><div class="code-wrap"><span class="code-label">Terminal</span><button class="copy">복사</button><pre><code>gh auth login -h github.com -p https -w</code></pre></div><ul><li><code>-h github.com</code>: 인증할 호스트</li><li><code>-p https</code>: Git 작업에 HTTPS 사용</li><li><code>-w</code>: 브라우저 인증 사용</li></ul></article>
 
       <figure class="figure-card"><div class="shot-wrap"><img src="assets/01-terminal-device-flow.jpg" alt="터미널의 GitHub 기기 인증 안내"><span class="screen-mask terminal-code-top">ABCD-EFGH</span><span class="screen-mask terminal-code-bottom">ABCD-EFGH</span></div><figcaption><strong>화면 1.</strong> 터미널에 일회용 기기 코드와 인증 주소가 나타납니다. 실제 코드는 가상 값으로 가렸습니다.</figcaption></figure>
@@ -106,7 +149,7 @@ git --version</code></pre></div><p>두 명령 모두 버전 번호를 출력하�
       <article class="step"><span class="step-no">5</span><h3>인증 상태 확인</h3><div class="code-wrap"><span class="code-label">Terminal</span><button class="copy">복사</button><pre><code>gh auth status</code></pre></div><p><code>Logged in to github.com account codeclass-demo</code>와 비슷한 메시지가 보이면 성공입니다.</p><div class="callout safe"><strong>보안 원칙</strong><code>--show-token</code> 결과, OAuth 코드, 이메일 인증 코드는 화면 공유·녹화·과제 제출물에 포함하지 마세요.</div></article>
     </section>
 
-    <section id="find"><h2>4. 원격 저장소 찾기</h2><p class="section-lead">인증 후에는 현재 계정이 접근 가능한 비공개 저장소도 조회할 수 있습니다.</p>
+    <section id="find"><h2>5. 원격 저장소 찾기</h2><p class="section-lead">인증 후에는 현재 계정이 접근 가능한 비공개 저장소도 조회할 수 있습니다.</p>
       <article class="step"><span class="step-no">1</span><h3>저장소 목록 확인</h3><div class="code-wrap"><span class="code-label">Terminal</span><button class="copy">복사</button><pre><code>gh repo list codeclass-demo --limit 100</code></pre></div></article>
       <article class="step"><span class="step-no">2</span><h3>이름으로 필터링</h3><div class="code-wrap"><span class="code-label">Terminal · macOS/Linux</span><button class="copy">복사</button><pre><code>gh repo list codeclass-demo --limit 100 \
   --json name,nameWithOwner,url,visibility \
@@ -114,7 +157,7 @@ git --version</code></pre></div><p>두 명령 모두 버전 번호를 출력하�
       <div class="callout"><strong>왜 웹 검색만으로 부족할까?</strong>검색 엔진과 로그아웃 상태의 GitHub 웹은 비공개 저장소를 보여주지 않습니다. 인증된 <code>gh</code>는 현재 계정 권한 안에서 조회합니다.</div>
     </section>
 
-    <section id="clone"><h2>5. 비공개 저장소 Clone</h2><p class="section-lead">저장소를 내려받을 상위 폴더로 이동한 뒤 clone합니다.</p>
+    <section id="clone"><h2>6. 비공개 저장소 Clone</h2><p class="section-lead">저장소를 내려받을 상위 폴더로 이동한 뒤 clone합니다.</p>
       <article class="step"><span class="step-no">1</span><h3>대상 폴더 확인</h3><div class="code-wrap"><span class="code-label">Terminal</span><button class="copy">복사</button><pre><code>pwd
 ls -la</code></pre></div><p>현재 폴더가 비어 있지 않으면 저장소 이름의 하위 폴더에 clone하는 편이 안전합니다.</p></article>
       <article class="step"><span class="step-no">2</span><h3>OWNER/REPO 형식으로 Clone</h3><div class="code-wrap"><span class="code-label">Terminal</span><button class="copy">복사</button><pre><code>gh repo clone codeclass-demo/lesson-script-2608</code></pre></div><p>로컬 폴더명을 따로 지정할 수도 있습니다.</p><div class="code-wrap"><span class="code-label">Terminal</span><button class="copy">복사</button><pre><code>gh repo clone codeclass-demo/lesson-script-2608 my-local-folder</code></pre></div></article>
@@ -123,7 +166,7 @@ git status --short --branch
 git remote -v</code></pre></div><p><code>origin</code>이 <code>https://github.com/codeclass-demo/lesson-script-2608.git</code>을 가리키면 정상입니다.</p></article>
     </section>
 
-    <section id="publish"><h2>6. 로컬 프로젝트를 GitHub에 퍼블리시</h2><p class="section-lead">여기서 퍼블리시는 로컬 파일을 Git으로 기록한 뒤 새 GitHub 원격 저장소를 만들고 최초 push하는 과정을 뜻합니다.</p>
+    <section id="publish"><h2>7. 로컬 프로젝트를 GitHub에 퍼블리시</h2><p class="section-lead">여기서 퍼블리시는 로컬 파일을 Git으로 기록한 뒤 새 GitHub 원격 저장소를 만들고 최초 push하는 과정을 뜻합니다.</p>
       <div class="callout warn"><strong>업로드 전 필수 점검</strong><code>.env</code>, API 키, 비밀번호, 개인정보, 대용량 생성 파일이 포함되지 않았는지 확인하세요. 비밀값은 한 번 commit하면 나중에 지워도 Git 기록에 남을 수 있습니다.</div>
 
       <article class="step"><span class="step-no">1</span><h3>프로젝트 폴더와 파일 범위 확인</h3>
@@ -188,7 +231,7 @@ git push</code></pre></div>
       </article>
     </section>
 
-    <section id="rename"><h2>7. 선택 실습: 원격 저장소 이름 변경</h2><p class="section-lead">실제 URL을 바꾸므로 소유자 또는 관리자 권한이 필요합니다.</p>
+    <section id="rename"><h2>8. 선택 실습: 원격 저장소 이름 변경</h2><p class="section-lead">실제 URL을 바꾸므로 소유자 또는 관리자 권한이 필요합니다.</p>
       <article class="step"><span class="step-no">1</span><h3>원격 저장소 이름 변경</h3><div class="code-wrap"><span class="code-label">Terminal</span><button class="copy">복사</button><pre><code>gh repo rename lesson-script-renamed \
   --repo codeclass-demo/lesson-script-2608 \
   --yes</code></pre></div></article>
@@ -198,7 +241,7 @@ git -C lesson-script-renamed remote set-url origin \
 git -C lesson-script-renamed remote -v</code></pre></div><div class="callout warn"><strong>주의</strong>공동 작업자, 문서, CI/CD, 배포 서비스에 이전 URL이 하드코딩되어 있다면 함께 수정합니다.</div></article>
     </section>
 
-    <section id="trouble"><h2>8. 자주 만나는 오류와 해결법</h2><p class="section-lead">오류 메시지를 지우지 말고 첫 줄부터 읽는 습관을 들입니다.</p>
+    <section id="trouble"><h2>9. 자주 만나는 오류와 해결법</h2><p class="section-lead">오류 메시지를 지우지 말고 첫 줄부터 읽는 습관을 들입니다.</p>
       <div style="overflow-x:auto"><table><thead><tr><th>증상</th><th>가능한 원인</th><th>확인·해결</th></tr></thead><tbody>
         <tr><td><code>gh: command not found</code></td><td>미설치 또는 PATH 미반영</td><td><code>gh --version</code> 확인. Windows는 터미널 창을 다시 엽니다.</td></tr>
         <tr><td><code>The token ... is invalid</code></td><td>저장된 인증 만료</td><td><code>gh auth login -h github.com -p https -w</code>로 다시 인증합니다.</td></tr>
@@ -209,10 +252,12 @@ git -C lesson-script-renamed remote -v</code></pre></div><div class="callout war
         <tr><td><code>remote origin already exists</code></td><td>이미 원격 저장소가 연결됨</td><td><code>git remote -v</code>로 기존 URL을 확인하고 새 저장소를 만들지, URL을 바꿀지 결정합니다.</td></tr>
         <tr><td>Push가 거절됨</td><td>원격에 로컬에 없는 commit이 있음</td><td>무조건 force push하지 말고 <code>git pull --rebase</code>가 적절한지 공동 작업 상황부터 확인합니다.</td></tr>
         <tr><td>이름 변경 후 push 실패</td><td><code>origin</code>이 이전 URL을 가리킴</td><td><code>git remote -v</code> 확인 후 URL을 갱신합니다.</td></tr>
+        <tr><td><code>CONFLICT (content)</code></td><td>두 브랜치가 같은 파일의 같은 부분을 다르게 수정</td><td><code>git status</code>로 충돌 파일을 확인하고 직접 편집한 뒤 <code>git add</code> · <code>git commit</code>. 되돌리려면 <code>git merge --abort</code>.</td></tr>
+        <tr><td>You are in 'detached HEAD' state</td><td>브랜치가 아니라 특정 commit을 직접 <code>checkout</code>함</td><td>계속 작업하려면 <code>git switch -c 새브랜치</code>로 브랜치를 만들고, 아니면 <code>git switch main</code>으로 돌아갑니다.</td></tr>
       </tbody></table></div>
     </section>
 
-    <section id="exercise"><h2>9. 학생 실습 과제</h2><p class="section-lead">짝과 함께 실행하되 인증 코드는 서로 보여 주지 않습니다.</p>
+    <section id="exercise"><h2>10. 학생 실습 과제</h2><p class="section-lead">짝과 함께 실행하되 인증 코드는 서로 보여 주지 않습니다.</p>
       <div class="grid-2">
         <article class="quiz"><h3>실습 체크리스트</h3><ol><li><code>gh --version</code> 결과 확인</li><li>웹 기기 인증 완료</li><li><code>gh auth status</code>에서 자신의 계정 확인</li><li>접근 가능한 저장소 5개 출력</li><li>실습 저장소를 별도 폴더에 clone</li><li>새 로컬 프로젝트의 <code>.gitignore</code> 검토</li><li>비공개 저장소로 최초 퍼블리시</li><li>파일 하나를 수정해 commit·push</li><li><code>git remote -v</code>의 OWNER/REPO 설명</li></ol></article>
         <article class="quiz"><h3>형성 평가</h3>
@@ -236,7 +281,8 @@ git -C lesson-script-renamed remote -v</code></pre></div><div class="callout war
     <li><a href="https://github.com/cli/cli">GitHub CLI 설치 안내</a></li>
     <li><a href="https://cli.github.com/manual/gh_auth_login">gh auth login</a> · <a href="https://cli.github.com/manual/gh_auth_status">gh auth status</a></li>
     <li><a href="https://cli.github.com/manual/gh_repo_list">gh repo list</a> · <a href="https://cli.github.com/manual/gh_repo_clone">gh repo clone</a> · <a href="https://cli.github.com/manual/gh_repo_create">gh repo create</a> · <a href="https://cli.github.com/manual/gh_repo_rename">gh repo rename</a></li>
-  </ul><p>교안 버전 1.1 · 2026-08-17 · 화면의 계정명·저장소명·인증 코드는 교육용 가명 또는 마스킹 값입니다.</p></div></footer>
+    <li><a href="https://git-scm.com/docs/git-branch">git branch</a> · <a href="https://git-scm.com/docs/git-fetch">git fetch</a> · <a href="https://git-scm.com/docs/git-merge">git merge</a></li>
+  </ul><p>교안 버전 1.2 · 2026-08-27 · 화면의 계정명·저장소명·인증 코드는 교육용 가명 또는 마스킹 값입니다.</p></div></footer>
 
   <script>
     document.querySelectorAll('.copy').forEach((button)=>{
