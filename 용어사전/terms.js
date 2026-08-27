@@ -109,7 +109,7 @@ const TERMS = [
       '다만 HTML·이미지처럼 <strong>완성된 파일을 보여 주는 것</strong>까지가 역할입니다. 회원가입이나 데이터 저장처럼 뒷단이 필요한 기능은 다른 방법을 씁니다.',
       '사전 학습 영상에 10분짜리 실습 영상을 넣어 두었으니 함께 보시면 좋습니다.',
     ],
-    related: ['html', 'landing-page', 'github-actions'],
+    related: ['html', 'landing-page', 'github-actions', 'cloudflare-pages'],
   },
   {
     id: 'github-actions',
@@ -126,6 +126,23 @@ const TERMS = [
     ],
     note: '설정 파일을 직접 쓸 일이 당장 없어도, "왜 커밋했는데 사이트 반영까지 몇 분 걸리지?"의 답이 바로 이 자동 실행 시간이라는 것만 알아도 충분합니다. ⏱️',
     related: ['github-pages', 'html'],
+  },
+  {
+    id: 'cloudflare-pages',
+    emoji: '🌩️',
+    term: 'Cloudflare Pages',
+    en: 'pages.cloudflare.com',
+    part: 'part02',
+    kind: 'tool',
+    short: 'GitHub 저장소를 연결해 두면 코드를 올릴 때마다 자동으로 빌드해서 띄워 주는 무료 호스팅 서비스예요. ' +
+           'GitHub Pages와 하는 일은 비슷하지만, Cloudflare의 전 세계 서버망을 타고 나가서 더 빠르고 기능도 더 많습니다. ☁️',
+    body: [
+      'GitHub Pages처럼 파일을 올리기만 하면 인터넷 주소가 생깁니다. 다만 뒤에서 Cloudflare의 CDN(전 세계 곳곳에 흩어진 서버망)을 타기 때문에, 어느 나라에서 접속하든 가까운 서버가 대신 응답해 빠르게 열립니다.',
+      '가장 눈에 띄는 차이는 <strong>미리보기 배포</strong>입니다. 코드를 고쳐서 PR(Pull Request)을 올리면, 그 PR 전용의 별도 주소가 자동으로 하나 더 생겨서 "합치기 전에" 실제로 눌러 보며 검토할 수 있습니다.',
+      '정적인 화면뿐 아니라 서버를 따로 두지 않고도 돌아가는 간단한 뒷단 코드(Cloudflare Functions)까지 같은 곳에 올릴 수 있어서, "그냥 보여 주기"를 넘어서는 기능이 필요해지면 GitHub Pages 대신 넘어가 볼 만합니다.',
+    ],
+    note: 'GitHub Pages로 시작했다가 속도나 미리보기 배포, 커스텀 도메인 설정이 아쉬워질 때 넘어가는 경우가 많습니다. 둘 다 GitHub 저장소를 그대로 쓰기 때문에 옮기는 부담이 크지 않습니다. 🔀',
+    related: ['github-pages', 'github-actions', 'html'],
   },
   {
     id: 'claude-code',
