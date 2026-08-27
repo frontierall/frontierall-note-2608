@@ -38,6 +38,7 @@ const TERM_CATEGORIES = [
 const TERM_KINDS = [
   { id: 'concept', label: '기본 개념' },
   { id: 'tool',    label: '도구' },
+  { id: 'deploy',  label: '배포도구' },
   { id: 'lang',    label: '언어' },
 ];
 
@@ -93,7 +94,22 @@ const TERMS = [
       '계산을 하거나 판단을 내리는 프로그래밍 언어라기보다는, 문서의 구조를 적어 두는 표기법에 가깝습니다. 그래서 처음 보기에 어렵지 않아요.',
       '전부 외울 필요는 없습니다. AI가 만들어 준 결과를 열어 보고 <strong>"아, 제목이 여기고 버튼이 저기구나"</strong> 정도만 알아볼 수 있으면 수업을 따라가는 데 충분합니다.',
     ],
-    related: ['github-pages', 'vibe-coding', 'electron'],
+    related: ['github-pages', 'vibe-coding', 'electron', 'javascript', 'css'],
+  },
+  {
+    id: 'github',
+    emoji: '🐙',
+    term: 'GitHub',
+    en: 'github.com',
+    part: 'part02',
+    kind: 'deploy',
+    short: '내가 짠 코드를 온라인에 저장하고, 변경 이력을 기록하고, 다른 사람과 함께 작업할 수 있게 해 주는 서비스예요. ' +
+           '이 과정에서 만드는 결과물은 거의 다 여기에 올려 두고 시작합니다. 🐙',
+    body: [
+      'Git이라는 버전 관리 도구를 웹에서 편하게 쓸 수 있게 만든 서비스입니다. 코드를 "커밋" 단위로 저장해 두면, 언제 무엇이 왜 바뀌었는지 나중에도 전부 되짚어 볼 수 있어요.',
+      '단순 저장소를 넘어 GitHub Pages(웹사이트 배포), GitHub Actions(자동화), Pull Request(협업 리뷰) 같은 기능이 모두 이 위에서 돌아갑니다. 이 과정에서 만나는 배포 도구 대부분이 결국 GitHub 저장소를 출발점으로 삼습니다.',
+    ],
+    related: ['github-pages', 'github-actions', 'cloudflare-pages', 'vercel', 'netlify'],
   },
   {
     id: 'github-pages',
@@ -101,7 +117,7 @@ const TERMS = [
     term: 'GitHub Pages',
     en: 'pages.github.com',
     part: 'part02',
-    kind: 'tool',
+    kind: 'deploy',
     short: 'GitHub에 올린 파일을 그대로 웹사이트로 띄워 주는 무료 서비스예요. ' +
            '서버를 따로 빌리지 않아도 인터넷 주소가 생깁니다. 지금 보고 계신 이 사이트도 이걸로 만들어졌어요. 🆓',
     body: [
@@ -109,7 +125,8 @@ const TERMS = [
       '다만 HTML·이미지처럼 <strong>완성된 파일을 보여 주는 것</strong>까지가 역할입니다. 회원가입이나 데이터 저장처럼 뒷단이 필요한 기능은 다른 방법을 씁니다.',
       '사전 학습 영상에 10분짜리 실습 영상을 넣어 두었으니 함께 보시면 좋습니다.',
     ],
-    related: ['html', 'landing-page', 'github-actions', 'cloudflare-pages'],
+    note: '무료 플랜은 <strong>private 저장소에서는 지원되지 않습니다.</strong> 저장소를 비공개로 바꾸면 이 기능도 함께 꺼집니다. 🔒',
+    related: ['html', 'landing-page', 'github-actions', 'github', 'cloudflare-pages'],
   },
   {
     id: 'github-actions',
@@ -133,7 +150,7 @@ const TERMS = [
     term: 'Cloudflare Pages',
     en: 'pages.cloudflare.com',
     part: 'part02',
-    kind: 'tool',
+    kind: 'deploy',
     short: 'GitHub 저장소를 연결해 두면 코드를 올릴 때마다 자동으로 빌드해서 띄워 주는 무료 호스팅 서비스예요. ' +
            'GitHub Pages와 하는 일은 비슷하지만, Cloudflare의 전 세계 서버망을 타고 나가서 더 빠르고 기능도 더 많습니다. ☁️',
     body: [
@@ -141,8 +158,144 @@ const TERMS = [
       '가장 눈에 띄는 차이는 <strong>미리보기 배포</strong>입니다. 코드를 고쳐서 PR(Pull Request)을 올리면, 그 PR 전용의 별도 주소가 자동으로 하나 더 생겨서 "합치기 전에" 실제로 눌러 보며 검토할 수 있습니다.',
       '정적인 화면뿐 아니라 서버를 따로 두지 않고도 돌아가는 간단한 뒷단 코드(Cloudflare Functions)까지 같은 곳에 올릴 수 있어서, "그냥 보여 주기"를 넘어서는 기능이 필요해지면 GitHub Pages 대신 넘어가 볼 만합니다.',
     ],
-    note: 'GitHub Pages로 시작했다가 속도나 미리보기 배포, 커스텀 도메인 설정이 아쉬워질 때 넘어가는 경우가 많습니다. 둘 다 GitHub 저장소를 그대로 쓰기 때문에 옮기는 부담이 크지 않습니다. 🔀',
-    related: ['github-pages', 'github-actions', 'html'],
+    note: 'GitHub Pages와 달리 <strong>private 저장소를 연결해도 배포가 계속됩니다.</strong> "소스는 비공개, 결과물만 공개"하고 싶을 때 넘어가는 이유 중 하나입니다. 🔀',
+    related: ['github-pages', 'github-actions', 'github', 'vercel', 'netlify', 'html'],
+  },
+  {
+    id: 'vercel',
+    emoji: '▲',
+    term: 'Vercel',
+    en: 'vercel.com',
+    part: 'part02',
+    kind: 'deploy',
+    short: 'GitHub 저장소를 연결하면 코드를 올릴 때마다 자동으로 배포해 주는 호스팅 서비스예요. ' +
+           'Next.js를 만든 회사이기도 해서, 특히 Next.js 프로젝트와 궁합이 좋습니다. ▲',
+    body: [
+      'Cloudflare Pages·GitHub Pages와 마찬가지로 코드를 push하면 자동으로 사이트가 반영되고, PR을 올리면 그 PR 전용 미리보기 주소가 따로 생깁니다.',
+      '이 과정에서 쓰는 <strong>V0</strong>(화면을 코드로 뽑아 주는 도구)도 Vercel이 만든 서비스예요. 그래서 V0로 뽑은 화면을 그대로 Vercel에 올려 배포하는 흐름이 자연스럽게 이어집니다.',
+    ],
+    related: ['v0', 'cloudflare-pages', 'github-pages', 'netlify', 'nextjs'],
+  },
+  {
+    id: 'netlify',
+    emoji: '🪂',
+    term: 'Netlify',
+    en: 'netlify.com',
+    part: 'part02',
+    kind: 'deploy',
+    short: 'GitHub 저장소를 연결해서 정적 사이트를 자동으로 배포해 주는 서비스예요. ' +
+           'GitHub Pages·Cloudflare Pages·Vercel과 목적이 같은, 이 분야의 원조격 서비스입니다. 🪂',
+    body: [
+      'PR 미리보기 배포, 폼 제출 받기, 서버 없이 돌아가는 간단한 뒷단 함수(Functions) 같은 기능을 일찍부터 제공해 온 서비스라, 지금 다른 서비스들이 따라 하는 기능 상당수가 여기서 먼저 나왔습니다.',
+      '기능만 보면 Cloudflare Pages·Vercel과 크게 다르지 않아서, 이 중 무엇을 쓰느냐는 취향과 무료 플랜 조건 차이에 가깝습니다.',
+    ],
+    related: ['cloudflare-pages', 'vercel', 'github-pages'],
+  },
+  {
+    id: 'javascript',
+    emoji: '🟨',
+    term: 'JavaScript',
+    en: 'JS',
+    part: 'part02',
+    kind: 'lang',
+    short: '웹페이지를 "움직이게" 만드는 언어예요. HTML이 뼈대라면, JavaScript는 버튼을 눌렀을 때 반응하고 ' +
+           '화면이 바뀌는 것 같은 동작을 담당합니다. 🟨',
+    body: [
+      '처음에는 브라우저 안에서만 돌아가는 언어였지만, 지금은 서버·앱·데스크톱 프로그램까지 이 언어 하나로 만들 수 있을 만큼 쓰임새가 넓어졌습니다. React, Next.js 같은 도구들도 모두 이 언어 위에서 동작합니다.',
+      'AI 코딩 도구가 만들어 주는 웹 화면의 "동작하는 부분"은 대부분 이 언어로 되어 있습니다. 문법을 몰라도, 코드를 열었을 때 <strong>"아, 여기가 움직이는 부분이구나"</strong> 정도만 알아도 충분합니다.',
+    ],
+    related: ['html', 'css', 'typescript', 'react'],
+  },
+  {
+    id: 'css',
+    emoji: '💅',
+    term: 'CSS',
+    en: 'Cascading Style Sheets',
+    part: 'part02',
+    kind: 'lang',
+    short: 'HTML로 짠 뼈대를 예쁘게 꾸미는 언어예요. 색깔, 글씨 크기, 여백, 배치처럼 "보이는 방식"을 ' +
+           '전부 여기서 정합니다. 💅',
+    body: [
+      '같은 HTML이라도 CSS를 어떻게 입히느냐에 따라 완전히 다른 느낌의 화면이 됩니다. "제목을 가운데로, 버튼은 파란색으로" 같은 지시를 코드로 적어 두는 것이라고 생각하면 쉽습니다.',
+      '직접 손으로 다 짜지 않아도, <strong>Tailwind CSS</strong> 같은 도구를 쓰면 미리 정해진 짧은 이름(클래스)만 붙여서 빠르게 꾸밀 수 있습니다.',
+    ],
+    related: ['html', 'javascript', 'tailwind-css'],
+  },
+  {
+    id: 'typescript',
+    emoji: '🔷',
+    term: 'TypeScript',
+    en: 'TS',
+    part: 'part02',
+    kind: 'lang',
+    short: 'JavaScript에 "이 값은 숫자, 이건 글자" 같은 타입 표시를 더한 언어예요. ' +
+           '실수를 코드 실행 전에 미리 잡아 주는 것이 가장 큰 장점입니다. 🔷',
+    body: [
+      '예를 들어 숫자가 들어와야 할 자리에 실수로 글자를 넣으면, JavaScript는 실행해 봐야 문제를 알 수 있지만 TypeScript는 코드를 적는 순간 바로 알려줍니다.',
+      '실무에서는 React·Next.js 프로젝트 대부분이 이 언어로 작성됩니다. AI 코딩 도구도 요즘은 기본값으로 TypeScript 코드를 만들어 주는 경우가 많습니다.',
+    ],
+    note: '문법이 하나 더 늘어난 것처럼 보여도, 결국 실행될 때는 다시 JavaScript로 변환됩니다. "안전장치가 붙은 JavaScript" 정도로 이해하면 충분합니다.',
+    related: ['javascript', 'react', 'nextjs'],
+  },
+  {
+    id: 'react',
+    emoji: '⚛️',
+    term: 'React',
+    en: 'react.dev · Meta',
+    part: 'part02',
+    kind: 'tool',
+    short: '버튼, 카드, 메뉴처럼 화면의 작은 조각(컴포넌트)을 레고 블록처럼 조립해서 웹 화면을 만드는 ' +
+           'JavaScript 라이브러리예요. 지금 가장 널리 쓰이는 화면 제작 도구입니다. ⚛️',
+    body: [
+      '"프로필 카드"를 한 번 만들어 두면, 그 조각을 여러 번 재사용해서 목록 전체를 채울 수 있습니다. 화면 하나하나를 처음부터 다시 짜지 않아도 되는 것이 핵심이에요.',
+      'V0 같은 도구가 뽑아 주는 코드도 대부분 React 형태입니다. React의 기본 개념(컴포넌트, 조각을 조립한다는 것)만 알아도 AI가 만들어 준 코드를 훨씬 편하게 읽을 수 있습니다.',
+    ],
+    related: ['javascript', 'nextjs', 'v0'],
+  },
+  {
+    id: 'nextjs',
+    emoji: '⏭️',
+    term: 'Next.js',
+    en: 'nextjs.org · Vercel',
+    part: 'part02',
+    kind: 'tool',
+    short: 'React만으로는 손이 많이 가는 부분(페이지 이동, 서버 쪽 처리, 배포 최적화 등)을 미리 갖춰 둔 ' +
+           'React 프레임워크예요. Vercel이 만들고 관리합니다. ⏭️',
+    body: [
+      'React가 "화면 조각을 만드는 법"을 알려준다면, Next.js는 그 조각들을 모아 실제 서비스 하나로 완성하는 데 필요한 나머지 부분(주소 체계, 데이터 불러오기, 배포)까지 갖춘 상태로 시작하게 해 줍니다.',
+      '만든 회사인 Vercel에 올리면 별다른 설정 없이 가장 잘 맞게 배포됩니다. <strong>Vercel</strong> 카드와 함께 보면 왜 둘이 자주 같이 언급되는지 이해가 쉽습니다.',
+    ],
+    related: ['react', 'vercel', 'typescript'],
+  },
+  {
+    id: 'tailwind-css',
+    emoji: '🌬️',
+    term: 'Tailwind CSS',
+    en: 'tailwindcss.com',
+    part: 'part02',
+    kind: 'tool',
+    short: 'CSS를 직접 한 줄씩 짜는 대신, 미리 정해진 짧은 이름(클래스)을 HTML에 붙이기만 하면 스타일이 ' +
+           '적용되는 도구예요. "여백은 이만큼, 글씨는 파란색" 같은 걸 이름표처럼 붙입니다. 🌬️',
+    body: [
+      '예를 들어 <code>text-blue-500</code>이라는 이름표 하나만 붙이면 글씨가 파란색이 됩니다. CSS 파일을 따로 열어 규칙을 적을 필요 없이, HTML 안에서 바로 꾸밀 수 있어요.',
+      'V0 같은 AI 도구가 뽑아 주는 화면 코드 대부분이 이 방식으로 스타일을 입힙니다. 코드를 열었을 때 낯선 짧은 단어들이 잔뜩 붙어 있다면 대부분 Tailwind 클래스입니다.',
+    ],
+    related: ['css', 'v0', 'shadcn-ui'],
+  },
+  {
+    id: 'shadcn-ui',
+    emoji: '🧩',
+    term: 'shadcn/ui',
+    en: 'ui.shadcn.com',
+    part: 'part02',
+    kind: 'tool',
+    short: '버튼, 입력창, 팝업창처럼 자주 쓰는 화면 부품을 미리 예쁘게 만들어 둔 컴포넌트 모음이에요. ' +
+           '필요한 것만 골라 내 프로젝트에 복사해서 씁니다. 🧩',
+    body: [
+      '다른 도구들처럼 통째로 설치하는 라이브러리가 아니라, 필요한 컴포넌트의 <strong>코드를 그대로 내 프로젝트에 복사해 오는</strong> 방식입니다. 그래서 나중에 마음대로 고쳐도 다른 프로젝트에 영향이 없습니다.',
+      'React + Tailwind CSS 조합 위에서 동작합니다. V0가 뽑아 주는 화면 코드에도 이 컴포넌트들이 자주 섞여 있습니다.',
+    ],
+    related: ['react', 'tailwind-css', 'v0'],
   },
   {
     id: 'claude-code',
@@ -157,7 +310,7 @@ const TERMS = [
       '"로그인 기능이 안 되는데 원인을 찾아서 고쳐 줘"라고 하면, 관련 파일을 스스로 찾아 읽고 고친 뒤 잘 되는지까지 확인합니다. 답만 알려 주는 것이 아니라 <strong>일을 해 준다</strong>는 점이 다릅니다.',
       '그래서 AI 에이전트의 대표적인 예이기도 합니다. 무엇을 허용할지 사용자가 정할 수 있게 되어 있어요.',
     ],
-    related: ['codex', 'ai-agent', 'vibe-coding'],
+    related: ['codex', 'ai-agent', 'vibe-coding', 'vscode', 'cmux'],
   },
   {
     id: 'codex',
@@ -173,6 +326,52 @@ const TERMS = [
       'AI 코딩 도구는 계속 새로 나오고 이름도 자주 바뀝니다. 도구 이름을 외우기보다 <strong>시키는 방법</strong>을 익히면 새 도구가 나와도 금방 적응할 수 있습니다.',
     ],
     related: ['claude-code', 'vibe-coding'],
+  },
+  {
+    id: 'vscode',
+    emoji: '🟦',
+    term: 'Visual Studio Code',
+    en: 'VS Code · Microsoft',
+    part: 'part02',
+    kind: 'tool',
+    short: '코드를 작성·수정할 때 쓰는 무료 코드 편집기예요. 문법 강조, 자동완성 같은 기능을 갖추고 있어서 ' +
+           '지금 가장 널리 쓰이는 개발 도구 중 하나입니다. 🟦',
+    body: [
+      '메모장과 다른 점은 코드를 "이해하고" 도와준다는 것입니다. 오타를 미리 잡아 주고, 함수 이름을 치다 말면 자동으로 완성해 주고, 관련된 코드로 바로 이동할 수 있게 해 줍니다.',
+      'Claude Code 같은 터미널 기반 AI 도구와 함께 쓸 때는, VS Code 안에 터미널 창을 띄워 두고 그 안에서 AI에게 작업을 시키는 방식이 흔합니다.',
+    ],
+    related: ['claude-code', 'javascript', 'html'],
+  },
+  {
+    id: 'cmux',
+    emoji: '🖥️',
+    term: 'cmux',
+    en: 'cmux.dev',
+    part: 'part02',
+    kind: 'tool',
+    short: '터미널에서 Claude Code, Codex 같은 AI 코딩 에이전트 여러 개를 동시에 켜 두고 나란히 지켜볼 수 있게 ' +
+           '만든 macOS 전용 터미널이에요. 에이전트마다 탭을 하나씩 배정해서 관리합니다. 🖥️',
+    body: [
+      '에이전트를 하나씩 실행하고 화면을 왔다갔다하는 대신, 여러 개를 동시에 돌리면서 어느 쪽이 끝났는지 알림으로 확인할 수 있습니다. 화면 안에 브라우저 창도 함께 띄울 수 있어서, 에이전트가 만든 결과를 바로 확인시킬 수도 있습니다.',
+      '이름의 "mux"는 여러 개를 하나로 묶어 다룬다는 뜻의 멀티플렉서(multiplexer)에서 왔습니다. 개발자들이 오래 써온 <code>tmux</code>라는 터미널 도구의 계보를 잇는 이름이에요.',
+    ],
+    note: '아직 macOS 전용 도구입니다. Windows에서 비슷한 걸 쓰고 싶다면 <strong>wmux</strong>를 참고합니다.',
+    related: ['claude-code', 'codex', 'ai-agent', 'wmux'],
+  },
+  {
+    id: 'wmux',
+    emoji: '🪟',
+    term: 'wmux',
+    en: 'Windows',
+    part: 'part02',
+    kind: 'tool',
+    short: 'cmux의 Windows 버전 격인 터미널 도구예요. WSL 없이도 Claude Code·Codex·Gemini CLI 같은 ' +
+           'AI 에이전트 여러 개를 창 하나에서 나눠서 동시에 돌릴 수 있습니다. 🪟',
+    body: [
+      'Windows에는 원래 tmux 같은 터미널 다중화 도구가 기본으로 없어서, 리눅스용 도구를 쓰려면 WSL(Windows용 리눅스)을 거쳐야 했습니다. wmux는 그 과정 없이 Windows에서 곧바로 여러 에이전트를 나눠서 돌릴 수 있게 만든 도구입니다.',
+      '이 도구 자체가 Claude Code로 개발됐다고 알려져 있습니다 — AI 코딩 도구가 AI 코딩 도구를 위한 도구를 만든 사례인 셈입니다.',
+    ],
+    related: ['cmux', 'claude-code', 'codex'],
   },
   {
     id: 'electron',
@@ -313,7 +512,7 @@ const TERMS = [
       '결과가 React + Tailwind CSS + shadcn/ui라는, 실무에서 널리 쓰는 형태의 코드로 나옵니다. 그래서 이미 만들고 있는 프로젝트에 그대로 가져다 붙이기 좋습니다.',
       '둘 중 하나만 골라야 하는 것은 아닙니다. 만들려는 것이 <strong>서비스 전체</strong>인지 <strong>화면 하나</strong>인지에 따라 나눠 씁니다.',
     ],
-    related: ['lovable', 'vibe-coding'],
+    related: ['lovable', 'vibe-coding', 'vercel', 'react', 'tailwind-css', 'shadcn-ui'],
   },
 
   /* ---- PART 06. 데이터 분석 & 머신러닝 ---- */
