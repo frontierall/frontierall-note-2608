@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>작업 로그 · AI 프로덕트 마스터</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@1.3.9/dist/web/static/pretendard.css">
+<style>
+  :root {
+    --primary: #0066cc; --primary-focus: #0071e3;
+    --canvas: #ffffff; --parchment: #f5f5f7; --pearl: #fafafc;
+    --black: #000000; --ink: #1d1d1f; --ink-80: #333333; --ink-48: #7a7a7a;
+    --hairline: #e0e0e0; --green: #16a34a; --amber: #b45309;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--canvas); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', 'Apple SD Gothic Neo', 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-size: 17px; line-height: 1.47; letter-spacing: -0.374px;
+  }
+  .global-nav {
+    position: sticky; top: 0; z-index: 20; height: 44px; background: var(--black);
+    display: flex; align-items: center; justify-content: space-between; padding: 0 22px;
+  }
+  .global-nav .brand { color: #fff; font-size: 12px; font-weight: 600; letter-spacing: -0.12px; text-decoration: none; }
+  .global-nav .meta { color: rgba(255,255,255,0.72); font-size: 12px; letter-spacing: -0.12px; }
+  .sub-nav {
+    position: sticky; top: 44px; z-index: 19; height: 52px;
+    display: flex; align-items: center; justify-content: space-between; padding: 0 22px;
+    background: rgba(245,245,247,0.8);
+    -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+  .sub-nav .category { font-size: 21px; font-weight: 600; letter-spacing: 0.231px; color: var(--ink); text-decoration: none; }
+  .btn-primary {
+    display: inline-block; background: var(--primary); color: #fff; border: none;
+    border-radius: 9999px; padding: 8px 18px; font-size: 14px; font-family: inherit;
+    text-decoration: none; cursor: pointer; transition: transform .15s;
+  }
+  .btn-primary:active { transform: scale(0.95); }
+  .btn-primary:focus-visible { outline: 2px solid var(--primary-focus); outline-offset: 2px; }
+
+  article { max-width: 760px; margin: 0 auto; padding: 64px 24px 96px; }
+  .eyebrow { display: block; font-size: 14px; font-weight: 600; letter-spacing: -0.224px; color: var(--ink-48); margin-bottom: 12px; }
+  h1 { font-size: 34px; font-weight: 600; line-height: 1.14; letter-spacing: 0; margin: 0 0 12px; }
+  .lead { font-size: 15.5px; line-height: 1.6; color: var(--ink-80); max-width: 62ch; margin: 0 0 22px; }
+  .source {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-48);
+    letter-spacing: -0.12px; background: var(--pearl); border: 1px solid var(--hairline);
+    padding: 3px 10px; border-radius: 999px; margin: 0 8px 8px 0;
+  }
+
+  .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 28px 0 8px; }
+  .stat { border: 1px solid var(--hairline); border-radius: 12px; padding: 14px 14px 12px; background: var(--pearl); }
+  .stat .n { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+  .stat .l { font-size: 12px; color: var(--ink-48); margin-top: 2px; }
+
+  h2 {
+    font-size: 21px; font-weight: 600; line-height: 1.19; letter-spacing: 0.231px;
+    margin: 44px 0 6px; padding-top: 26px; border-top: 1px solid var(--hairline);
+    display: flex; align-items: center; gap: 9px;
+  }
+  h2 .step-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 24px; height: 24px; border-radius: 8px; background: var(--primary); color: #fff;
+    font-size: 12px; font-weight: 700; flex: 0 0 auto;
+  }
+  h3 { font-size: 15.5px; font-weight: 600; margin: 20px 0 6px; color: var(--ink); }
+  p { color: var(--ink); font-size: 15px; line-height: 1.62; margin: 8px 0; }
+  .note-lead { color: var(--ink-48); font-size: 13.5px; margin: -2px 0 14px; }
+  strong { color: var(--ink); }
+  ul.tight, ol.tight { margin: 8px 0; padding-left: 1.25rem; }
+  ul.tight li, ol.tight li { font-size: 14.5px; line-height: 1.6; margin: 5px 0; color: var(--ink-80); }
+  code {
+    background: var(--pearl); border: 1px solid var(--hairline);
+    border-radius: 5px; padding: 2px 6px; font-size: 13px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+  }
+  .pill-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 4px; }
+  .pill { font-size: 12px; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--hairline); color: var(--ink-80); background: #fff; }
+  .pill.ok { color: var(--green); border-color: #bbf0cf; background: #f0fdf4; }
+  .pill.watch { color: var(--amber); border-color: #fde5b8; background: #fffbeb; }
+
+  .callout {
+    margin: 14px 0; border-left: 4px solid var(--primary); border-radius: 8px;
+    padding: 12px 15px; background: #eff6ff; font-size: 14px; line-height: 1.6;
+  }
+  .callout.watch { border-color: var(--amber); background: #fffbeb; }
+  .callout strong { display: inline-block; margin-right: 4px; }
+
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 13.5px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--hairline); vertical-align: top; }
+  th { color: var(--ink-48); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+  td code { white-space: nowrap; }
+
+  .todo-list { list-style: none; margin: 10px 0; padding: 0; }
+  .todo-list li {
+    position: relative; padding: 9px 12px 9px 30px; margin: 6px 0;
+    border: 1px solid var(--hairline); border-radius: 10px; font-size: 14px; background: var(--pearl);
+  }
+  .todo-list li::before { content: "○"; position: absolute; left: 11px; color: var(--ink-48); }
+
+  footer.page-footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--hairline); color: var(--ink-48); font-size: 12.5px; }
+
+  @media (max-width: 640px) {
+    article { padding: 48px 20px 72px; }
+    h1 { font-size: 26px; }
+    .sub-nav { padding: 0 16px; }
+    .sub-nav .category { font-size: 17px; }
+    .stat-row { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 380px) {
+    .global-nav .meta { display: none; }
+  }
+</style>
+</head>
+<body>
+  <nav class="global-nav">
+    <a class="brand" href="../index.html">AI 프로덕트 마스터</a>
+    <span class="meta">인공지능 심화(160H)</span>
+  </nav>
+  <nav class="sub-nav">
+    <a class="category" href="#">작업 로그</a>
+    <a class="btn-primary" href="../index.html">전체 커리큘럼</a>
+  </nav>
+
+  <article>
+
+<span class="eyebrow">Claude Code 세션 기록</span>
+<h1>2026-08-27 · Git 교안 &amp; 용어사전 확장</h1>
+<p class="lead">gh-cli-course에 Git 기본 명령어 교안을 새로 만들고, 용어사전을 75개에서 102개로 늘리고, 관계도를 다시 그리고, 서브에이전트 6개로 두 차례 점검해 발견된 문제를 고친 하루의 기록입니다.</p>
+<div>
+  <span class="source">커밋 4건</span>
+  <span class="source">파일 9개</span>
+  <span class="source">용어 27개 추가</span>
+  <span class="source">서브에이전트 6개</span>
+</div>
+
+<div class="stat-row">
+  <div class="stat"><div class="n">75 → 102</div><div class="l">용어사전 카드 수</div></div>
+  <div class="stat"><div class="n">2 → 3</div><div class="l">관계도 레이아웃 방식</div></div>
+  <div class="stat"><div class="n">6</div><div class="l">리뷰 서브에이전트</div></div>
+  <div class="stat"><div class="n">4</div><div class="l">git 커밋</div></div>
+</div>
+
+<h2><span class="step-badge">1</span> Git 기본 명령어 교안 추가</h2>
+<p class="note-lead"><code>02_바이브코딩/gh-cli-course/index.html</code></p>
+<p><code>status</code>·<code>add</code>·<code>commit</code>·<code>push</code>·<code>branch</code>·<code>fetch</code>·<code>merge</code> 7개 명령어를 다루는 새 섹션을 만들었습니다. 이후 섹션 번호는 2~10으로 밀렸습니다.</p>
+<ul class="tight">
+  <li>명령어 치트시트 표, branch→fetch→merge 워크플로 다이어그램(.flow)</li>
+  <li>merge 충돌 발생 → 충돌 마커 읽기 → 해결 → <code>git merge --abort</code> 안전망까지 다루는 실습</li>
+  <li>오류 해결 표에 <code>CONFLICT (content)</code>, <code>detached HEAD</code> 행 추가</li>
+</ul>
+
+<h2><span class="step-badge">2</span> 용어사전 확장 — 75 → 102개</h2>
+<p class="note-lead"><code>용어사전/terms.js</code></p>
+<p>대화 중 요청받은 대로 단계별로 채워 나갔습니다.</p>
+<table>
+  <thead><tr><th>묶음</th><th>추가된 용어</th></tr></thead>
+  <tbody>
+    <tr><td>Git 명령어</td><td>커밋 사이클(status·add·commit·push), 브랜치, Fetch, Merge</td></tr>
+    <tr><td>생성형 AI</td><td>생성형 AI, ChatGPT, Claude, Gemini, Grok — 챗봇 4종은 같은 축("먼저 나온 챗봇 ↔ 나중에 나온 챗봇") 스펙트럼으로 비교</td></tr>
+    <tr><td>모바일 앱 개발</td><td>React Native, Flutter, 크로스플랫폼 개발, PWA, 앱스토어 배포</td></tr>
+    <tr><td>파일 형식</td><td>TXT, Markdown, JSON, PNG, JPG, PDF, XLSX, .env, .gitignore, Jupyter Notebook, CSV</td></tr>
+    <tr><td>(병행 세션)</td><td>클라이언트-서버 구조, 프론트엔드/백엔드 — 동시에 작업 중이던 다른 세션에서 추가</td></tr>
+  </tbody>
+</table>
+
+<h2><span class="step-badge">3</span> 관계도 재설계</h2>
+<p class="note-lead"><code>용어사전/관계도/index.html</code></p>
+<p>기존 D3 <code>forceSimulation</code>은 새로고침할 때마다 배치가 흔들려서, PART별로 원을 묶는 결정적(deterministic) <strong>circle-packing</strong>(<code>d3.hierarchy</code> + <code>d3.pack</code>) 레이아웃으로 바꿨습니다. 라벨은 연결이 많은 상위 20%만 기본으로 보이고 나머지는 마우스를 올렸을 때 나타납니다.</p>
+
+<h2><span class="step-badge">4</span> 서브에이전트 점검 두 라운드</h2>
+<p>"서브 에이전트 3개가 점검해 달라"는 요청을 두 번 받아, 각각 다른 관점으로 병렬 실행했습니다.</p>
+<h3>라운드 1 · 신규 용어 25개 품질 점검</h3>
+<div class="pill-row">
+  <span class="pill">사실 정확성</span>
+  <span class="pill">톤·분류·중복</span>
+  <span class="pill">데이터 무결성·연결성</span>
+</div>
+<p>발견 → 반영: <code>flutter</code> 출시 연도(2017 알파→2018.12 정식), <code>git-merge</code>의 fast-forward/3-way merge 구분, <code>grok</code>의 "X Premium" → "X Premium+", <code>github-pages</code>↔<code>pwa</code>·<code>data-analysis</code>↔<code>csv</code>/<code>ipynb</code>/<code>pandas</code> 역참조 추가, <code>app-store-deploy</code> kind를 <code>deploy</code>로, 겹치던 이모지 5건 교체. 모바일 카드 5개가 실제 커리큘럼에 없는 내용이라는 지적은 논의 후 참고 자료로 유지하기로 결정했습니다.</p>
+
+<h3>라운드 2 · 시각화 전수 점검</h3>
+<div class="pill-row">
+  <span class="pill">코드 레벨 클리핑 감사</span>
+  <span class="pill">콘텐츠 대비 시각화 공백</span>
+  <span class="pill">실제 렌더링 검증</span>
+</div>
+<p>두 에이전트가 독립적으로 같은 버그를 확인했습니다 — 관계도 클러스터 라벨이 실제 102개 데이터로는 모바일에서 캔버스 밖으로 잘리고 데스크톱에서도 서로 겹침. 라벨을 원 위 중앙 정렬로 바꾸고, 클러스터 크기에 비례해 폰트 크기를 줄이고, 렌더링 후 실측 폭이 넓으면 자동으로 한 번 더 줄이는 로직을 추가해 고쳤습니다. 이슈로그·팁의 카테고리 차트도 실제 라벨("Node.js · 개발환경", "스크립트 파이프라인")이 지정 폭을 넘는 걸 확인해 라벨 폭을 넓히고 <code>title</code> 툴팁을 더했습니다.</p>
+<p>PART03~08은 아직 콘텐츠가 없어 시각화를 논할 단계가 아니었고, 대신 이슈로그·팁의 실제 글들에서 시각화 후보를 찾았습니다(아래 다음 작업 참고).</p>
+
+<h2><span class="step-badge">5</span> 협업 메모</h2>
+<div class="callout watch">
+  <strong>동시 편집 확인</strong> 같은 저장소에서 다른 세션(<code>frontierall-note-2608-37</code>)이 동시에 작업 중이었습니다. 제 커밋 직전에 그쪽에서 먼저 커밋·푸시하면서, 제가 고친 <code>grok</code> 카드의 "Tesla·SpaceX는 별개 법인" 문장이 그쪽이 쓴 "2026년 2월 SpaceX가 xAI를 인수" 문장으로 바뀌어 있습니다. 이 사실은 제 지식 범위(2026년 1월) 밖이라 맞는 내용인지 확인하지 못했습니다 — 한 번 검토해 주세요.
+</div>
+
+<h2><span class="step-badge">✓</span> 검증</h2>
+<p>매 단계마다 <code>node --check</code>로 문법을, 자체 스크립트로 중복 id·끊긴 <code>related</code> 참조·중복 이모지를 확인했습니다. 관계도 pack 레이아웃은 실제 <code>terms.js</code> 데이터를 Node에서 <code>d3-hierarchy</code>로 그대로 돌려 좌표까지 재현해 검증했습니다.</p>
+<div class="pill-row">
+  <span class="pill ok">문법 통과</span>
+  <span class="pill ok">중복 id 없음</span>
+  <span class="pill ok">깨진 링크 없음(226개)</span>
+  <span class="pill ok">중복 이모지 없음</span>
+</div>
+
+<h2>다음에 이어서 하면 좋을 것</h2>
+<p class="note-lead">라운드 2 에이전트가 찾은, 아직 손대지 않은 시각화 후보입니다.</p>
+<ul class="todo-list">
+  <li><code>이슈로그/google-provider-not-enabled</code> — Google Cloud↔Supabase↔브라우저를 오가는 5단계 절차 → 플로우차트/스윔레인</li>
+  <li>같은 글의 "계정 자동 연결"(두 provider가 하나의 user로 묶이는 관계) → 미니 관계 다이어그램</li>
+  <li><code>이슈로그/nodejs-npm-execution-policy</code> — 자가진단 로직 → 의사결정 트리</li>
+  <li><code>이슈로그/github-pages-private-repo</code> — 증상→확인→전환→검증 절차 → 미니 플로우차트</li>
+  <li><code>팁/subagent-task</code>, <code>팁/claude-memory-protected-zone</code> — 대안 흐름·이분 판단 기준 (우선순위 낮음)</li>
+</ul>
+
+<footer class="page-footer">
+  커밋: <code>11fb84c</code> Git 명령어 교안 + 초기 용어 확장 · <code>03a68e0</code> 모바일·파일형식 용어 16종 · <code>bdf6a41</code> 서브에이전트 점검 반영(병행 세션과 함께 커밋됨)<br>
+  이 페이지는 학생용 콘텐츠가 아니라 작업 과정을 남겨 두는 내부 기록입니다.
+</footer>
+
+  </article>
+</body>
+</html>
