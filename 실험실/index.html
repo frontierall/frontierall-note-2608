@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>팁 · AI 프로덕트 마스터</title>
+<title>실험실 · AI 프로덕트 마스터</title>
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@1.3.9/dist/web/static/pretendard.css">
 <style>
   :root {
@@ -46,6 +46,7 @@
   h1.headline { font-size: 40px; font-weight: 600; line-height: 1.10; letter-spacing: 0; margin: 0 0 14px; }
   p.tagline { font-size: 22px; font-weight: 400; line-height: 1.3; letter-spacing: 0.196px; margin: 0 0 28px; color: var(--ink-80); }
 
+  /* ---- group tabs ---- */
   .group-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 16px; scrollbar-width: none; }
   .group-tabs::-webkit-scrollbar { display: none; }
   .group-tabs button {
@@ -69,10 +70,11 @@
   .cat-chart .cat-bar span { display: block; height: 100%; background: var(--primary); border-radius: 999px; transition: width .25s; }
   .cat-chart .cat-count { flex: 0 0 18px; font-size: 12px; color: var(--ink-48); font-variant-numeric: tabular-nums; }
 
+  /* ---- search ---- */
   .search-input {
     display: flex; align-items: center; gap: 8px; background: var(--canvas);
     border: 1px solid var(--hairline); border-radius: 9999px; padding: 10px 18px;
-    margin-bottom: 28px;
+    margin-bottom: 20px;
   }
   .search-input svg { flex: 0 0 auto; color: var(--ink-48); }
   .search-input input {
@@ -81,8 +83,23 @@
   }
   .search-input input::placeholder { color: var(--ink-48); }
 
-  .result-count { font-size: 13px; color: var(--ink-48); letter-spacing: -0.224px; margin: 0 0 12px; }
+  /* ---- result row + view toggle ---- */
+  .result-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 12px; }
+  .result-count { font-size: 13px; color: var(--ink-48); letter-spacing: -0.224px; margin: 0; }
+  .view-toggle {
+    display: inline-flex; gap: 2px; padding: 3px; background: var(--parchment);
+    border-radius: 999px; flex: 0 0 auto;
+  }
+  .view-toggle button {
+    all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+    font-size: 13px; letter-spacing: -0.224px; color: var(--ink-48);
+    padding: 6px 12px; border-radius: 999px; transition: background .15s, color .15s;
+  }
+  .view-toggle button svg { flex: 0 0 auto; }
+  .view-toggle button.active { background: var(--canvas); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+  .view-toggle button:focus-visible { outline: 2px solid var(--primary-focus); outline-offset: 2px; }
 
+  /* ---- card view (default) ---- */
   .utility-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
   a.utility-card {
     display: block; background: var(--canvas); border: 1px solid var(--hairline);
@@ -97,11 +114,26 @@
   }
   a.utility-card .name { font-size: 17px; font-weight: 600; letter-spacing: -0.374px; margin-bottom: 6px; }
   a.utility-card .meta { font-size: 14px; color: var(--ink-48); letter-spacing: -0.224px; }
-  a.utility-card .project {
+  a.utility-card .badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  a.utility-card .badge {
     display: inline-block; font-size: 11px; color: var(--ink-48); letter-spacing: -0.12px;
     background: var(--parchment); border: 1px solid var(--hairline); padding: 2px 8px;
-    border-radius: 999px; margin-top: 10px;
+    border-radius: 999px;
   }
+
+  /* ---- list view ---- */
+  .utility-grid.list-view { display: flex; flex-direction: column; gap: 10px; }
+  .utility-grid.list-view a.utility-card {
+    display: flex; align-items: center; gap: 16px; padding: 14px 18px; border-radius: 14px;
+  }
+  .utility-grid.list-view a.utility-card .tag { flex: 0 0 auto; margin: 0; }
+  .utility-grid.list-view a.utility-card .main { flex: 1 1 auto; min-width: 0; }
+  .utility-grid.list-view a.utility-card .name { font-size: 15px; margin-bottom: 2px; }
+  .utility-grid.list-view a.utility-card .meta {
+    font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .utility-grid.list-view a.utility-card .badges { flex: 0 0 auto; margin-top: 0; }
+
   .empty-note { font-size: 14px; color: var(--ink-48); letter-spacing: -0.224px; padding: 24px 0; }
 
   footer.site-footer { background: var(--parchment); color: var(--ink-80); padding: 64px 24px 32px; }
@@ -119,6 +151,9 @@
     .footer-links { grid-template-columns: repeat(2, 1fr); gap: 4px 20px; }
     .utility-grid { grid-template-columns: 1fr; }
     .cat-chart .cat-label { flex-basis: 104px; font-size: 11px; }
+    .utility-grid.list-view a.utility-card { flex-wrap: wrap; }
+    .utility-grid.list-view a.utility-card .meta { white-space: normal; }
+    .view-toggle button .label { display: none; }
   }
   @media (max-width: 380px) {
     .global-nav .meta { display: none; }
@@ -131,21 +166,18 @@
     <span class="meta">인공지능 심화(160H)</span>
   </nav>
   <nav class="sub-nav">
-    <a class="category" href="#">팁</a>
+    <a class="category" href="#">실험실</a>
     <a class="btn-primary" href="../index.html">전체 커리큘럼</a>
   </nav>
 
   <main class="content">
-    <span class="eyebrow">작업 노하우 기록</span>
-    <h1 class="headline">팁</h1>
-    <p class="tagline">Claude Code·Codex로 작업하며 정리한 실전 팁을 모읍니다. 같은 시행착오를 반복하지 않는 것이 목표입니다.</p>
+    <span class="eyebrow">체험형 학습 도구 모음</span>
+    <h1 class="headline">실험실</h1>
+    <p class="tagline">교안 내용을 눈으로만 읽지 않고 직접 눌러보고 움직여보며 이해하는 인터랙티브 데모를 모읍니다.</p>
 
     <nav class="group-tabs" id="group-tabs">
       <button data-cat="all" class="active"><span class="label">전체</span> <span class="count"></span></button>
-      <button data-cat="claude-memory"><span class="label">Claude · 설정</span> <span class="count"></span></button>
-      <button data-cat="notion-mcp"><span class="label">Notion MCP</span> <span class="count"></span></button>
-      <button data-cat="subagent"><span class="label">서브에이전트</span> <span class="count"></span></button>
-      <button data-cat="script-pipeline"><span class="label">스크립트 파이프라인</span> <span class="count"></span></button>
+      <button data-cat="github"><span class="label">GitHub</span> <span class="count"></span></button>
     </nav>
 
     <div class="cat-chart" id="cat-chart"></div>
@@ -155,35 +187,34 @@
       <input type="search" id="search" placeholder="제목, 키워드로 검색">
     </label>
 
-    <p class="result-count" id="result-count">4개 팁</p>
+    <div class="result-row">
+      <p class="result-count" id="result-count">1개 실험</p>
+      <div class="view-toggle" id="view-toggle" role="group" aria-label="보기 방식">
+        <button type="button" data-view="card" class="active" aria-pressed="true">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg>
+          <span class="label">카드형</span>
+        </button>
+        <button type="button" data-view="list" aria-pressed="false">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+          <span class="label">리스트형</span>
+        </button>
+      </div>
+    </div>
 
     <div class="utility-grid" id="grid">
-      <a class="utility-card" data-cat="claude-memory" href="claude-memory-protected-zone/index.html">
-        <span class="tag">Claude · 설정</span>
-        <div class="name">보호 구역 프로젝트에서 "항상 이렇게 해줘"를 시키는 법</div>
-        <div class="meta">memory 시스템으로 규칙을 저장해 업데이트에 영향받지 않게 하기</div>
-        <span class="project">08_autoworker02</span>
-      </a>
-      <a class="utility-card" data-cat="notion-mcp" href="notion-mcp/index.html">
-        <span class="tag">Notion MCP</span>
-        <div class="name">Notion MCP 연동 실전 팁</div>
-        <div class="meta">DB 생성 DDL, 뷰 추가, data_source_id 형식, 코드 블록</div>
-        <span class="project">08_autoworker02</span>
-      </a>
-      <a class="utility-card" data-cat="subagent" href="subagent-task/index.html">
-        <span class="tag">서브에이전트</span>
-        <div class="name">서브에이전트(Task) 활용 팁</div>
-        <div class="meta">Write 가드 우회, 병렬 실행과 결과 확인</div>
-        <span class="project">08_autoworker02</span>
-      </a>
-      <a class="utility-card" data-cat="script-pipeline" href="script-pipeline/index.html">
-        <span class="tag">스크립트 파이프라인</span>
-        <div class="name">대본 파이프라인(script-pd) 관련 팁</div>
-        <div class="meta">댓글 없는 영상 처리, 분량 보충, URL 물음표 이스케이프</div>
-        <span class="project">08_autoworker02</span>
+      <a class="utility-card" data-cat="github" href="github-office/index.html">
+        <span class="tag">GitHub</span>
+        <div class="main">
+          <div class="name">깃허브 사무실 — 로컬↔GitHub 6가지 동작 인터랙티브 데모</div>
+          <div class="meta">Publish·Clone·Commit·Push·Fetch·Pull을 사무실 비유로 직접 눌러보며 익히기</div>
+        </div>
+        <div class="badges">
+          <span class="badge">🟢 입문 · 10분</span>
+          <span class="badge">02 바이브코딩</span>
+        </div>
       </a>
     </div>
-    <p class="empty-note" id="empty-note" style="display:none;">일치하는 팁이 없습니다.</p>
+    <p class="empty-note" id="empty-note" style="display:none;">일치하는 실험이 없습니다.</p>
   </main>
 
   <footer class="site-footer">
@@ -199,7 +230,7 @@
       <a href="../08_해커톤/index.html">08 해커톤</a>
       <a href="../용어사전/index.html">용어사전</a>
       <a href="../이슈로그/index.html">이슈로그</a>
-      <a href="../실험실/index.html">실험실</a>
+      <a href="../팁/index.html">팁</a>
     </div>
     <div class="footer-legal">AI 프로덕트 마스터 · frontierall</div>
   </footer>
@@ -210,6 +241,8 @@
     const searchInput = document.getElementById('search');
     const resultCount = document.getElementById('result-count');
     const emptyNote = document.getElementById('empty-note');
+    const grid = document.getElementById('grid');
+    const viewButtons = document.querySelectorAll('#view-toggle button');
     let activeCat = 'all';
 
     tabs.forEach(tab => {
@@ -218,7 +251,7 @@
       tab.querySelector('.count').textContent = `(${n})`;
     });
 
-    // 탭 옆 숫자만으로는 어느 카테고리에 팁이 몰려있는지 한눈에 안 보여서,
+    // 탭 옆 숫자만으로는 어느 카테고리에 실험이 몰려있는지 한눈에 안 보여서,
     // 막대 하나씩으로도 보여줍니다. 막대를 눌러도 탭을 누른 것과 같이 동작합니다.
     const chartEl = document.getElementById('cat-chart');
     const catRows = [...tabs].filter(t => t.dataset.cat !== 'all').map(t => ({
@@ -252,7 +285,7 @@
         card.classList.toggle('hidden', !show);
         if (show) visible++;
       });
-      resultCount.textContent = `${visible}개 팁`;
+      resultCount.textContent = `${visible}개 실험`;
       emptyNote.style.display = visible === 0 ? 'block' : 'none';
     }
 
@@ -266,6 +299,23 @@
     });
 
     searchInput.addEventListener('input', applyFilters);
+
+    // 카드형 / 리스트형 보기 전환. 마지막으로 고른 보기 방식은 이 브라우저에 기억됩니다.
+    function setView(view) {
+      grid.classList.toggle('list-view', view === 'list');
+      viewButtons.forEach(btn => {
+        const isActive = btn.dataset.view === view;
+        btn.classList.toggle('active', isActive);
+        btn.setAttribute('aria-pressed', String(isActive));
+      });
+      try { localStorage.setItem('실험실:view', view); } catch (e) {}
+    }
+    viewButtons.forEach(btn => {
+      btn.addEventListener('click', () => setView(btn.dataset.view));
+    });
+    let savedView = 'card';
+    try { savedView = localStorage.getItem('실험실:view') || 'card'; } catch (e) {}
+    setView(savedView);
   </script>
 </body>
 </html>

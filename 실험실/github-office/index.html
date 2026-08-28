@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>깃허브 사무실 · AI 프로덕트 마스터</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@1.3.9/dist/web/static/pretendard.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Noto+Sans+KR:wght@400;500;700;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  /* ---------- site chrome (실험실 공통 헤더) ---------- */
+  .global-nav {
+    position: sticky; top: 0; z-index: 40; height: 44px; background: #000;
+    display: flex; align-items: center; justify-content: space-between; padding: 0 22px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', 'Apple SD Gothic Neo', 'Segoe UI', sans-serif;
+  }
+  .global-nav .brand { color: #fff; font-size: 12px; font-weight: 600; letter-spacing: -0.12px; text-decoration: none; }
+  .global-nav .meta { color: rgba(255,255,255,0.72); font-size: 12px; letter-spacing: -0.12px; }
+  .sub-nav {
+    position: sticky; top: 44px; z-index: 39; height: 52px;
+    display: flex; align-items: center; justify-content: space-between; padding: 0 22px;
+    background: rgba(245,245,247,0.92);
+    -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', 'Apple SD Gothic Neo', 'Segoe UI', sans-serif;
+  }
+  .sub-nav .category { font-size: 19px; font-weight: 600; letter-spacing: 0.231px; color: #1d1d1f; text-decoration: none; }
+  .sub-nav .btn-primary {
+    display: inline-block; background: #0066cc; color: #fff; border: none;
+    border-radius: 9999px; padding: 7px 16px; font-size: 13px; font-family: inherit;
+    text-decoration: none; cursor: pointer;
+  }
+  @media (max-width: 380px) { .global-nav .meta { display: none; } }
+
+  :root{
+    --paper:#f4f0e3;
+    --paper-2:#ece5d0;
+    --paper-3:#e2d9bd;
+    --ink:#26312e;
+    --ink-soft:#5c6a5e;
+    --line:#cdc0a0;
+    --local:#a86a1c;
+    --local-ink:#5c3c10;
+    --local-soft:#f0e0bd;
+    --remote:#1f6e73;
+    --remote-ink:#123f42;
+    --remote-soft:#d8e9e6;
+    --sticky:#f4d35e;
+    --sticky-ink:#5c4400;
+    --alert:#a24a30;
+    --alert-soft:#f1ddd2;
+    --shadow: 0 1px 0 rgba(38,49,46,0.06), 0 6px 16px -8px rgba(38,49,46,0.25);
+    --dur: 0.9s;
+    --font-display:'Gaegu', 'Noto Sans KR', sans-serif;
+    --font-body:'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif;
+    --font-mono:'IBM Plex Mono', ui-monospace, monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#1c211d;
+      --paper-2:#242a24;
+      --paper-3:#2e352d;
+      --ink:#eee8d6;
+      --ink-soft:#a7ae9c;
+      --line:#3c4438;
+      --local:#e0a63f;
+      --local-ink:#f6dfa8;
+      --local-soft:#39301a;
+      --remote:#5cc2c4;
+      --remote-ink:#c9eeee;
+      --remote-soft:#193634;
+      --sticky:#f4d35e;
+      --sticky-ink:#3a2b00;
+      --alert:#e08a68;
+      --alert-soft:#3a271f;
+      --shadow: 0 1px 0 rgba(0,0,0,0.3), 0 10px 24px -10px rgba(0,0,0,0.55);
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#1c211d;
+    --paper-2:#242a24;
+    --paper-3:#2e352d;
+    --ink:#eee8d6;
+    --ink-soft:#a7ae9c;
+    --line:#3c4438;
+    --local:#e0a63f;
+    --local-ink:#f6dfa8;
+    --local-soft:#39301a;
+    --remote:#5cc2c4;
+    --remote-ink:#c9eeee;
+    --remote-soft:#193634;
+    --sticky:#f4d35e;
+    --sticky-ink:#3a2b00;
+    --alert:#e08a68;
+    --alert-soft:#3a271f;
+    --shadow: 0 1px 0 rgba(0,0,0,0.3), 0 10px 24px -10px rgba(0,0,0,0.55);
+  }
+  @media (prefers-reduced-motion: reduce){
+    :root{ --dur: 0.01s; }
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  @media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto;} }
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--font-body);
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  img,svg{max-width:100%;}
+  a{color:var(--remote-ink);}
+  :focus-visible{outline:3px solid var(--remote); outline-offset:2px; border-radius:4px;}
+
+  h1,h2,h3{
+    font-family:var(--font-display);
+    font-weight:700;
+    line-height:1.15;
+    text-wrap:balance;
+    margin:0 0 .3em;
+    color:var(--ink);
+  }
+  .eyebrow{
+    font-family:var(--font-mono);
+    font-size:.72rem;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    display:flex;
+    align-items:center;
+    gap:.5em;
+    margin-bottom:.6em;
+  }
+  .eyebrow::before{
+    content:"";
+    width:1.4em;height:2px;
+    background:var(--line);
+  }
+  p{margin:0 0 1em;}
+  .measure{max-width:62ch;}
+
+  .wrap{max-width:1080px; margin:0 auto; padding:0 clamp(16px,4vw,40px);}
+
+  /* ---------- page nav ---------- */
+  .topnav{
+    position:sticky; top:96px; z-index:20;
+    background:color-mix(in srgb, var(--paper) 92%, transparent);
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line);
+  }
+  .topnav .wrap{
+    display:flex; align-items:center; gap:1.5rem;
+    padding-top:10px; padding-bottom:10px;
+    overflow-x:auto;
+  }
+  .brand{
+    font-family:var(--font-display);
+    font-weight:700; font-size:1.15rem;
+    display:flex; align-items:center; gap:.4em;
+    white-space:nowrap;
+  }
+  .navlinks{display:flex; gap:1.1rem; font-size:.86rem; white-space:nowrap;}
+  .navlinks a{color:var(--ink-soft); text-decoration:none; padding:.2em 0; border-bottom:2px solid transparent;}
+  .navlinks a:hover{color:var(--ink); border-color:var(--line);}
+
+  /* ---------- hero ---------- */
+  .hero{padding:clamp(28px,6vw,64px) 0 clamp(24px,5vw,48px);}
+  .hero-tag{
+    display:inline-flex; align-items:center; gap:.5em;
+    font-family:var(--font-mono); font-size:.72rem; letter-spacing:.08em;
+    background:var(--paper-2); border:1px solid var(--line);
+    padding:.35em .8em; border-radius:999px; color:var(--ink-soft);
+    margin-bottom:1.1em;
+  }
+  .hero h1{font-size:clamp(2rem,5vw,3.1rem); max-width:14ch;}
+  .hero .sub{font-size:clamp(1.02rem,2vw,1.2rem); color:var(--ink-soft); max-width:46ch;}
+
+  .hero-grid{
+    display:grid; grid-template-columns:1.1fr 1fr; gap:clamp(20px,4vw,48px);
+    align-items:center; margin-top:1.6rem;
+  }
+  @media (max-width:800px){ .hero-grid{grid-template-columns:1fr;} }
+
+  .chaos{position:relative; height:190px;}
+  .chaos .chip{
+    position:absolute; background:var(--paper-2); border:1px solid var(--line);
+    border-radius:6px; padding:.5em .7em; font-family:var(--font-mono); font-size:.72rem;
+    box-shadow:var(--shadow); color:var(--ink-soft);
+  }
+  .order{
+    display:flex; align-items:center; gap:.5rem; height:190px;
+  }
+  .order .file-card{
+    background:var(--paper-2); border:1px solid var(--line); border-radius:8px;
+    padding:.9em 1em; box-shadow:var(--shadow); font-family:var(--font-mono); font-size:.78rem;
+  }
+  .order .dots{display:flex; gap:.3rem; margin-top:.5em;}
+  .order .dots span{width:7px;height:7px;border-radius:50%; background:var(--remote);}
+  .order .dots span:nth-child(1){background:var(--line);}
+  .order .arrow-chain{flex:1; height:2px; background:repeating-linear-gradient(90deg, var(--line) 0 6px, transparent 6px 11px); position:relative;}
+  .order .arrow-chain::after{content:"→"; position:absolute; right:-4px; top:-11px; color:var(--ink-soft);}
+
+  /* feature cards */
+  .features{display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-top:2.4rem;}
+  @media (max-width:760px){ .features{grid-template-columns:1fr;} }
+  .fcard{
+    background:var(--paper-2); border:1px solid var(--line); border-radius:10px;
+    padding:1.2rem 1.3rem; box-shadow:var(--shadow); position:relative;
+  }
+  .fcard .num{font-family:var(--font-mono); font-size:.72rem; color:var(--ink-soft);}
+  .fcard h3{font-size:1.2rem; margin-top:.2em;}
+  .fcard p{font-size:.92rem; color:var(--ink-soft); margin:0;}
+
+  section{padding:clamp(36px,6vw,64px) 0;}
+  .section-head{max-width:62ch; margin-bottom:1.8rem;}
+  .section-head h2{font-size:clamp(1.5rem,3vw,2rem);}
+  .divider{border:none; border-top:1px dashed var(--line); margin:0;}
+
+  /* ---------- two spaces diagram ---------- */
+  .spine-scroll{overflow-x:auto; padding-bottom:6px;}
+  .spine{
+    display:grid; grid-template-columns:1fr auto 1fr; gap:1.4rem; align-items:center;
+    min-width:560px;
+  }
+  .box{
+    border-radius:14px; padding:1.3rem 1.4rem; min-height:150px;
+    border:1.5px solid var(--line); box-shadow:var(--shadow);
+    display:flex; flex-direction:column; gap:.5rem;
+  }
+  .box.local{background:var(--local-soft); border-color:color-mix(in srgb, var(--local) 40%, var(--line));}
+  .box.remote{background:var(--remote-soft); border-color:color-mix(in srgb, var(--remote) 40%, var(--line));}
+  .box h4{
+    font-family:var(--font-display); font-size:1.15rem; margin:0;
+    display:flex; align-items:center; gap:.4em;
+  }
+  .box.local h4{color:var(--local-ink);}
+  .box.remote h4{color:var(--remote-ink);}
+  .box .caption{font-size:.82rem; color:var(--ink-soft); margin:0;}
+
+  .spine-rail{display:flex; flex-direction:column; gap:.9rem; align-items:center; min-width:150px;}
+  .rail-row{display:flex; align-items:center; gap:.5rem; font-family:var(--font-mono); font-size:.78rem;}
+  .rail-arrow{width:74px; height:2px; position:relative;}
+  .rail-arrow.get{background:var(--remote);}
+  .rail-arrow.put{background:var(--local);}
+  .rail-arrow.get::after{content:"◀"; position:absolute; left:-9px; top:-8px; font-size:.7rem; color:var(--remote);}
+  .rail-arrow.put::after{content:"▶"; position:absolute; right:-9px; top:-8px; font-size:.7rem; color:var(--local);}
+  .rail-label{color:var(--ink-soft);}
+
+  /* ---------- six actions demo ---------- */
+  .tabbar{
+    display:flex; flex-wrap:wrap; gap:.5rem; margin-bottom:1.4rem;
+  }
+  .tab{
+    font-family:var(--font-mono); font-size:.82rem; font-weight:500;
+    background:var(--paper-2); border:1.5px solid var(--line); color:var(--ink-soft);
+    padding:.55em 1em; border-radius:999px; cursor:pointer;
+    display:flex; align-items:center; gap:.45em;
+    transition:background .15s, color .15s, border-color .15s;
+  }
+  .tab:hover{border-color:var(--ink-soft);}
+  .tab[aria-selected="true"]{
+    background:var(--ink); color:var(--paper); border-color:var(--ink);
+  }
+  .tab .dir-dot{width:7px;height:7px;border-radius:50%;}
+
+  .demo-panel{
+    background:var(--paper-2); border:1.5px solid var(--line); border-radius:16px;
+    padding:clamp(1rem,3vw,1.8rem); box-shadow:var(--shadow);
+  }
+  .stage-scroll{overflow-x:auto; padding-bottom:8px;}
+  .stage{
+    display:grid; grid-template-columns:1fr 150px 1fr; gap:0; align-items:stretch;
+    min-width:600px; position:relative;
+  }
+  .stage .box{min-height:190px;}
+  .stage .box.is-empty{
+    border-style:dashed; opacity:.7;
+  }
+  .item-list{display:flex; flex-direction:column; gap:.4rem; margin-top:.3rem;}
+  .item{
+    font-family:var(--font-mono); font-size:.76rem;
+    background:var(--paper); border:1px solid var(--line); border-radius:6px;
+    padding:.4em .6em; display:flex; align-items:center; justify-content:space-between; gap:.5em;
+    transition:opacity .3s;
+  }
+  .item.pending{border-style:dashed; color:var(--ink-soft);}
+  .item .pill{
+    font-size:.65rem; padding:.1em .5em; border-radius:999px; letter-spacing:.03em;
+  }
+  .item .pill.wait{background:var(--alert-soft); color:var(--alert);}
+  .item .pill.ok{background:var(--remote-soft); color:var(--remote-ink);}
+  .note{
+    background:var(--sticky); color:var(--sticky-ink); font-family:var(--font-body); font-weight:500;
+    font-size:.78rem; border-radius:4px; padding:.55em .7em; transform:rotate(-1.2deg);
+    box-shadow:0 2px 5px -2px rgba(0,0,0,.25); margin-top:.3rem;
+  }
+  .placeholder{font-size:.78rem; color:var(--ink-soft); font-style:italic;}
+
+  .rail-track{
+    position:relative; height:100%; min-height:190px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .rail-line{
+    position:absolute; left:8px; right:8px; top:50%; height:2px;
+    background:repeating-linear-gradient(90deg, var(--line) 0 7px, transparent 7px 13px);
+    transform:translateY(-50%);
+  }
+  .chip{
+    position:absolute; top:50%; left:8px;
+    transform:translate(0,-50%);
+    background:var(--ink); color:var(--paper);
+    font-family:var(--font-mono); font-size:1rem;
+    width:34px; height:34px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:var(--shadow);
+    opacity:0;
+    transition:left var(--dur) cubic-bezier(.5,0,.25,1), opacity .3s;
+  }
+  .chip.show{opacity:1;}
+  .badge-note{
+    position:absolute; top:8%; left:50%; transform:translateX(-50%) scale(.7);
+    background:var(--alert); color:#fff; font-family:var(--font-mono); font-size:.68rem;
+    padding:.3em .6em; border-radius:999px; white-space:nowrap;
+    opacity:0; transition:opacity .3s, transform .3s;
+    box-shadow:var(--shadow);
+  }
+  .badge-note.show{opacity:1; transform:translateX(-50%) scale(1);}
+
+  .pulse{animation:pulse .7s ease;}
+  @keyframes pulse{ 0%{transform:scale(1);} 35%{transform:scale(1.035);} 100%{transform:scale(1);} }
+  @media (prefers-reduced-motion: reduce){ .pulse{animation:none;} }
+
+  .stage-caption{
+    margin-top:1rem; padding:.8rem 1rem; border-radius:10px;
+    background:var(--paper); border:1px solid var(--line);
+    font-size:.9rem; color:var(--ink-soft); min-height:1.4em;
+  }
+  .stage-caption strong{color:var(--ink);}
+
+  .detail-grid{
+    display:grid; grid-template-columns:1.3fr 1fr; gap:1.6rem; margin-top:1.6rem;
+  }
+  @media (max-width:760px){ .detail-grid{grid-template-columns:1fr;} }
+  .detail-grid h3{font-size:1.35rem;}
+  .story{
+    background:var(--paper); border:1px solid var(--line); border-radius:10px;
+    padding:.9rem 1.05rem; font-size:.9rem; color:var(--ink-soft); margin-top:.6rem;
+  }
+  .when-list{list-style:none; margin:.6rem 0 0; padding:0; display:flex; flex-direction:column; gap:.45rem;}
+  .when-list li{
+    font-size:.88rem; padding-left:1.3em; position:relative; color:var(--ink-soft);
+  }
+  .when-list li::before{content:"·"; position:absolute; left:.25em; color:var(--local); font-weight:700; font-size:1.2em;}
+
+  .replay-row{display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; margin-bottom:.8rem;}
+  .btn{
+    font-family:var(--font-mono); font-size:.8rem; cursor:pointer;
+    border-radius:999px; padding:.55em 1.1em; border:1.5px solid var(--line);
+    background:var(--paper); color:var(--ink); display:inline-flex; align-items:center; gap:.4em;
+  }
+  .btn:hover{border-color:var(--ink-soft);}
+  .btn.primary{background:var(--ink); color:var(--paper); border-color:var(--ink);}
+
+  /* ---------- workflow timeline ---------- */
+  .timeline{display:flex; flex-direction:column; gap:0; margin-top:1rem;}
+  .tl-group{display:grid; grid-template-columns:150px 1fr; gap:1rem; padding:1rem 0; border-top:1px dashed var(--line);}
+  .tl-group:first-child{border-top:none;}
+  .tl-time{font-family:var(--font-display); font-size:1.1rem; display:flex; align-items:flex-start; gap:.4em; padding-top:.15rem;}
+  .tl-steps{display:flex; flex-wrap:wrap; gap:.5rem;}
+  .tl-step{
+    font-family:var(--font-mono); font-size:.78rem; cursor:pointer;
+    background:var(--paper-2); border:1.5px solid var(--line); border-radius:8px;
+    padding:.5em .75em; display:flex; align-items:center; gap:.5em;
+    transition:transform .15s, border-color .15s;
+  }
+  .tl-step:hover{transform:translateY(-2px); border-color:var(--ink-soft);}
+  .tl-step .cap{font-family:var(--font-body); color:var(--ink-soft); font-size:.74rem;}
+
+  /* ---------- comparisons ---------- */
+  .pairs{display:flex; flex-direction:column; gap:1.1rem; margin-top:1.4rem;}
+  .pair{
+    display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:0;
+    border:1.5px solid var(--line); border-radius:14px; overflow:hidden; box-shadow:var(--shadow);
+  }
+  .pair-side{padding:1.1rem 1.3rem; background:var(--paper-2);}
+  .pair-side.b{background:var(--paper-3);}
+  .pair-side h4{font-family:var(--font-mono); font-size:.95rem; margin:0 0 .4em; display:flex; align-items:center; gap:.4em;}
+  .pair-side p{font-size:.86rem; color:var(--ink-soft); margin:0;}
+  .pair-vs{
+    font-family:var(--font-display); font-size:1rem; color:var(--ink-soft);
+    padding:.6em .9em; background:var(--paper); align-self:stretch; display:flex; align-items:center;
+  }
+  @media (max-width:700px){
+    .pair{grid-template-columns:1fr;}
+    .pair-vs{justify-content:center;}
+  }
+
+  /* ---------- summary table ---------- */
+  .table-scroll{overflow-x:auto;}
+  table{width:100%; border-collapse:collapse; min-width:640px; font-size:.9rem;}
+  caption{text-align:left; caption-side:top; font-size:.8rem; color:var(--ink-soft); margin-bottom:.6rem;}
+  th,td{text-align:left; padding:.75em .9em; border-bottom:1px solid var(--line); vertical-align:top;}
+  thead th{
+    font-family:var(--font-mono); font-size:.72rem; text-transform:uppercase; letter-spacing:.06em;
+    color:var(--ink-soft); border-bottom:2px solid var(--ink);
+  }
+  tbody tr:hover{background:var(--paper-2);}
+  td.action{font-family:var(--font-mono); font-weight:600;}
+  .dir-badge{
+    font-family:var(--font-mono); font-size:.78rem; display:inline-flex; align-items:center; gap:.3em;
+    padding:.25em .6em; border-radius:999px;
+  }
+  .dir-badge.up{background:var(--local-soft); color:var(--local-ink);}
+  .dir-badge.down{background:var(--remote-soft); color:var(--remote-ink);}
+  .dir-badge.inner{background:var(--paper-3); color:var(--ink-soft);}
+  td.when{color:var(--ink-soft); font-size:.85rem;}
+
+  /* ---------- footer ---------- */
+  footer{border-top:1px solid var(--line); padding:2.4rem 0 3rem;}
+  .back-link{
+    display:inline-flex; align-items:center; gap:.4em; font-family:var(--font-mono); font-size:.82rem;
+    text-decoration:none; color:var(--ink); background:var(--paper-2); border:1px solid var(--line);
+    border-radius:999px; padding:.5em 1.1em; margin-bottom:1.2rem;
+  }
+  .back-link:hover{border-color:var(--ink-soft);}
+  .reflinks{display:flex; flex-wrap:wrap; gap:.9rem; margin-bottom:1rem;}
+  .reflinks a{
+    font-family:var(--font-mono); font-size:.82rem; text-decoration:none;
+    background:var(--paper-2); border:1px solid var(--line); border-radius:999px; padding:.5em 1em;
+    color:var(--ink);
+  }
+  .reflinks a:hover{border-color:var(--ink-soft);}
+  .foot-note{font-size:.78rem; color:var(--ink-soft);}
+</style>
+</head>
+<body>
+
+<nav class="global-nav">
+  <a class="brand" href="../../index.html">AI 프로덕트 마스터</a>
+  <span class="meta">인공지능 심화(160H)</span>
+</nav>
+<nav class="sub-nav">
+  <a class="category" href="../index.html">실험실</a>
+  <a class="btn-primary" href="../../index.html">전체 커리큘럼</a>
+</nav>
+
+<nav class="topnav">
+  <div class="wrap">
+    <div class="brand">🗂️ 깃허브 사무실</div>
+    <div class="navlinks">
+      <a href="#intro">소개</a>
+      <a href="#spaces">두 공간</a>
+      <a href="#actions">6가지 동작</a>
+      <a href="#workflow">하루 워크플로우</a>
+      <a href="#pairs">헷갈리는 것들</a>
+      <a href="#summary">요약 카드</a>
+      <a href="#refs">참고 자료</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" id="intro">
+  <div class="wrap">
+    <span class="hero-tag">실험실 · 02 바이브코딩 · Github 완전정복</span>
+    <h1>바이브 코딩의 필수, GitHub 알아보기</h1>
+    <p class="sub">GitHub = 개발자들이 쓰는 구글 드라이브 + 타임머신 + 협업 도구. 파일 이름에 "최종"을 붙이는 대신, 누가 언제 무엇을 바꿨는지 자동으로 기록하는 사무실 캐비닛이에요.</p>
+
+    <div class="hero-grid">
+      <div>
+        <div class="eyebrow">이런 경험, 있으시죠</div>
+        <div class="chaos" aria-hidden="true">
+          <div class="chip" style="left:2%; top:6%; transform:rotate(-4deg);">기획서_최종.pptx</div>
+          <div class="chip" style="left:18%; top:42%; transform:rotate(3deg);">기획서_최최종.pptx</div>
+          <div class="chip" style="left:6%; top:76%; transform:rotate(-2deg);">기획서_최최최종_진짜최종.pptx</div>
+          <div class="chip" style="left:44%; top:18%; transform:rotate(5deg);">기획서_수정_홍팀장검토후.pptx</div>
+          <div class="chip" style="left:34%; top:58%; transform:rotate(-6deg); border-color:var(--alert); color:var(--alert);">기획서_수정2_진짜진짜최종.pptx 😱</div>
+        </div>
+      </div>
+      <div>
+        <div class="eyebrow">GitHub를 쓰면</div>
+        <div class="order" aria-hidden="true">
+          <div class="file-card">
+            menu.txt
+            <div class="dots"><span></span><span></span><span></span><span></span></div>
+          </div>
+          <div class="arrow-chain"></div>
+          <div class="file-card" style="color:var(--remote-ink); border-color:color-mix(in srgb, var(--remote) 40%, var(--line));">
+            언제, 누가, 무엇을<br>자동 기록
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="features">
+      <div class="fcard">
+        <div class="num">01</div>
+        <h3>🕰️ 버전 기록</h3>
+        <p>모든 변경 이력이 날짜·작성자와 함께 자동 저장돼요. "3일 전 버전으로 되돌려줘"가 언제든 가능해요.</p>
+      </div>
+      <div class="fcard">
+        <div class="num">02</div>
+        <h3>🤝 협업</h3>
+        <p>여러 명이 같은 프로젝트를 동시에 작업할 수 있어요. 충돌이 생기면 알려줘서 덮어쓰기 사고를 막아요.</p>
+      </div>
+      <div class="fcard">
+        <div class="num">03</div>
+        <h3>☁️ 백업</h3>
+        <p>내 컴퓨터가 망가져도 온라인에 코드가 저장돼요. 언제 어디서든 최신 파일을 내려받을 수 있어요.</p>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section id="spaces">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">핵심 개념 딱 2가지</div>
+      <h2>내 책상과 회사 캐비닛, 두 공간을 기억하세요</h2>
+      <p class="measure">이 페이지의 모든 그림은 이 두 공간을 기준으로 그려져요. 왼쪽은 나만 보는 <strong>로컬(내 컴퓨터)</strong>, 오른쪽은 팀원 모두가 접근하는 <strong>원격(GitHub 서버)</strong>이에요.</p>
+    </div>
+    <div class="spine-scroll">
+      <div class="spine">
+        <div class="box local">
+          <h4>💻 내 컴퓨터 (로컬)</h4>
+          <p class="caption">내가 직접 작업하는 곳 — 아무도 못 봐요</p>
+        </div>
+        <div class="spine-rail" aria-hidden="true">
+          <div class="rail-row"><div class="rail-arrow get"></div><span class="rail-label">가져오기</span></div>
+          <div class="rail-row"><span class="rail-label">올리기</span><div class="rail-arrow put"></div></div>
+        </div>
+        <div class="box remote">
+          <h4>☁️ GitHub 서버 (원격)</h4>
+          <p class="caption">인터넷에 저장된 공유 공간 — 팀원 모두 접근 가능</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="actions">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">02 · 직접 눌러보기</div>
+      <h2>GitHub 기본 동작 6가지</h2>
+      <p class="measure">탭을 누르면 위 두 공간 사이에서 실제로 무엇이 움직이는지 애니메이션으로 보여드려요. 아래 <strong>철수의 하루</strong> 버튼을 누르면 하루 워크플로우 전체를 자동으로 재생해요.</p>
+    </div>
+
+    <div class="tabbar" role="tablist" aria-label="GitHub 동작 선택" id="tabbar"></div>
+
+    <div class="demo-panel">
+      <div class="replay-row">
+        <button class="btn" id="replayBtn" type="button">↻ 다시보기</button>
+        <button class="btn primary" id="playBtn" type="button">▶ 철수의 하루 자동재생</button>
+      </div>
+
+      <div class="stage-scroll">
+        <div class="stage" id="stage">
+          <div class="box local" id="localBox">
+            <h4>💻 내 컴퓨터</h4>
+            <div class="item-list" id="localItems"></div>
+          </div>
+          <div class="rail-track">
+            <div class="rail-line"></div>
+            <div class="chip" id="chip">●</div>
+            <div class="badge-note" id="badge"></div>
+          </div>
+          <div class="box remote" id="remoteBox">
+            <h4>☁️ GitHub</h4>
+            <div class="item-list" id="remoteItems"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stage-caption" id="stageCaption"></div>
+
+      <div class="detail-grid">
+        <div>
+          <h3 id="actionTitle"></h3>
+          <p class="measure" id="actionDef"></p>
+          <div class="story" id="actionStory"></div>
+        </div>
+        <div>
+          <div class="eyebrow" style="margin-bottom:.5rem;">📌 언제 쓰나요</div>
+          <ul class="when-list" id="actionWhen"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="workflow">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">🗓️ 실전 예시</div>
+      <h2>디자이너 철수의 하루 워크플로우</h2>
+      <p class="measure">각 단계를 클릭하면 위 데모가 그 순간으로 바로 이동해요.</p>
+    </div>
+    <div class="timeline" id="timeline"></div>
+  </div>
+</section>
+
+<section id="pairs">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">💡 자주 헷갈리는 것들</div>
+      <h2>이 셋만 구분하면 끝</h2>
+    </div>
+    <div class="pairs">
+      <div class="pair">
+        <div class="pair-side">
+          <h4>💾 Commit</h4>
+          <p>내 책상 서랍에 넣기 — 나만 봐요. 아직 GitHub엔 안 올라가요.</p>
+        </div>
+        <div class="pair-vs">vs</div>
+        <div class="pair-side b">
+          <h4>📤 Push</h4>
+          <p>회사 공용 캐비닛에 넣기 — 팀원 모두가 봐요.</p>
+        </div>
+      </div>
+      <div class="pair">
+        <div class="pair-side">
+          <h4>📩 Fetch</h4>
+          <p>공용 캐비닛 열어서 뭐가 새로 들어왔나 <strong>확인만</strong> 해요.</p>
+        </div>
+        <div class="pair-vs">vs</div>
+        <div class="pair-side b">
+          <h4>📨 Pull</h4>
+          <p>확인하고 <strong>내 책상에 바로</strong> 옮겨놓아요.</p>
+        </div>
+      </div>
+      <div class="pair">
+        <div class="pair-side">
+          <h4>📥 Clone</h4>
+          <p>처음 입사한 사람이 전체를 <strong>한 번에 통째로</strong> 복사해요.</p>
+        </div>
+        <div class="pair-vs">vs</div>
+        <div class="pair-side b">
+          <h4>📨 Pull</h4>
+          <p>이미 있는 파일을 <strong>업데이트</strong>하는 거예요.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="summary">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">요약 카드</div>
+      <h2>6가지 동작, 한눈에 정리</h2>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <caption>방향 배지: 🟠 로컬→원격(올리기) · 🔵 원격→로컬(가져오기) · ⚪ 로컬 내부</caption>
+        <thead>
+          <tr><th>동작</th><th>방향</th><th>한 줄 설명</th><th>언제</th></tr>
+        </thead>
+        <tbody id="summaryBody"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<footer id="refs">
+  <div class="wrap">
+    <a class="back-link" href="../index.html">← 실험실로 돌아가기</a>
+    <div class="eyebrow">🔗 참고 자료</div>
+    <div class="reflinks">
+      <a href="https://github.com/" target="_blank" rel="noopener">GitHub 공식 사이트</a>
+      <a href="https://desktop.github.com/" target="_blank" rel="noopener">GitHub Desktop (GUI 버전)</a>
+      <a href="https://docs.github.com/ko" target="_blank" rel="noopener">GitHub Desktop 한국어 튜토리얼</a>
+    </div>
+    <p class="foot-note">"02 바이브코딩 · gh-cli-course" 교안과 함께 보는 인터랙티브 실험 자료입니다.</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  var ACTIONS = [
+    {
+      key:"publish", emoji:"☁️", label:"Publish", dirClass:"up",
+      title:"☁️ Publish — 처음으로 올리기",
+      def:"내 컴퓨터에만 있던 프로젝트를 처음으로 GitHub에 올리는 것.",
+      story:"철수가 컴퓨터에서 메뉴판 파일을 처음 만들었어요. 팀원들도 볼 수 있게 \"공용 캐비닛(GitHub)\"에 처음으로 넣습니다.",
+      when:["프로젝트를 처음 GitHub에 등록할 때"],
+      dir:"toRemote", travel:1,
+      before:{
+        local:[{text:"menu.txt", pending:false}],
+        remote:[], remoteEmpty:true
+      },
+      after:{
+        local:[{text:"menu.txt", pending:false}],
+        remote:[{text:"menu.txt", pending:false}], remoteEmpty:false
+      },
+      captionBefore:"menu.txt가 <strong>내 컴퓨터에만</strong> 있어요. GitHub은 아직 비어있어요.",
+      captionAfter:"menu.txt가 GitHub에 <strong>처음 생성</strong>됐어요 — 이제 팀원 모두 접근 가능!"
+    },
+    {
+      key:"clone", emoji:"📥", label:"Clone", dirClass:"down",
+      title:"📥 Clone — 통째로 복사해서 가져오기",
+      def:"GitHub에 있는 프로젝트를 내 컴퓨터로 통째로 복사해오는 것.",
+      story:"새 팀원 민준이 입사했어요. 민준은 GitHub에 올라간 메뉴판 파일 전체를 자신의 컴퓨터로 가져와야 해요.",
+      when:["새 팀원이 처음 합류할 때","새 컴퓨터에서 처음 작업을 시작할 때","다른 사람의 프로젝트를 내 컴퓨터로 가져올 때"],
+      dir:"toLocal", travel:1,
+      before:{
+        local:[], localEmpty:true,
+        remote:[{text:"menu.txt"},{text:"images/"},{text:"README.txt"}]
+      },
+      after:{
+        local:[{text:"menu.txt"},{text:"images/"},{text:"README.txt"}], localEmpty:false,
+        remote:[{text:"menu.txt"},{text:"images/"},{text:"README.txt"}]
+      },
+      captionBefore:"민준의 컴퓨터는 아직 <strong>텅 비어있어요</strong>.",
+      captionAfter:"GitHub의 파일 전체가 민준의 컴퓨터로 <strong>통째로 복사</strong>됐어요 — 이제 작업 가능!"
+    },
+    {
+      key:"commit", emoji:"💾", label:"Commit", dirClass:"inner",
+      title:"💾 Commit — 변경사항에 메모 붙여 저장하기",
+      def:"내가 수정한 내용을 \"무엇을 왜 바꿨는지\" 메모와 함께 저장하는 것.",
+      story:"철수가 메뉴판에서 아메리카노 가격을 4,000원 → 4,500원으로 올렸어요. 그냥 저장하지 않고 \"왜 바꿨는지 메모\"를 함께 남겨요.",
+      when:["의미 있는 작업 단위를 마칠 때마다","\"여기까지 한 작업을 기록해두고 싶다\"는 순간"],
+      dir:"internal", travel:0,
+      before:{
+        local:[{text:"아메리카노 4,000원"}],
+        remote:[{text:"아메리카노 4,000원"}]
+      },
+      after:{
+        local:[{text:"아메리카노 4,500원", note:"📝 아메리카노 가격 인상 (원두 단가 상승)", pending:true}],
+        remote:[{text:"아메리카노 4,000원"}]
+      },
+      captionBefore:"아메리카노 가격을 4,000원 → 4,500원으로 고치는 중이에요.",
+      captionAfter:"메모와 함께 <strong>내 컴퓨터에만</strong> 저장됐어요. 아직 GitHub엔 안 올라갔어요."
+    },
+    {
+      key:"push", emoji:"📤", label:"Push", dirClass:"up",
+      title:"📤 Push — 내 변경사항을 GitHub에 올리기",
+      def:"내 컴퓨터에 쌓인 Commit들을 GitHub 서버에 업로드하는 것.",
+      story:"철수가 오늘 오전에 Commit을 3번 했어요. 퇴근 전에 이 변경사항들을 GitHub에 올려서 팀원들도 볼 수 있게 해요.",
+      when:["오늘 작업한 것을 팀원과 공유하고 싶을 때","퇴근 전 마지막으로 업로드할 때"],
+      dir:"toRemote", travel:1,
+      before:{
+        local:[{text:"커밋1: 가격 변경", pending:true},{text:"커밋2: 신메뉴 추가", pending:true},{text:"커밋3: 오타 수정", pending:true}],
+        remote:[], remoteEmpty:true
+      },
+      after:{
+        local:[{text:"커밋1: 가격 변경"},{text:"커밋2: 신메뉴 추가"},{text:"커밋3: 오타 수정"}],
+        remote:[{text:"커밋1: 가격 변경"},{text:"커밋2: 신메뉴 추가"},{text:"커밋3: 오타 수정"}], remoteEmpty:false
+      },
+      captionBefore:"커밋 3개가 <strong>아직 반영 안 됨</strong> 상태로 내 컴퓨터에 쌓여있어요.",
+      captionAfter:"커밋 3개가 GitHub에 업로드됐어요 — <strong>팀원 모두 볼 수 있어요!</strong>"
+    },
+    {
+      key:"fetch", emoji:"📩", label:"Fetch", dirClass:"down",
+      title:"📩 Fetch — 업데이트 확인만 하기",
+      def:"GitHub에 새 변경사항이 있는지 확인만 하고, 내 파일은 아직 안 바꾸는 것.",
+      story:"철수가 아침에 출근했어요. 어젯밤 민준이 뭔가 수정했다는 알림을 받았는데, 바로 적용하기 전에 먼저 뭘 바꿨는지 확인하고 싶어요.",
+      when:["팀원의 변경사항을 바로 적용하기 전에 먼저 검토하고 싶을 때","\"어떤 내용인지 보고 나서 결정하겠다\"는 신중한 상황"],
+      dir:"toLocalPartial", travel:0.5,
+      before:{
+        local:[{text:"라떼 5,000원"}],
+        remote:[{text:"라떼 5,000→5,500원 (민준)"}]
+      },
+      after:{
+        local:[{text:"라떼 5,000원"}],
+        remote:[{text:"라떼 5,000→5,500원 (민준)"}]
+      },
+      captionBefore:"GitHub에 민준의 새 커밋이 있어요. 아직 확인 전이에요.",
+      captionAfter:"🔔 새 커밋 발견! <strong>확인만 했어요</strong> — 내 파일은 그대로예요.",
+      badge:"🔔 새 커밋 1개"
+    },
+    {
+      key:"pull", emoji:"📨", label:"Pull", dirClass:"down",
+      title:"📨 Pull — GitHub 변경사항을 내 컴퓨터에 바로 적용하기",
+      def:"GitHub의 최신 내용을 내 컴퓨터로 바로 가져와서 적용하는 것.",
+      story:"팀장이 어젯밤 메뉴판을 대폭 수정했어요. 철수는 \"팀장님 수정 믿어요\" 하고 바로 Pull해서 자신의 파일을 최신 버전으로 업데이트해요.",
+      when:["아침에 출근해서 어젯밤 팀원들의 작업을 내려받을 때","작업 시작 전 항상 실행하는 것이 좋아요"],
+      dir:"toLocal", travel:1,
+      before:{
+        local:[{text:"가격표 (구버전)"}],
+        remote:[{text:"신메뉴 5종 추가 · 가격표 전면 개편"}]
+      },
+      after:{
+        local:[{text:"신메뉴 5종 추가 · 가격표 전면 개편"}],
+        remote:[{text:"신메뉴 5종 추가 · 가격표 전면 개편"}]
+      },
+      captionBefore:"내 컴퓨터는 아직 <strong>구버전</strong>이에요.",
+      captionAfter:"GitHub 최신 내용이 내 컴퓨터에 <strong>바로 적용</strong>됐어요!"
+    }
+  ];
+
+  var STEPS = [
+    {time:"🌅 출근", action:"pull", cap:"어젯밤 팀원들이 뭘 바꿨는지 최신 버전 받기"},
+    {time:"🖥️ 오전 작업", action:"commit", cap:"\"로고 수정 완료\" 메모 남기며 저장"},
+    {time:"🖥️ 오전 작업", action:"commit", cap:"\"컬러 팔레트 업데이트\" 메모 남기며 저장"},
+    {time:"☕ 점심 전", action:"push", cap:"오전 작업 GitHub에 올리기"},
+    {time:"📋 오후 작업", action:"fetch", cap:"팀원이 뭘 올렸는지 먼저 확인해보자"},
+    {time:"📋 오후 작업", action:"pull", cap:"확인했으니 내 파일에 적용"},
+    {time:"📋 오후 작업", action:"commit", cap:"\"배너 디자인 시안 1 추가\""},
+    {time:"📋 오후 작업", action:"commit", cap:"\"배너 디자인 시안 2 추가\""},
+    {time:"🌆 퇴근 전", action:"push", cap:"오늘 작업 전부 GitHub에 올리기"}
+  ];
+
+  var byKey = {};
+  ACTIONS.forEach(function(a){ byKey[a.key] = a; });
+
+  var tabbar = document.getElementById("tabbar");
+  var localItems = document.getElementById("localItems");
+  var remoteItems = document.getElementById("remoteItems");
+  var localBox = document.getElementById("localBox");
+  var remoteBox = document.getElementById("remoteBox");
+  var chip = document.getElementById("chip");
+  var badge = document.getElementById("badge");
+  var stageCaption = document.getElementById("stageCaption");
+  var actionTitle = document.getElementById("actionTitle");
+  var actionDef = document.getElementById("actionDef");
+  var actionStory = document.getElementById("actionStory");
+  var actionWhen = document.getElementById("actionWhen");
+  var replayBtn = document.getElementById("replayBtn");
+  var playBtn = document.getElementById("playBtn");
+  var timelineEl = document.getElementById("timeline");
+  var summaryBody = document.getElementById("summaryBody");
+
+  ACTIONS.forEach(function(a){
+    var btn = document.createElement("button");
+    btn.className = "tab";
+    btn.type = "button";
+    btn.setAttribute("role","tab");
+    btn.setAttribute("aria-selected","false");
+    btn.dataset.key = a.key;
+    var dotColor = a.dirClass === "up" ? "var(--local)" : a.dirClass === "down" ? "var(--remote)" : "var(--ink-soft)";
+    btn.innerHTML = '<span class="dir-dot" style="background:'+dotColor+'"></span>' + a.emoji + " " + a.label;
+    btn.addEventListener("click", function(){ selectAction(a.key, null, true); });
+    tabbar.appendChild(btn);
+  });
+
+  function renderItems(container, list, emptyText){
+    container.innerHTML = "";
+    if(!list || list.length === 0){
+      var p = document.createElement("div");
+      p.className = "placeholder";
+      p.textContent = emptyText;
+      container.appendChild(p);
+      return;
+    }
+    list.forEach(function(it){
+      var row = document.createElement("div");
+      row.className = "item" + (it.pending ? " pending" : "");
+      var span = document.createElement("span");
+      span.textContent = it.text;
+      row.appendChild(span);
+      if(it.pending){
+        var pill = document.createElement("span");
+        pill.className = "pill wait";
+        pill.textContent = "미반영";
+        row.appendChild(pill);
+      }
+      container.appendChild(row);
+      if(it.note){
+        var note = document.createElement("div");
+        note.className = "note";
+        note.textContent = it.note;
+        container.appendChild(note);
+      }
+    });
+  }
+
+  var playTimer = null;
+  var autoplayTimers = [];
+
+  function clearAutoplay(){
+    autoplayTimers.forEach(function(t){ clearTimeout(t); });
+    autoplayTimers = [];
+    playBtn.textContent = "▶ 철수의 하루 자동재생";
+    playBtn.classList.remove("primary");
+    playBtn.classList.add("primary");
+  }
+
+  function selectAction(key, stepCaption, isManual){
+    var a = byKey[key];
+    if(!a) return;
+    if(playTimer){ clearTimeout(playTimer); playTimer = null; }
+
+    Array.prototype.forEach.call(tabbar.children, function(btn){
+      btn.setAttribute("aria-selected", btn.dataset.key === key ? "true" : "false");
+    });
+
+    actionTitle.textContent = a.title;
+    actionDef.textContent = a.def;
+    actionStory.textContent = a.story;
+    actionWhen.innerHTML = "";
+    a.when.forEach(function(w){
+      var li = document.createElement("li");
+      li.textContent = w;
+      actionWhen.appendChild(li);
+    });
+
+    // before state
+    renderItems(localItems, a.before.local, "아직 없음");
+    renderItems(remoteItems, a.before.remote, "아직 없음");
+    localBox.classList.toggle("is-empty", !!a.before.localEmpty);
+    remoteBox.classList.toggle("is-empty", !!a.before.remoteEmpty);
+    stageCaption.innerHTML = stepCaption ? ("<strong>"+stepCaption+"</strong>") : a.captionBefore;
+
+    chip.textContent = a.emoji;
+    chip.classList.remove("show");
+    chip.style.transition = "none";
+    badge.classList.remove("show");
+    badge.textContent = a.badge || "";
+
+    if(a.dir === "toRemote"){
+      chip.style.left = "8%";
+    } else if(a.dir === "toLocal" || a.dir === "toLocalPartial"){
+      chip.style.left = "84%";
+    } else {
+      chip.style.left = "46%";
+    }
+
+    // force reflow then play
+    void chip.offsetWidth;
+
+    playTimer = setTimeout(function(){ playScene(a, stepCaption); }, 450);
+  }
+
+  function playScene(a, stepCaption){
+    chip.style.transition = "left var(--dur) cubic-bezier(.5,0,.25,1), opacity .3s";
+    if(a.dir === "internal"){
+      localBox.classList.add("pulse");
+      setTimeout(function(){ localBox.classList.remove("pulse"); }, 750);
+    } else {
+      chip.classList.add("show");
+      requestAnimationFrame(function(){
+        if(a.dir === "toRemote"){
+          chip.style.left = "84%";
+        } else if(a.dir === "toLocal"){
+          chip.style.left = "8%";
+        } else if(a.dir === "toLocalPartial"){
+          chip.style.left = "46%";
+        }
+      });
+    }
+
+    var arriveDelay = a.dir === "internal" ? 500 : 950;
+    setTimeout(function(){
+      renderItems(localItems, a.after.local, "아직 없음");
+      renderItems(remoteItems, a.after.remote, "아직 없음");
+      localBox.classList.toggle("is-empty", !!a.after.localEmpty);
+      remoteBox.classList.toggle("is-empty", !!a.after.remoteEmpty);
+      stageCaption.innerHTML = stepCaption ? ("<strong>"+stepCaption+"</strong> — " + a.captionAfter) : a.captionAfter;
+
+      if(a.dir === "toLocalPartial"){
+        chip.style.opacity = "0";
+        badge.classList.add("show");
+      }
+    }, arriveDelay);
+  }
+
+  replayBtn.addEventListener("click", function(){
+    var current = tabbar.querySelector('[aria-selected="true"]');
+    var key = current ? current.dataset.key : ACTIONS[0].key;
+    clearAutoplay();
+    selectAction(key, null, true);
+  });
+
+  playBtn.addEventListener("click", function(){
+    if(autoplayTimers.length){
+      clearAutoplay();
+      return;
+    }
+    playBtn.textContent = "⏸ 재생 중… (누르면 정지)";
+    var t = 0;
+    var stepDur = 2500;
+    STEPS.forEach(function(step, i){
+      var timer = setTimeout(function(){
+        selectAction(step.action, step.time + " · " + step.cap, false);
+        if(i === STEPS.length - 1){
+          setTimeout(function(){ clearAutoplay(); }, stepDur);
+        }
+      }, t);
+      autoplayTimers.push(timer);
+      t += stepDur;
+    });
+  });
+
+  // timeline
+  var groups = [];
+  STEPS.forEach(function(step){
+    var g = groups[groups.length-1];
+    if(!g || g.time !== step.time){
+      g = {time:step.time, steps:[]};
+      groups.push(g);
+    }
+    g.steps.push(step);
+  });
+  groups.forEach(function(g){
+    var row = document.createElement("div");
+    row.className = "tl-group";
+    var timeEl = document.createElement("div");
+    timeEl.className = "tl-time";
+    timeEl.textContent = g.time;
+    var stepsEl = document.createElement("div");
+    stepsEl.className = "tl-steps";
+    g.steps.forEach(function(step){
+      var a = byKey[step.action];
+      var chipBtn = document.createElement("button");
+      chipBtn.type = "button";
+      chipBtn.className = "tl-step";
+      chipBtn.innerHTML = a.emoji + " " + a.label + '<span class="cap">' + step.cap + "</span>";
+      chipBtn.addEventListener("click", function(){
+        clearAutoplay();
+        document.getElementById("actions").scrollIntoView({behavior:"smooth", block:"start"});
+        selectAction(step.action, step.time + " · " + step.cap, true);
+      });
+      stepsEl.appendChild(chipBtn);
+    });
+    row.appendChild(timeEl);
+    row.appendChild(stepsEl);
+    timelineEl.appendChild(row);
+  });
+
+  // summary table
+  var SUMMARY = [
+    {key:"publish", dir:"up", dirText:"💻→☁️", desc:"처음으로 GitHub에 올리기", when:"프로젝트 첫 등록"},
+    {key:"clone", dir:"down", dirText:"☁️→💻", desc:"전체를 통째로 복사해오기", when:"처음 합류할 때"},
+    {key:"commit", dir:"inner", dirText:"💻 내부", desc:"변경사항에 메모 붙여 저장", when:"작업 단위 완료 시"},
+    {key:"push", dir:"up", dirText:"💻→☁️", desc:"GitHub에 업로드하기", when:"팀원과 공유할 때"},
+    {key:"fetch", dir:"down", dirText:"☁️→💻", desc:"변경사항 확인만 하기", when:"신중하게 검토 시"},
+    {key:"pull", dir:"down", dirText:"☁️→💻", desc:"최신 버전 바로 적용", when:"매일 출근 후"}
+  ];
+  SUMMARY.forEach(function(row){
+    var a = byKey[row.key];
+    var tr = document.createElement("tr");
+    tr.innerHTML =
+      '<td class="action">'+a.emoji+" "+a.label+'</td>' +
+      '<td><span class="dir-badge '+row.dir+'">'+row.dirText+'</span></td>' +
+      '<td>'+row.desc+'</td>' +
+      '<td class="when">'+row.when+'</td>';
+    summaryBody.appendChild(tr);
+  });
+
+  selectAction("publish", null, false);
+})();
+</script>
+</body>
+</html>
