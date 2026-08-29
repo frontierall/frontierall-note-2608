@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>yt-dlp 다운로드 시 "HTTP Error 403: Forbidden" · AI 프로덕트 마스터</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@1.3.9/dist/web/static/pretendard.css">
+<style>
+  :root {
+    --primary: #0066cc; --primary-focus: #0071e3;
+    --canvas: #ffffff; --parchment: #f5f5f7; --pearl: #fafafc;
+    --black: #000000; --ink: #1d1d1f; --ink-80: #333333; --ink-48: #7a7a7a;
+    --hairline: #e0e0e0;
+    --warn-bg: #fff8e6; --warn-line: #f0d48a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--canvas); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', 'Apple SD Gothic Neo', 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-size: 17px; line-height: 1.47; letter-spacing: -0.374px;
+  }
+  .global-nav {
+    position: sticky; top: 0; z-index: 20; height: 44px; background: var(--black);
+    display: flex; align-items: center; justify-content: space-between; padding: 0 22px;
+  }
+  .global-nav .brand { color: #fff; font-size: 12px; font-weight: 600; letter-spacing: -0.12px; text-decoration: none; }
+  .global-nav .meta { color: rgba(255,255,255,0.72); font-size: 12px; letter-spacing: -0.12px; }
+  .sub-nav {
+    position: sticky; top: 44px; z-index: 19; height: 52px;
+    display: flex; align-items: center; justify-content: space-between; padding: 0 22px;
+    background: rgba(245,245,247,0.8);
+    -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+  .sub-nav .category { font-size: 21px; font-weight: 600; letter-spacing: 0.231px; color: var(--ink); text-decoration: none; }
+  .btn-primary {
+    display: inline-block; background: var(--primary); color: #fff; border: none;
+    border-radius: 9999px; padding: 8px 18px; font-size: 14px; font-family: inherit;
+    text-decoration: none; cursor: pointer; transition: transform .15s;
+  }
+  .btn-primary:active { transform: scale(0.95); }
+  .btn-primary:focus-visible { outline: 2px solid var(--primary-focus); outline-offset: 2px; }
+
+  article { max-width: 720px; margin: 0 auto; padding: 64px 24px 96px; }
+  .eyebrow { display: block; font-size: 14px; font-weight: 600; letter-spacing: -0.224px; color: var(--ink-48); margin-bottom: 12px; }
+  h1 { font-size: 34px; font-weight: 600; line-height: 1.14; letter-spacing: 0; margin: 0 0 12px; }
+  .source {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-48);
+    letter-spacing: -0.12px; background: var(--pearl); border: 1px solid var(--hairline);
+    padding: 3px 10px; border-radius: 999px; margin: 0 0 32px;
+  }
+  h2 {
+    font-size: 21px; font-weight: 600; line-height: 1.19; letter-spacing: 0.231px;
+    margin: 40px 0 12px; padding-top: 24px; border-top: 1px solid var(--hairline);
+  }
+  p { color: var(--ink); font-size: 15px; line-height: 1.6; }
+  ol, ul { font-size: 15px; line-height: 1.6; }
+  li { margin-bottom: 8px; }
+  strong { color: var(--ink); }
+
+  code {
+    background: var(--pearl); border: 1px solid var(--hairline);
+    border-radius: 5px; padding: 2px 6px; font-size: 13.5px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+  }
+  pre {
+    background: var(--pearl); border: 1px solid var(--hairline);
+    border-radius: 8px; padding: 16px 18px; overflow-x: auto;
+  }
+  pre code { background: none; border: none; padding: 0; font-size: 13.5px; line-height: 1.6; }
+
+  .callout {
+    background: var(--warn-bg); border: 1px solid var(--warn-line);
+    border-radius: 10px; padding: 14px 18px; margin: 20px 0;
+  }
+  .callout p { margin: 0; font-size: 14px; line-height: 1.6; }
+  .callout p + p { margin-top: 8px; }
+
+  blockquote {
+    margin: 20px 0; padding: 4px 0 4px 20px; border-left: 2px solid var(--hairline);
+  }
+  blockquote p { margin: 0; font-size: 14px; letter-spacing: -0.224px; color: var(--ink-80); }
+
+  @media (max-width: 640px) {
+    article { padding: 48px 20px 72px; }
+    h1 { font-size: 26px; }
+    .sub-nav { padding: 0 16px; }
+    .sub-nav .category { font-size: 17px; }
+  }
+  @media (max-width: 380px) {
+    .global-nav .meta { display: none; }
+  }
+</style>
+</head>
+<body>
+  <nav class="global-nav">
+    <a class="brand" href="../../index.html">AI 프로덕트 마스터</a>
+    <span class="meta">인공지능 심화(160H)</span>
+  </nav>
+  <nav class="sub-nav">
+    <a class="category" href="../index.html">이슈 로그</a>
+    <a class="btn-primary" href="../../index.html">전체 커리큘럼</a>
+  </nav>
+
+  <article>
+
+<span class="eyebrow">CLI 도구 · yt-dlp</span>
+<h1>yt-dlp로 영상 다운로드 시 "HTTP Error 403: Forbidden"</h1>
+<div class="source">출처 · 온누리미션 프로젝트 (영상 다운로드 스크립트)</div>
+
+<h2>증상</h2>
+<p>Claude Code로 영상 다운로드 스크립트를 실행했는데 아래 오류와 함께 다운로드가 실패했다.</p>
+<pre><code>ERROR: unable to download video data: HTTP Error 403: Forbidden</code></pre>
+
+<h2>원인</h2>
+<p>설치되어 있던 <code>yt-dlp</code>가 <strong>2026.7.4 구버전</strong>이었다. YouTube는 영상 스트림 URL의 서명(signature)·포맷 목록 로직을 자주 바꾸는데, <code>yt-dlp</code>가 이를 따라가지 못하면 서버가 요청을 비정상 접근으로 판단해 403을 돌려준다. yt-dlp 자체나 계정 문제가 아니라 <strong>버전이 YouTube의 최신 변경을 반영하지 못해서</strong> 생기는, 이 도구에서 흔한 증상이다.</p>
+
+<div class="callout">
+<p><strong>판별 키워드</strong> — <code>unable to download video data</code>와 함께 <code>403 Forbidden</code>이 뜨면 인증·권한 문제보다 먼저 <code>yt-dlp</code> 버전부터 의심한다. URL 자체가 잘못됐거나 비공개 영상이면 보통 403이 아니라 다른 오류 메시지(404, private video 등)가 나온다.</p>
+</div>
+
+<h2>해결</h2>
+<pre><code># 현재 버전 확인
+yt-dlp --version
+
+# 최신 버전으로 업데이트
+pip install --upgrade yt-dlp</code></pre>
+<p><code>2026.7.4 → 2026.8.19</code>로 업데이트한 뒤 같은 명령을 다시 실행하자 정상적으로 다운로드됐다.</p>
+
+<h2>재발 방지</h2>
+<ul>
+<li>영상 다운로드 관련 스크립트에서 403 오류가 나오면 URL이나 네트워크보다 <strong><code>yt-dlp --version</code>부터 확인</strong>한다. 오래된 버전일 가능성이 가장 높다.</li>
+<li><code>yt-dlp</code>는 YouTube 쪽 변경에 맞춰 릴리즈가 잦은 도구다. 오래 안 쓰다가 다시 쓸 때는 실행 전에 <code>pip install --upgrade yt-dlp</code>로 먼저 업데이트하는 습관을 들인다.</li>
+</ul>
+
+  </article>
+</body>
+</html>
