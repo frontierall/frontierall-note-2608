@@ -75,5 +75,52 @@ const MEMBERS = [
   {
     name: '김O은',
     gh: 'yekim0928-create',
+    repos: 1,
+  },
+  {
+    name: '안O준',
+    gh: 'skyluxon',
+    repo: 'my-first-app',
+    note: '프로필이 아니라 my-first-app 저장소를 공유했습니다.',
+  },
+  {
+    name: '정O영',
+    gh: 'AwesomeWY',
+    repos: 5,
+  },
+  {
+    name: '배O진',
+    gh: 'hey-bernard',
+    repos: 6,
+    note: '저장소(Repositories) 탭을 바로 공유했습니다.',
+  },
+  {
+    name: '박O경',
+    gh: 'aoo111',
+    note: '저장소(Repositories) 탭을 바로 공유했습니다.',
+  },
+  {
+    name: '윤O영',
+    gh: 'yuriwood50-ai',
+  },
+  {
+    name: '유O경',
+    gh: 'sdjoan',
+    repos: 11,
+    note: '위쪽 optimy826 님과 가린 이름이 같습니다. 계정으로 구분하세요.',
+  },
+  {
+    name: '전O현',
+    gh: 'KwangHyeon98',
+    note: '프로필 소개: "Medical Imaging AI Engineer · CT · 3D Vision · Deep Learning · PyTorch · VTK"',
+  },
+  {
+    name: '박O진',
+    gh: 'aideveloperno1',
+  },
+  {
+    name: '김O아',
+    gh: 'kgonggong99-code',
+    repos: 1,
   },
 ];
