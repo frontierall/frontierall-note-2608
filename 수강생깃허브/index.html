@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>수강생 깃허브 · AI 프로덕트 마스터</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@1.3.9/dist/web/static/pretendard.css">
+<style>
+  :root {
+    --primary: #0066cc; --primary-focus: #0071e3;
+    --canvas: #ffffff; --parchment: #f5f5f7;
+    --black: #000000; --ink: #1d1d1f; --ink-80: #333333; --ink-48: #7a7a7a;
+    --hairline: #e0e0e0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--canvas); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', 'Apple SD Gothic Neo', 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-size: 17px; line-height: 1.47; letter-spacing: -0.374px;
+  }
+  .global-nav {
+    position: sticky; top: 0; z-index: 20; height: 44px; background: var(--black);
+    display: flex; align-items: center; justify-content: space-between; padding: 0 22px;
+  }
+  .global-nav .brand { color: #fff; font-size: 12px; font-weight: 600; letter-spacing: -0.12px; text-decoration: none; }
+  .global-nav .meta { color: rgba(255,255,255,0.72); font-size: 12px; letter-spacing: -0.12px; }
+  .sub-nav {
+    position: sticky; top: 44px; z-index: 19; height: 52px;
+    display: flex; align-items: center; justify-content: space-between; padding: 0 22px;
+    background: rgba(245,245,247,0.8);
+    -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+  .sub-nav .category { font-size: 21px; font-weight: 600; letter-spacing: 0.231px; color: var(--ink); text-decoration: none; }
+  .btn-primary {
+    display: inline-block; background: var(--primary); color: #fff; border: none;
+    border-radius: 9999px; padding: 8px 18px; font-size: 14px; font-family: inherit;
+    text-decoration: none; cursor: pointer; transition: transform .15s;
+  }
+  .btn-primary:active { transform: scale(0.95); }
+  .btn-primary:focus-visible { outline: 2px solid var(--primary-focus); outline-offset: 2px; }
+
+  main.content { max-width: 900px; margin: 0 auto; padding: 64px 24px 96px; }
+  .eyebrow { display: block; font-size: 14px; font-weight: 600; letter-spacing: -0.224px; color: var(--ink-48); margin-bottom: 12px; }
+  h1.headline { font-size: 40px; font-weight: 600; line-height: 1.10; letter-spacing: 0; margin: 0 0 14px; }
+  p.tagline { font-size: 22px; font-weight: 400; line-height: 1.3; letter-spacing: 0.196px; margin: 0 0 28px; color: var(--ink-80); }
+
+  .search-input {
+    display: flex; align-items: center; gap: 8px; background: var(--canvas);
+    border: 1px solid var(--hairline); border-radius: 9999px; padding: 10px 18px;
+    margin-bottom: 20px;
+  }
+  .search-input svg { flex: 0 0 auto; color: var(--ink-48); }
+  .search-input input {
+    all: unset; flex: 1 1 auto; font-size: 15px; font-family: inherit; color: var(--ink);
+    letter-spacing: -0.224px;
+  }
+  .search-input input::placeholder { color: var(--ink-48); }
+
+  .result-count { font-size: 13px; color: var(--ink-48); letter-spacing: -0.224px; margin: 0 0 12px; }
+
+  .member-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+  a.member-card {
+    display: flex; flex-direction: column; gap: 12px;
+    background: var(--canvas); border: 1px solid var(--hairline);
+    border-radius: 18px; padding: 18px; text-decoration: none; color: var(--ink);
+    transition: border-color .15s, transform .15s;
+  }
+  a.member-card:hover { border-color: var(--primary); transform: translateY(-2px); }
+  a.member-card:focus-visible { outline: 2px solid var(--primary-focus); outline-offset: 2px; }
+  a.member-card.hidden { display: none; }
+
+  .member-top { display: flex; align-items: center; gap: 12px; }
+  .avatar {
+    position: relative; flex: 0 0 auto; width: 46px; height: 46px; border-radius: 50%;
+    background: var(--parchment); border: 1px solid var(--hairline);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+    font-size: 17px; font-weight: 600; color: var(--ink-48);
+  }
+  /* 아바타 이미지를 못 불러오면(오프라인·계정 삭제 등) 아래 첫 글자가 드러납니다. */
+  .avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+  .member-id { min-width: 0; }
+  .member-id .name { font-size: 17px; font-weight: 600; letter-spacing: -0.374px; }
+  .member-id .handle {
+    font-size: 13px; color: var(--ink-48); letter-spacing: -0.224px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .member-note { font-size: 14px; color: var(--ink-48); letter-spacing: -0.224px; margin: -2px 0 0; }
+  .badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; padding-top: 2px; }
+  .badge {
+    font-size: 11px; color: var(--ink-48); letter-spacing: -0.12px;
+    background: var(--parchment); border: 1px solid var(--hairline);
+    padding: 2px 8px; border-radius: 999px;
+  }
+  .badge.repo { color: var(--primary); background: rgba(0,102,204,0.08); border-color: transparent; }
+  .empty-note { font-size: 14px; color: var(--ink-48); letter-spacing: -0.224px; padding: 24px 0; }
+
+  .guide { margin-top: 48px; padding-top: 28px; border-top: 1px solid var(--hairline); }
+  .guide h2 { font-size: 21px; font-weight: 600; letter-spacing: 0.231px; margin: 0 0 12px; }
+  .guide ul { font-size: 15px; color: var(--ink-80); letter-spacing: -0.224px; margin: 0; padding-left: 20px; }
+  .guide li { margin-bottom: 8px; line-height: 1.5; }
+  .guide a { color: var(--primary); text-decoration: none; }
+  .guide a:hover { text-decoration: underline; }
+  .guide code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px;
+    background: var(--parchment); border: 1px solid var(--hairline);
+    padding: 1px 6px; border-radius: 6px;
+  }
+
+  footer.site-footer { background: var(--parchment); color: var(--ink-80); padding: 64px 24px 32px; }
+  .footer-links { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px 32px; }
+  .footer-links a { display: block; font-size: 17px; line-height: 2.41; color: var(--ink-80); text-decoration: none; }
+  .footer-links a:hover { color: var(--ink); }
+  .footer-legal { max-width: 1000px; margin: 32px auto 0; padding-top: 16px; border-top: 1px solid var(--hairline); font-size: 12px; color: var(--ink-48); letter-spacing: -0.12px; }
+
+  @media (max-width: 640px) {
+    main.content { padding: 48px 20px 72px; }
+    h1.headline { font-size: 28px; }
+    p.tagline { font-size: 17px; }
+    .sub-nav { padding: 0 16px; }
+    .sub-nav .category { font-size: 17px; }
+    .footer-links { grid-template-columns: repeat(2, 1fr); gap: 4px 20px; }
+    .member-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 380px) {
+    .global-nav .meta { display: none; }
+  }
+</style>
+</head>
+<body>
+  <nav class="global-nav">
+    <a class="brand" href="../index.html">AI 프로덕트 마스터</a>
+    <span class="meta">인공지능 심화(160H)</span>
+  </nav>
+  <nav class="sub-nav">
+    <a class="category" href="#">수강생 깃허브</a>
+    <a class="btn-primary" href="../index.html">전체 커리큘럼</a>
+  </nav>
+
+  <main class="content">
+    <span class="eyebrow">같이 듣는 사람들</span>
+    <h1 class="headline">수강생 깃허브</h1>
+    <p class="tagline">수업 중에 본인이 직접 공유한 GitHub 계정을 모았습니다. 다른 사람이 무엇을 어떻게 만들고 있는지 보는 것이 가장 빠른 학습입니다.</p>
+
+    <label class="search-input">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="search" id="search" placeholder="이름, GitHub 아이디로 검색">
+    </label>
+
+    <p class="result-count" id="result-count"></p>
+
+    <div class="member-grid" id="grid"></div>
+    <p class="empty-note" id="empty-note" style="display:none;">일치하는 사람이 없습니다.</p>
+
+    <section class="guide">
+      <h2>이 목록에 대해</h2>
+      <ul>
+        <li><strong>이름은 가운데 글자를 가렸습니다.</strong> 이 페이지는 누구나 볼 수 있는 공개 주소라서 실명을 그대로 두지 않았습니다. GitHub 아이디는 본인이 공개해 둔 것이라 그대로 씁니다.</li>
+        <li><strong>저장소 개수는 공유하던 시점 기준</strong>입니다. 지금은 달라졌을 수 있으니 정확한 것은 프로필에서 확인하세요.</li>
+        <li><strong>비공개(Private) 저장소는 보이지 않습니다.</strong> 카드에 저장소가 적게 보인다고 해서 작업을 적게 한 것이 아닙니다.</li>
+        <li><strong>추가·수정·삭제</strong>는 <code>수강생깃허브/members.js</code>에 한 줄을 더하거나 고치면 됩니다. 방법은 <a href="README.md">README</a>에 적어 두었습니다. 목록에서 빼고 싶으시면 언제든 말씀해 주세요.</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-links">
+      <a href="../00_사전학습/index.html">00 사전 학습</a>
+      <a href="../01_오리엔테이션/index.html">01 오리엔테이션</a>
+      <a href="../02_바이브코딩/index.html">02 바이브코딩</a>
+      <a href="../03_UXUI디자인/index.html">03 UXUI디자인</a>
+      <a href="../04_노코드프로토타이핑/index.html">04 노코드프로토타이핑</a>
+      <a href="../05_서비스기획/index.html">05 서비스기획</a>
+      <a href="../06_데이터ML/index.html">06 데이터ML</a>
+      <a href="../07_LLM_RAG_Agent/index.html">07 LLM_RAG_Agent</a>
+      <a href="../08_해커톤/index.html">08 해커톤</a>
+      <a href="../용어사전/index.html">용어사전</a>
+      <a href="../이슈로그/index.html">이슈로그</a>
+      <a href="../팁/index.html">팁</a>
+      <a href="../실험실/index.html">실험실</a>
+    </div>
+    <div class="footer-legal">AI 프로덕트 마스터 · frontierall</div>
+  </footer>
+
+  <script>
+    /* members.js를 고쳐도 브라우저가 옛 파일을 쓰지 않도록 매번 새로 불러옵니다. */
+    document.write('<script src="members.js?t=' + Date.now() + '"><\/script>');
+  </script>
+  <script>
+    const grid = document.getElementById('grid');
+    const searchInput = document.getElementById('search');
+    const resultCount = document.getElementById('result-count');
+    const emptyNote = document.getElementById('empty-note');
+
+    const esc = s => String(s).replace(/[&<>"']/g, c =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+    function cardHTML(m) {
+      const url = m.repo
+        ? 'https://github.com/' + m.gh + '/' + m.repo
+        : 'https://github.com/' + m.gh;
+      const badges = [];
+      if (m.repo) badges.push('<span class="badge repo">대표 저장소 · ' + esc(m.repo) + '</span>');
+      if (m.repos) badges.push('<span class="badge">공개 저장소 ' + m.repos + '개</span>');
+      const note = m.note ? '<p class="member-note">' + esc(m.note) + '</p>' : '';
+      const haystack = (m.name + ' ' + m.gh + ' ' + (m.repo || '') + ' ' + (m.note || '')).toLowerCase();
+      return [
+        '<a class="member-card" href="' + esc(url) + '" target="_blank" rel="noopener"',
+        '   data-search="' + esc(haystack) + '">',
+        '  <div class="member-top">',
+        '    <span class="avatar">' + esc(m.name.charAt(0)),
+        '      <img src="https://github.com/' + esc(m.gh) + '.png?size=120" alt="" loading="lazy" onerror="this.remove()">',
+        '    </span>',
+        '    <span class="member-id">',
+        '      <div class="name">' + esc(m.name) + '</div>',
+        '      <div class="handle">@' + esc(m.gh) + '</div>',
+        '    </span>',
+        '  </div>',
+        note,
+        '  <div class="badges">' + badges.join('') + '</div>',
+        '</a>'
+      ].join('\n');
+    }
+
+    grid.innerHTML = MEMBERS.map(cardHTML).join('');
+    const cards = [].slice.call(grid.querySelectorAll('.member-card'));
+
+    function applyFilter() {
+      const q = searchInput.value.trim().toLowerCase();
+      let visible = 0;
+      cards.forEach(function (card) {
+        const show = !q || card.dataset.search.includes(q);
+        card.classList.toggle('hidden', !show);
+        if (show) visible++;
+      });
+      resultCount.textContent = visible + '명 · ' + MEMBERS_UPDATED + ' 기준';
+      emptyNote.style.display = visible === 0 ? 'block' : 'none';
+    }
+
+    searchInput.addEventListener('input', applyFilter);
+    applyFilter();
+  </script>
+</body>
+</html>
