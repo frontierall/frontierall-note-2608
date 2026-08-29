@@ -100,6 +100,44 @@ const TERMS = [
     related: ['llm', 'vibe-coding', 'prompt-engineering', 'chatgpt', 'claude', 'gemini', 'grok'],
   },
   {
+    id: 'openai',
+    emoji: '🌀',
+    term: 'OpenAI',
+    en: 'OpenAI',
+    part: 'part02',
+    kind: 'concept',
+    short: 'ChatGPT를 만든 미국 AI 회사예요. 2015년 12월 비영리 연구소로 출발했고, 2022년 11월 ChatGPT를 내놓으면서 지금의 생성형 AI 붐에 불을 붙였습니다. 이 과정에서 쓰는 ChatGPT와 Codex가 모두 이 회사 제품이에요. 🌀',
+    body: [
+      '샘 올트먼, 그렉 브록먼, 일리야 수츠케버, 일론 머스크 등이 2015년 12월에 세웠습니다. 처음에는 "AI를 특정 회사가 독점하지 않게 하자"는 취지의 비영리 연구소였고, 이름의 <strong>Open</strong>도 거기서 나왔습니다. 2019년에 큰 자금이 필요해지자 영리 부문을 따로 두는 구조로 바꾸고 마이크로소프트의 대규모 투자를 받았습니다.',
+      '대표 결과물은 이름을 들어 봤을 것들입니다. 글을 다루는 <strong>GPT</strong> 계열 모델, 그 위에 얹은 챗봇 <strong>ChatGPT</strong>, 코딩 도구 <strong>Codex</strong>, 그림을 만드는 DALL·E, 말을 글로 옮기는 Whisper, 영상을 만드는 Sora가 모두 OpenAI 제품입니다.',
+      '이 회사를 알아 두면 용어사전의 다른 항목들이 하나로 이어집니다. 초기 멤버였던 일론 머스크는 2018년에 이사회를 떠나 나중에 <strong>Grok</strong>을 만드는 xAI를 세웠고, OpenAI에서 나온 연구자들은 2021년 <strong>Claude</strong>를 만드는 Anthropic을 세웠습니다. 지금 경쟁하는 챗봇들의 뿌리가 상당 부분 이 회사에 닿아 있습니다.',
+    ],
+    note: '회사 이름 OpenAI와 제품 이름 ChatGPT를 섞어 쓰는 경우가 많습니다. "OpenAI에 물어봤다"가 아니라 "ChatGPT에 물어봤다"가 맞는 표현이에요. 그리고 이름은 Open이지만 지금 주력 모델은 공개(오픈소스)되어 있지 않다는 점도 알아 두면 좋습니다. ⚠️',
+    flow: 'flowchart LR\n' +
+          'A["OpenAI (2015 설립)"] --> B["GPT 계열 모델"]\n' +
+          'B --> C["ChatGPT · 챗봇"]\n' +
+          'B --> D["Codex · 코딩 도구"]\n' +
+          'B --> E["API · 내 서비스에 연결"]\n' +
+          'A -. "2018 머스크 이탈" .-> F["xAI · Grok"]\n' +
+          'A -. "2021 연구자 독립" .-> G["Anthropic · Claude"]',
+    related: ['chatgpt', 'codex', 'claude', 'grok', 'llm', 'generative-ai', 'api', 'gpt'],
+  },
+  {
+    id: 'gpt',
+    emoji: '🔠',
+    term: 'GPT',
+    en: 'Generative Pre-trained Transformer',
+    part: 'part02',
+    kind: 'concept',
+    short: 'ChatGPT의 뒤 세 글자예요. OpenAI가 만든 언어 모델 계열의 이름이고, 풀어 쓰면 "만들어 내는(Generative) · 미리 학습한(Pre-trained) · 트랜스포머 구조의(Transformer)" 모델이라는 뜻입니다. 이름 세 단어가 곧 동작 방식 설명이에요. 🔠',
+    body: [
+      '<strong>Generative(생성)</strong> — 정해진 보기 중에 고르는 것이 아니라 없던 문장을 새로 만들어 냅니다. <strong>Pre-trained(사전 학습)</strong> — 여러분이 질문하기 전에 이미 방대한 글을 학습해 둔 상태입니다. 그래서 따로 가르치지 않아도 바로 쓸 수 있어요. <strong>Transformer(트랜스포머)</strong> — 2017년 구글 연구진의 논문에서 나온 신경망 구조로, 문장에서 어떤 단어에 더 주목할지를 스스로 판단합니다. 지금 쓰이는 언어 모델 거의 전부가 이 구조 위에 서 있습니다.',
+      'OpenAI가 2018년 첫 GPT를 내놓은 뒤 버전을 올려 왔고, 그 위에 대화 형태를 씌운 것이 <strong>ChatGPT</strong>입니다. 즉 GPT는 엔진 이름, ChatGPT는 그 엔진을 얹은 완성차 이름이라고 보면 됩니다.',
+    ],
+    note: 'GPT를 "AI" 또는 "LLM" 전체를 가리키는 말처럼 쓰는 경우가 많은데, GPT는 OpenAI가 붙인 자기 모델 이름입니다. Claude와 Gemini는 GPT가 아니에요. "GPT 써 봤어?"라고 하면 상대가 ChatGPT만 떠올릴 수 있으니, 여러 챗봇을 통틀어 말할 때는 LLM이나 생성형 AI라고 하는 편이 정확합니다. ⚠️',
+    related: ['openai', 'chatgpt', 'llm', 'generative-ai', 'deep-learning'],
+  },
+  {
     id: 'chatgpt',
     emoji: '🗨️',
     term: 'ChatGPT',
@@ -112,7 +150,7 @@ const TERMS = [
       'OpenAI의 코딩 도구인 <strong>Codex</strong>도 ChatGPT와 같은 계열의 모델 위에서 동작합니다.',
     ],
     spectrum: { leftLabel: '먼저 나온 챗봇', rightLabel: '나중에 나온 챗봇', value: 5 },
-    related: ['codex', 'llm', 'generative-ai'],
+    related: ['openai', 'codex', 'llm', 'generative-ai', 'gpt'],
   },
   {
     id: 'claude',
@@ -582,7 +620,7 @@ const TERMS = [
       '어느 쪽이 정답이라기보다 손에 맞는 도구가 다릅니다. 같은 과제를 두 도구에 시켜 보고 결과와 사용감을 비교하는 것도 좋은 연습이에요.',
       'AI 코딩 도구는 계속 새로 나오고 이름도 자주 바뀝니다. 도구 이름을 외우기보다 <strong>시키는 방법</strong>을 익히면 새 도구가 나와도 금방 적응할 수 있습니다.',
     ],
-    related: ['claude-code', 'vibe-coding', 'chatgpt'],
+    related: ['claude-code', 'vibe-coding', 'chatgpt', 'openai'],
   },
   {
     id: 'vscode',
@@ -1402,7 +1440,45 @@ const TERMS = [
       '이 과정에서 쓰는 바이브코딩 도구도, 노코드 도구도 안에서는 결국 LLM이 돌아가고 있습니다. 그래서 LLM의 성질을 알면 "왜 이 도구가 이렇게 반응하지?"를 이해하기 쉬워집니다.',
     ],
     note: '모르는 것도 아는 것처럼 그럴듯하게 지어내는 일이 있습니다(환각, hallucination). 숫자·날짜·인용처럼 사실이 중요한 내용은 꼭 사람이 확인해야 합니다. ⚠️',
-    related: ['ai-agent', 'machine-learning', 'vibe-coding', 'chatgpt', 'claude', 'gemini', 'grok'],
+    related: ['ai-agent', 'machine-learning', 'vibe-coding', 'chatgpt', 'claude', 'gemini', 'grok', 'token', 'context-window'],
+  },
+  {
+    id: 'token',
+    emoji: '🧮',
+    term: '토큰',
+    en: 'Token',
+    part: 'part07',
+    kind: 'concept',
+    short: 'AI가 글을 셀 때 쓰는 단위예요. 글자도 단어도 아닌, 그 중간쯤으로 잘게 쪼갠 조각입니다. AI 요금이 얼마 나오는지, 한 번에 얼마나 긴 글을 넣을 수 있는지가 전부 이 단위로 정해지기 때문에 API를 쓰기 시작하면 반드시 마주치게 됩니다. 🧮',
+    body: [
+      'LLM은 글을 통째로 읽지 않고 토큰 단위로 쪼개서 처리합니다. 영어라면 흔한 단어 하나가 대체로 토큰 하나가 되고, 긴 단어는 여러 조각으로 나뉩니다. 한글은 쪼개지는 방식이 달라서 같은 내용이라도 영어보다 토큰을 더 많이 쓰는 편입니다.',
+      '요금은 <strong>입력과 출력을 모두</strong> 셉니다. 내가 보낸 질문도, AI가 돌려준 답도 다 토큰으로 계산돼요. 그래서 긴 문서를 통째로 붙여 넣고 여러 번 물어보면 생각보다 요금이 빨리 오릅니다. 필요한 부분만 잘라서 넣는 습관이 그대로 비용 절약이 됩니다.',
+      '무료 챗봇 화면에서는 토큰이 보이지 않아서 신경 쓸 일이 없지만, <strong>API</strong>로 직접 불러 쓰기 시작하면 사용량과 청구서가 전부 토큰 기준으로 나옵니다.',
+    ],
+    note: '"1토큰이 몇 글자"라는 고정된 값은 없습니다. 모델마다 쪼개는 방식이 다르고 언어에 따라서도 달라져요. 정확한 수는 각 서비스가 제공하는 토큰 계산기로 확인하는 것이 안전합니다. ⚠️',
+    related: ['context-window', 'llm', 'api', 'openai', 'rag'],
+  },
+  {
+    id: 'context-window',
+    emoji: '🪟',
+    term: '컨텍스트 윈도우',
+    en: 'Context Window',
+    part: 'part07',
+    kind: 'concept',
+    short: 'AI가 한 번에 볼 수 있는 분량의 한계예요. 토큰으로 잽니다. 대화가 길어지면 AI가 앞에서 한 말을 잊은 것처럼 구는데, 대부분 이 창을 넘겨서 앞부분이 밀려난 것입니다. 🪟',
+    body: [
+      'LLM에게는 사람 같은 기억이 없습니다. 매번 질문할 때마다 <strong>지금까지의 대화 전체를 통째로 다시 읽는</strong> 방식으로 동작해요. 그런데 한 번에 읽을 수 있는 양이 정해져 있고, 그 한계가 컨텍스트 윈도우입니다.',
+      '대화가 길어져 이 한계를 넘으면 오래된 앞부분부터 창 밖으로 밀려납니다. 그래서 "아까 정한 규칙을 왜 안 지키지?" 같은 일이 생겨요. 해결책은 간단합니다. 중요한 전제는 새 질문에 다시 한 번 적어 주거나, 주제가 바뀌면 새 대화를 시작하는 것입니다.',
+      '문서 수십 개를 다 넣을 수는 없으니 필요한 조각만 찾아서 넣자는 발상이 <strong>RAG</strong>입니다. RAG가 왜 필요한지는 이 한계를 알아야 이해가 됩니다.',
+    ],
+    note: '창이 크다고 항상 좋은 것은 아닙니다. 넣을 수 있는 양과 잘 활용하는 능력은 별개라서, 아주 긴 입력에서는 가운데쯤에 있는 내용을 놓치는 경향이 보고돼 있습니다. 중요한 지시는 앞이나 뒤에 두는 편이 안전합니다. ⚠️',
+    flow: 'flowchart LR\n' +
+          'A["질문할 때마다\n대화 전체를 다시 읽음"] --> B{"컨텍스트 윈도우\n안에 들어가나?"}\n' +
+          'B -- "들어감" --> C["앞 내용 그대로 기억"]\n' +
+          'B -- "넘침" --> D["오래된 앞부분이 밀려남"]\n' +
+          'D --> E["새 대화 시작 · 전제 다시 적기"]\n' +
+          'D --> F["RAG로 필요한 조각만 넣기"]',
+    related: ['token', 'llm', 'rag', 'vector-db', 'prompt-engineering'],
   },
   {
     id: 'ai-agent',
@@ -1450,7 +1526,7 @@ const TERMS = [
     flow: 'flowchart LR\n' +
           'A["내 앱"] -- "요청" --> B["API"]\n' +
           'B -- "응답" --> A',
-    related: ['mcp', 'llm', 'client-server'],
+    related: ['mcp', 'llm', 'client-server', 'token'],
   },
   {
     id: 'mcp',
@@ -1491,7 +1567,7 @@ const TERMS = [
           'B --> C["관련 문서"]\n' +
           'C --> D["LLM"]\n' +
           'D --> E["답변"]',
-    related: ['llm', 'vector-db', 'mcp'],
+    related: ['llm', 'vector-db', 'mcp', 'context-window'],
   },
   {
     id: 'vector-db',
