@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>웹에 데이터를 저장하는 5가지 방법 비교 · AI 프로덕트 마스터</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@1.3.9/dist/web/static/pretendard.css">
+<style>
+  :root {
+    --primary: #0066cc; --primary-focus: #0071e3;
+    --canvas: #ffffff; --parchment: #f5f5f7; --pearl: #fafafc;
+    --black: #000000; --ink: #1d1d1f; --ink-80: #333333; --ink-48: #7a7a7a;
+    --hairline: #e0e0e0;
+    --warn: #bf4800; --warn-bg: #fff6f0;
+    --ok: #1a7f37; --ok-bg: #f2faf4;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--canvas); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', 'Apple SD Gothic Neo', 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-size: 17px; line-height: 1.47; letter-spacing: -0.374px;
+  }
+  .global-nav {
+    position: sticky; top: 0; z-index: 20; height: 44px; background: var(--black);
+    display: flex; align-items: center; justify-content: space-between; padding: 0 22px;
+  }
+  .global-nav .brand { color: #fff; font-size: 12px; font-weight: 600; letter-spacing: -0.12px; text-decoration: none; }
+  .global-nav .meta { color: rgba(255,255,255,0.72); font-size: 12px; letter-spacing: -0.12px; }
+  .sub-nav {
+    position: sticky; top: 44px; z-index: 19; height: 52px;
+    display: flex; align-items: center; justify-content: space-between; padding: 0 22px;
+    background: rgba(245,245,247,0.8);
+    -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+  .sub-nav .category { font-size: 21px; font-weight: 600; letter-spacing: 0.231px; color: var(--ink); text-decoration: none; }
+  .btn-primary {
+    display: inline-block; background: var(--primary); color: #fff; border: none;
+    border-radius: 9999px; padding: 8px 18px; font-size: 14px; font-family: inherit;
+    text-decoration: none; cursor: pointer; transition: transform .15s;
+  }
+  .btn-primary:active { transform: scale(0.95); }
+  .btn-primary:focus-visible { outline: 2px solid var(--primary-focus); outline-offset: 2px; }
+
+  article { max-width: 720px; margin: 0 auto; padding: 64px 24px 96px; }
+
+  .eyebrow { display: block; font-size: 14px; font-weight: 600; letter-spacing: -0.224px; color: var(--ink-48); margin-bottom: 12px; }
+  h1 { font-size: 40px; font-weight: 600; line-height: 1.10; letter-spacing: 0; margin: 0 0 28px; }
+  h2 {
+    font-size: 28px; font-weight: 600; line-height: 1.14; letter-spacing: 0.196px;
+    margin: 56px 0 16px; padding-top: 32px; border-top: 1px solid var(--hairline);
+  }
+  h3 { font-size: 21px; font-weight: 600; line-height: 1.19; letter-spacing: 0.231px; margin: 32px 0 12px; }
+  h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.374px; margin: 24px 0 8px; }
+  p { color: var(--ink); font-size: 17px; line-height: 1.47; letter-spacing: -0.374px; }
+  ul, ol { font-size: 17px; line-height: 1.47; letter-spacing: -0.374px; }
+  li { margin-bottom: 6px; }
+  strong { color: var(--ink); }
+  a { color: var(--primary); }
+
+  code {
+    background: var(--pearl); border: 1px solid var(--hairline);
+    border-radius: 5px; padding: 2px 6px; font-size: 14px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+  }
+  pre {
+    background: var(--pearl); border: 1px solid var(--hairline);
+    border-radius: 8px; padding: 18px 20px; overflow-x: auto;
+  }
+  pre code { background: none; border: none; padding: 0; font-size: 14px; line-height: 1.6; }
+
+  blockquote {
+    margin: 24px 0; padding: 4px 0 4px 20px; border-left: 2px solid var(--hairline);
+  }
+  blockquote p { margin: 0; font-size: 14px; letter-spacing: -0.224px; color: var(--ink-80); }
+
+  table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; border-collapse: collapse; font-size: 14px; margin: 16px 0; }
+  th, td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--hairline); white-space: nowrap; vertical-align: top; }
+  th { color: var(--ink-48); font-weight: 600; letter-spacing: -0.224px; }
+  /* 비교표는 칸 내용이 길어 nowrap이면 가로 스크롤이 과해집니다. 이 표만 줄바꿈을 허용합니다. */
+  table.wrap td, table.wrap th { white-space: normal; min-width: 108px; }
+  table.wrap td:first-child, table.wrap th:first-child { min-width: 92px; }
+
+  hr { border: none; height: 1px; background: var(--hairline); margin: 48px 0; }
+
+  /* 각 방식 도입부의 "한 줄 정의 · 언제 쓰나 · 언제 피하나" 요약 */
+  .summary {
+    background: var(--pearl); border: 1px solid var(--hairline);
+    border-radius: 12px; padding: 16px 18px; margin: 16px 0 20px;
+  }
+  .summary p { margin: 0 0 6px; font-size: 15px; letter-spacing: -0.224px; }
+  .summary p:last-child { margin-bottom: 0; }
+  .summary .k {
+    display: inline-block; min-width: 62px; font-size: 12px; font-weight: 700;
+    color: var(--ink-48); letter-spacing: -0.12px;
+  }
+
+  .pros-cons { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 18px 0; }
+  .pros-cons > div { border: 1px solid var(--hairline); border-radius: 12px; padding: 14px 16px; }
+  .pros-cons .head { font-size: 13px; font-weight: 700; letter-spacing: -0.12px; margin-bottom: 8px; }
+  .pros-cons .pros { background: var(--ok-bg); }
+  .pros-cons .pros .head { color: var(--ok); }
+  .pros-cons .cons { background: var(--warn-bg); }
+  .pros-cons .cons .head { color: var(--warn); }
+  .pros-cons ul { margin: 0; padding-left: 18px; font-size: 14px; letter-spacing: -0.224px; line-height: 1.45; }
+  .pros-cons li { margin-bottom: 5px; }
+  .pros-cons li:last-child { margin-bottom: 0; }
+
+  /* 선택 가이드 — 위에서부터 읽어 내려가다 처음 걸리는 곳에서 멈추는 순서 */
+  .decision { list-style: none; margin: 20px 0; padding: 0; counter-reset: step; }
+  .decision li {
+    position: relative; padding: 14px 16px 14px 52px; margin-bottom: 10px;
+    border: 1px solid var(--hairline); border-radius: 12px; font-size: 15px; letter-spacing: -0.224px;
+  }
+  .decision li::before {
+    counter-increment: step; content: counter(step);
+    position: absolute; left: 16px; top: 15px;
+    width: 22px; height: 22px; border-radius: 999px; background: var(--primary); color: #fff;
+    font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+  }
+  .decision .q { display: block; font-weight: 600; margin-bottom: 4px; }
+  .decision .a { display: block; color: var(--ink-80); font-size: 14px; }
+
+  @media (max-width: 640px) {
+    article { padding: 48px 20px 72px; }
+    h1 { font-size: 28px; }
+    h2 { font-size: 21px; }
+    .sub-nav { padding: 0 16px; }
+    .sub-nav .category { font-size: 17px; }
+    .pros-cons { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 380px) {
+    .global-nav .meta { display: none; }
+  }
+</style>
+</head>
+<body>
+  <nav class="global-nav">
+    <a class="brand" href="../../index.html">AI 프로덕트 마스터</a>
+    <span class="meta">인공지능 심화(160H)</span>
+  </nav>
+  <nav class="sub-nav">
+    <a class="category" href="../index.html">02 바이브코딩</a>
+    <a class="btn-primary" href="../../index.html">전체 커리큘럼</a>
+  </nav>
+
+  <article>
+
+<span class="eyebrow">PART 02 · 바이브코딩 교안</span>
+<h1>웹에 데이터를 저장하는 5가지 방법</h1>
+<p>바이브코딩으로 앱을 만들다 보면 반드시 마주치는 질문이 있습니다. <strong>"사용자가 입력한 이 값을 어디에 두어야 하나?"</strong> 새로고침해도 남아야 하는지, 탭을 닫으면 사라져야 하는지, 서버도 알아야 하는지에 따라 답이 달라집니다. AI에게 "저장해줘"라고만 하면 대부분 <code>localStorage</code>를 쓰는데, 그게 항상 맞는 선택은 아닙니다.</p>
+
+<ul>
+<li>브라우저가 제공하는 저장 방식 5가지의 차이를 표 하나로 파악하기</li>
+<li>각 방식의 <strong>실제 동작하는 코드</strong>와 언제 쓰는지</li>
+<li>"이럴 땐 이걸" — 3분 안에 고르는 의사결정 순서</li>
+<li>토큰 저장·용량 초과·데이터 소멸 등 실전에서 터지는 함정</li>
+</ul>
+
+<blockquote>
+<p><strong>먼저 알아둘 것:</strong> 여기서 다루는 것은 모두 <strong>브라우저(사용자 기기) 안에</strong> 저장하는 방법입니다. 사용자가 브라우저를 바꾸거나 다른 기기에서 접속하면 그 데이터는 없습니다. 여러 기기에서 같은 데이터를 봐야 한다면 반드시 <strong>서버 DB</strong>(Supabase, Firebase 등)가 필요합니다. 브라우저 저장소는 그 보조 수단입니다.</p>
+</blockquote>
+
+<hr>
+
+<h2>1. 한눈에 비교</h2>
+
+<table class="wrap">
+<thead>
+<tr>
+  <th></th>
+  <th>Cookie</th>
+  <th>sessionStorage</th>
+  <th>localStorage</th>
+  <th>IndexedDB</th>
+  <th>Cache API</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><strong>수명</strong></td>
+  <td>만료일까지 (지정 가능)</td>
+  <td>탭을 닫으면 소멸</td>
+  <td>지울 때까지 계속</td>
+  <td>지울 때까지 계속</td>
+  <td>지울 때까지 계속</td>
+</tr>
+<tr>
+  <td><strong>용량</strong></td>
+  <td>쿠키 1개당 약 4KB</td>
+  <td>약 5MB</td>
+  <td>약 5~10MB</td>
+  <td>수백 MB~GB (디스크 여유에 비례)</td>
+  <td>IndexedDB와 할당량 공유</td>
+</tr>
+<tr>
+  <td><strong>저장 형태</strong></td>
+  <td>문자열</td>
+  <td>문자열</td>
+  <td>문자열</td>
+  <td>객체·배열·파일·Blob 그대로</td>
+  <td>HTTP 요청/응답 쌍</td>
+</tr>
+<tr>
+  <td><strong>API 방식</strong></td>
+  <td>동기 (문자열 파싱)</td>
+  <td>동기</td>
+  <td>동기</td>
+  <td>비동기 (이벤트/Promise)</td>
+  <td>비동기 (Promise)</td>
+</tr>
+<tr>
+  <td><strong>서버 전송</strong></td>
+  <td>매 요청마다 자동 전송</td>
+  <td>안 함</td>
+  <td>안 함</td>
+  <td>안 함</td>
+  <td>안 함</td>
+</tr>
+<tr>
+  <td><strong>탭 간 공유</strong></td>
+  <td>공유됨</td>
+  <td>탭마다 별개</td>
+  <td>공유됨</td>
+  <td>공유됨</td>
+  <td>공유됨</td>
+</tr>
+<tr>
+  <td><strong>검색·인덱스</strong></td>
+  <td>없음</td>
+  <td>없음</td>
+  <td>없음</td>
+  <td>인덱스·커서·범위 검색 지원</td>
+  <td>URL 기준 조회</td>
+</tr>
+<tr>
+  <td><strong>난이도</strong></td>
+  <td>중 (속성이 많음)</td>
+  <td>하</td>
+  <td>하</td>
+  <td>상 (래퍼 라이브러리 권장)</td>
+  <td>중</td>
+</tr>
+</tbody>
+</table>
+
+<p><strong>용량 숫자는 "대략"입니다.</strong> 브라우저·기기·남은 디스크 공간에 따라 달라지고, 특히 IndexedDB는 고정값이 아니라 디스크 여유 공간에 비례해 배분됩니다. 5MB, 10MB 같은 수치를 코드에 못 박아 두지 말고 <strong>초과할 수 있다고 보고 예외 처리</strong>하는 편이 안전합니다.</p>
+
+<hr>
+
+<h2>2. Cookie — 서버가 같이 봐야 할 때</h2>
+
+<div class="summary">
+  <p><span class="k">한 줄</span> 브라우저가 <strong>매 HTTP 요청 헤더에 자동으로 실어 보내는</strong> 작은 문자열.</p>
+  <p><span class="k">쓸 때</span> 로그인 세션, 서버가 판단에 써야 하는 값(언어 설정, A/B 테스트 그룹).</p>
+  <p><span class="k">피할 때</span> 서버가 알 필요 없는 데이터. 매 요청에 딸려 가서 낭비입니다.</p>
+</div>
+
+<p>쿠키가 나머지 넷과 결정적으로 다른 점은 <strong>서버로 자동 전송된다</strong>는 것입니다. 이미지 하나를 불러올 때도 쿠키가 함께 갑니다. 그래서 크고 잦으면 그대로 성능 비용이 됩니다.</p>
+
+<pre><code>// 저장 — 만료 7일, 전체 경로, HTTPS에서만, 크로스사이트 전송 제한
+document.cookie = "theme=dark; max-age=" + 60*60*24*7 + "; path=/; secure; samesite=lax";
+
+// 읽기 — 표준 조회 API가 없어 직접 파싱해야 합니다
+function getCookie(name) {
+  return document.cookie
+    .split("; ")
+    .find(row =&gt; row.startsWith(name + "="))
+    ?.split("=")[1];
+}
+getCookie("theme");   // "dark"
+
+// 삭제 — 만료를 과거로 보냅니다
+document.cookie = "theme=; max-age=0; path=/";</code></pre>
+
+<div class="pros-cons">
+  <div class="pros">
+    <div class="head">장점</div>
+    <ul>
+      <li>서버와 클라이언트가 같은 값을 공유하는 유일한 방식</li>
+      <li>만료 시각을 정밀하게 지정 가능</li>
+      <li><code>HttpOnly</code> 옵션을 쓰면 <strong>JS가 못 읽어</strong> XSS로부터 안전</li>
+      <li>서브도메인 간 공유 가능 (<code>domain</code> 속성)</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <div class="head">단점</div>
+    <ul>
+      <li>1개당 약 4KB — 거의 아무것도 못 담습니다</li>
+      <li>매 요청에 실려 가 트래픽·지연 증가</li>
+      <li>조회 API가 없어 문자열 한 덩어리를 직접 파싱</li>
+      <li>CSRF 공격의 통로가 됨 → <code>SameSite</code> 필수</li>
+      <li>동의 배너 등 개인정보 규제 대상</li>
+    </ul>
+  </div>
+</div>
+
+<blockquote>
+<p><strong>중요:</strong> 로그인 토큰을 안전하게 두려면 <code>HttpOnly</code> 쿠키여야 하는데, 이 옵션은 <strong>서버가 <code>Set-Cookie</code> 헤더로 내려줄 때만</strong> 붙일 수 있습니다. 위 예제처럼 JS <code>document.cookie</code>로 만든 쿠키에는 붙지 않습니다. Supabase Auth 같은 라이브러리가 이 처리를 대신 해주는 이유입니다.</p>
+</blockquote>
+
+<hr>
+
+<h2>3. sessionStorage — 이 탭에서만, 지금만</h2>
+
+<div class="summary">
+  <p><span class="k">한 줄</span> <strong>탭 하나</strong>에 묶인 임시 저장소. 탭을 닫으면 사라집니다.</p>
+  <p><span class="k">쓸 때</span> 작성 중인 폼 임시 저장, 여러 단계 입력 마법사, 스크롤 위치 복원.</p>
+  <p><span class="k">피할 때</span> 다음에 다시 방문했을 때도 남아 있어야 하는 값.</p>
+</div>
+
+<pre><code>// 문자열만 저장됩니다. 객체는 JSON으로 변환합니다.
+sessionStorage.setItem("step", "2");
+sessionStorage.setItem("form", JSON.stringify({ name: "홍길동", email: "" }));
+
+sessionStorage.getItem("step");                    // "2"  ← 문자열입니다
+JSON.parse(sessionStorage.getItem("form")).name;   // "홍길동"
+
+sessionStorage.removeItem("step");
+sessionStorage.clear();     // 이 탭의 저장 내용 전체 삭제</code></pre>
+
+<p>범위가 <strong>탭 단위</strong>라는 점이 핵심입니다. 같은 사이트를 두 탭에 열면 각자 별개의 저장소를 씁니다. 새로고침(F5)은 살아남지만, 탭을 닫으면 없어집니다.</p>
+
+<div class="pros-cons">
+  <div class="pros">
+    <div class="head">장점</div>
+    <ul>
+      <li>API가 두 줄이면 끝날 만큼 단순</li>
+      <li>탭마다 격리 — 여러 창에서 다른 작업을 동시에 가능</li>
+      <li>뒷정리가 자동. 남은 쓰레기 데이터 걱정이 없음</li>
+      <li>서버로 전송되지 않아 요청이 가벼움</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <div class="head">단점</div>
+    <ul>
+      <li>탭을 닫으면 소멸 — 실수로 닫으면 그대로 날아감</li>
+      <li>문자열만 — 매번 <code>JSON.stringify</code>/<code>parse</code></li>
+      <li>동기 API라 큰 데이터를 쓰면 화면이 멈춤</li>
+      <li>약 5MB 제한</li>
+    </ul>
+  </div>
+</div>
+
+<hr>
+
+<h2>4. localStorage — 가장 흔하게 쓰는 기본값</h2>
+
+<div class="summary">
+  <p><span class="k">한 줄</span> 브라우저에 <strong>계속 남는</strong> 간단한 키-값 저장소.</p>
+  <p><span class="k">쓸 때</span> 테마(다크모드), 언어, "다시 보지 않기", 최근 검색어, 소규모 설정.</p>
+  <p><span class="k">피할 때</span> 로그인 토큰, 개인정보, 수 MB 이상의 데이터.</p>
+</div>
+
+<p>API는 <code>sessionStorage</code>와 완전히 같고 <strong>수명과 범위만</strong> 다릅니다. 탭을 닫아도, 브라우저를 껐다 켜도 남습니다. 같은 사이트의 모든 탭이 같은 저장소를 공유합니다.</p>
+
+<pre><code>localStorage.setItem("theme", "dark");
+localStorage.getItem("theme");        // "dark"
+localStorage.getItem("없는키");        // null  ← 빈 문자열이 아니라 null
+
+// 다른 탭에서 값이 바뀌면 이 이벤트가 옵니다. 탭 간 동기화에 유용합니다.
+window.addEventListener("storage", (e) =&gt; {
+  if (e.key === "theme") applyTheme(e.newValue);
+});
+
+// 저장소가 막혀 있을 수 있어(사생활 보호 모드·용량 초과·차단 설정)
+// 실무에서는 try/catch로 감쌉니다.
+function save(key, value) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+    return true;
+  } catch (err) {
+    console.warn("저장 실패:", err.name);   // QuotaExceededError 등
+    return false;
+  }
+}</code></pre>
+
+<div class="pros-cons">
+  <div class="pros">
+    <div class="head">장점</div>
+    <ul>
+      <li>가장 배우기 쉽고 모든 브라우저가 지원</li>
+      <li>브라우저를 껐다 켜도 유지</li>
+      <li><code>storage</code> 이벤트로 탭 간 동기화가 공짜</li>
+      <li>서버 없이도 "설정이 기억되는" 경험을 만들 수 있음</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <div class="head">단점</div>
+    <ul>
+      <li><strong>JS가 그대로 읽음</strong> — XSS 한 방에 전부 유출</li>
+      <li>동기 API — 큰 값을 읽고 쓰는 동안 화면이 멈춤</li>
+      <li>문자열만, 약 5~10MB</li>
+      <li>검색·정렬 불가. 전부 읽어와 직접 걸러야 함</li>
+      <li>사용자가 브라우저 정리로 언제든 지울 수 있음</li>
+    </ul>
+  </div>
+</div>
+
+<blockquote>
+<p><strong>가장 많이 하는 실수:</strong> 로그인 토큰(JWT)을 <code>localStorage</code>에 넣는 것. 페이지에 삽입된 악성 스크립트 한 줄이면 <code>localStorage.getItem("token")</code>으로 그대로 가져갑니다. 세션은 <code>HttpOnly</code> 쿠키에 두고, <code>localStorage</code>에는 <strong>유출돼도 곤란하지 않은 값만</strong> 담으세요.</p>
+</blockquote>
+
+<hr>
+
+<h2>5. IndexedDB — 많고 복잡한 데이터</h2>
+
+<div class="summary">
+  <p><span class="k">한 줄</span> 브라우저 안에 들어 있는 <strong>진짜 데이터베이스</strong>. 비동기·트랜잭션·인덱스를 갖췄습니다.</p>
+  <p><span class="k">쓸 때</span> 오프라인 노트/메모 앱, 이미지·파일 보관, 수천 건 이상의 목록, 대화 기록.</p>
+  <p><span class="k">피할 때</span> 값 몇 개만 저장하면 되는 경우. 배보다 배꼽이 큽니다.</p>
+</div>
+
+<p>객체를 <strong>객체 그대로</strong> 넣을 수 있습니다. 배열, 날짜, 심지어 이미지 파일(<code>Blob</code>)도 변환 없이 들어갑니다. 비동기라서 큰 데이터를 다뤄도 화면이 멈추지 않습니다. 대신 기본 API가 이벤트 콜백 기반이라 장황합니다.</p>
+
+<h4>기본 API (라이브러리 없이)</h4>
+<pre><code>const req = indexedDB.open("notesDB", 1);
+
+// 스키마는 여기서만 바꿀 수 있습니다 (버전이 올라갈 때 1회 실행)
+req.onupgradeneeded = (e) =&gt; {
+  const db = e.target.result;
+  const store = db.createObjectStore("notes", { keyPath: "id", autoIncrement: true });
+  store.createIndex("byDate", "createdAt");   // 날짜로 검색하려고 인덱스를 만듭니다
+};
+
+req.onsuccess = (e) =&gt; {
+  const db = e.target.result;
+  const tx = db.transaction("notes", "readwrite");
+  tx.objectStore("notes").add({ title: "첫 메모", body: "…", createdAt: new Date() });
+  tx.oncomplete = () =&gt; console.log("저장 완료");
+};</code></pre>
+
+<h4>실무에서는 래퍼를 씁니다</h4>
+<p>위 코드를 매번 쓰긴 번거로워, 보통 <a href="https://github.com/jakearchibald/idb" target="_blank" rel="noopener">idb</a>나 <a href="https://dexie.org" target="_blank" rel="noopener">Dexie.js</a> 같은 얇은 래퍼로 감쌉니다. Claude Code에게 "IndexedDB 써줘"라고 하면 대개 이쪽을 제안합니다.</p>
+<pre><code>import { openDB } from "idb";
+
+const db = await openDB("notesDB", 1, {
+  upgrade(db) {
+    db.createObjectStore("notes", { keyPath: "id", autoIncrement: true });
+  },
+});
+
+await db.add("notes", { title: "첫 메모", createdAt: new Date() });
+const all = await db.getAll("notes");     // 객체 배열 그대로 돌아옵니다</code></pre>
+
+<div class="pros-cons">
+  <div class="pros">
+    <div class="head">장점</div>
+    <ul>
+      <li>용량이 사실상 넉넉함 (수백 MB~GB)</li>
+      <li>객체·배열·파일·Blob을 변환 없이 저장</li>
+      <li>비동기 — 대용량에도 화면이 멈추지 않음</li>
+      <li>인덱스·범위 검색·트랜잭션 지원</li>
+      <li>Service Worker와 함께 완전한 오프라인 앱 구현 가능</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <div class="head">단점</div>
+    <ul>
+      <li>기본 API가 장황하고 배우기 어려움</li>
+      <li>스키마 변경(버전 업그레이드) 관리가 번거로움</li>
+      <li>모든 조작이 비동기라 코드 흐름이 복잡해짐</li>
+      <li>저장 공간이 부족하면 <strong>통째로 정리될 수 있음</strong></li>
+      <li>역시 JS가 읽으므로 XSS에 취약</li>
+    </ul>
+  </div>
+</div>
+
+<hr>
+
+<h2>6. Cache API — 파일·응답을 통째로</h2>
+
+<div class="summary">
+  <p><span class="k">한 줄</span> <strong>HTTP 요청과 응답 쌍</strong>을 저장하는 전용 저장소. 주로 Service Worker와 함께 씁니다.</p>
+  <p><span class="k">쓸 때</span> PWA 오프라인 지원, 이미지·CSS·JS 같은 정적 파일 캐싱.</p>
+  <p><span class="k">피할 때</span> 사용자가 입력한 값. 그건 위 네 가지 중에서 고릅니다.</p>
+</div>
+
+<pre><code>// 앱 껍데기를 미리 받아 둡니다 (Service Worker의 install 단계)
+const cache = await caches.open("app-v1");
+await cache.addAll(["/", "/index.html", "/style.css", "/logo.png"]);
+
+// 네트워크가 끊겼을 때 캐시에서 응답합니다
+self.addEventListener("fetch", (e) =&gt; {
+  e.respondWith(
+    caches.match(e.request).then(hit =&gt; hit || fetch(e.request))
+  );
+});</code></pre>
+
+<p>나머지 넷과 성격이 다릅니다. <strong>사용자 데이터가 아니라 "파일"을 저장</strong>하는 곳입니다. IndexedDB와 같은 저장 할당량을 나눠 씁니다.</p>
+
+<hr>
+
+<h2>7. 3분 안에 고르는 순서</h2>
+<p>위에서부터 읽어 내려가다가 <strong>처음 "그렇다"가 나오는 곳에서 멈추면</strong> 됩니다.</p>
+
+<ol class="decision">
+  <li>
+    <span class="q">서버도 이 값을 알아야 하나?</span>
+    <span class="a">→ <strong>Cookie</strong>. 특히 로그인 세션이라면 서버가 내려주는 <code>HttpOnly</code> 쿠키.</span>
+  </li>
+  <li>
+    <span class="q">탭을 닫으면 사라져도 되나? 오히려 사라져야 하나?</span>
+    <span class="a">→ <strong>sessionStorage</strong>. 작성 중인 폼, 다단계 입력의 현재 단계.</span>
+  </li>
+  <li>
+    <span class="q">HTTP 응답이나 파일을 통째로 두는 건가?</span>
+    <span class="a">→ <strong>Cache API</strong>. 오프라인 대응, 정적 자원 캐싱.</span>
+  </li>
+  <li>
+    <span class="q">데이터가 수 MB를 넘거나, 목록을 검색·정렬해야 하나?</span>
+    <span class="a">→ <strong>IndexedDB</strong>. 오프라인 노트, 이미지 저장, 수천 건 목록.</span>
+  </li>
+  <li>
+    <span class="q">그 밖의 작은 설정값</span>
+    <span class="a">→ <strong>localStorage</strong>. 여기까지 왔다면 이게 정답입니다.</span>
+  </li>
+</ol>
+
+<h3>흔한 상황별 정답</h3>
+<table class="wrap">
+<thead><tr><th>만들려는 것</th><th>적합한 저장소</th><th>이유</th></tr></thead>
+<tbody>
+<tr><td>다크모드 on/off</td><td>localStorage</td><td>값 하나, 계속 기억돼야 함</td></tr>
+<tr><td>로그인 유지</td><td>HttpOnly Cookie</td><td>서버가 인증해야 하고 JS로부터 보호 필요</td></tr>
+<tr><td>회원가입 3단계 폼</td><td>sessionStorage</td><td>가입이 끝나면 남을 이유가 없음</td></tr>
+<tr><td>장바구니 (비로그인)</td><td>localStorage</td><td>다시 방문해도 남아야 함, 양이 적음</td></tr>
+<tr><td>장바구니 (로그인)</td><td>서버 DB</td><td>다른 기기에서도 보여야 함</td></tr>
+<tr><td>오프라인 메모 앱</td><td>IndexedDB</td><td>건수가 많고 검색이 필요</td></tr>
+<tr><td>업로드 전 이미지 임시 보관</td><td>IndexedDB</td><td>Blob을 변환 없이 저장 가능</td></tr>
+<tr><td>PWA 오프라인 화면</td><td>Cache API</td><td>HTML·CSS·JS 파일 자체를 보관</td></tr>
+<tr><td>API 키 / 비밀번호</td><td>어디에도 저장하지 않음</td><td>브라우저에 둔 값은 전부 사용자가 볼 수 있음</td></tr>
+</tbody>
+</table>
+
+<hr>
+
+<h2>8. 실전에서 터지는 함정</h2>
+
+<h3>① 브라우저 저장소는 "안전한 곳"이 아니다</h3>
+<p>개발자 도구 → Application 탭을 열면 <code>localStorage</code>, <code>sessionStorage</code>, IndexedDB의 내용이 <strong>전부 그대로 보이고 수정도 됩니다.</strong> API 키, 비밀번호, 결제 정보를 두면 안 되는 이유입니다. 값을 검증해야 한다면 반드시 서버에서 다시 확인해야 합니다. 클라이언트가 보내온 <code>isAdmin: true</code>를 그대로 믿으면 안 됩니다.</p>
+
+<h3>② 저장이 실패할 수 있다</h3>
+<p>사생활 보호 모드, 용량 초과, 사용자가 사이트 데이터를 차단한 경우 <code>setItem</code>이 예외를 던집니다. 저장 코드는 <code>try/catch</code>로 감싸고, <strong>저장이 안 돼도 앱이 정상 동작하도록</strong> 만드세요.</p>
+
+<h3>③ 데이터는 언제든 사라질 수 있다</h3>
+<p>사용자의 브라우저 정리, 디스크 공간 부족으로 인한 자동 삭제, 브라우저의 추적 방지 정책(특히 Safari는 일정 기간 방문이 없으면 스크립트가 쓴 저장소를 정리합니다)에 의해 지워질 수 있습니다. <strong>"있으면 좋고 없어도 되는" 데이터만</strong> 브라우저에 두는 것이 원칙입니다. 꼭 남아야 한다면 서버로 보내세요.</p>
+
+<h3>④ 저장소는 출처(origin)마다 별개다</h3>
+<p><code>https://example.com</code>과 <code>https://app.example.com</code>은 <strong>서로의 저장소를 볼 수 없습니다.</strong> <code>http</code>와 <code>https</code>도 다른 출처입니다. 로컬 개발 중 <code>localhost:3000</code>에 저장한 값이 배포 주소에서 안 보이는 것은 정상 동작입니다.</p>
+
+<h3>⑤ 값은 항상 문자열로 돌아온다</h3>
+<pre><code>localStorage.setItem("count", 5);
+localStorage.getItem("count") + 1;          // "51"  ← 문자열 연결
+Number(localStorage.getItem("count")) + 1;  // 6     ← 이렇게
+
+localStorage.setItem("agreed", false);
+if (localStorage.getItem("agreed")) { ... } // 항상 참! "false"라는 문자열이 들어 있으므로</code></pre>
+
+<h3>⑥ 동기 API는 화면을 멈춘다</h3>
+<p><code>localStorage</code>와 <code>sessionStorage</code>는 동기 방식이라, 큰 값을 읽고 쓰는 동안 <strong>화면 전체가 멈춥니다.</strong> 스크롤 이벤트마다 <code>localStorage</code>에 쓰는 코드는 눈에 띄게 버벅입니다. 데이터가 커지거나 저장이 잦다면 IndexedDB로 옮기세요.</p>
+
+<hr>
+
+<h2>9. 정리</h2>
+<ul>
+<li><strong>기본값은 <code>localStorage</code></strong> — 작은 설정값이라면 고민할 것 없이 이걸로 시작합니다.</li>
+<li><strong>탭을 닫으면 사라져야 하면 <code>sessionStorage</code></strong> — API는 똑같고 수명만 다릅니다.</li>
+<li><strong>서버가 알아야 하면 Cookie</strong> — 로그인은 서버가 내려주는 <code>HttpOnly</code> 쿠키로.</li>
+<li><strong>커지거나 검색이 필요하면 IndexedDB</strong> — 래퍼 라이브러리(idb, Dexie)를 함께 씁니다.</li>
+<li><strong>파일·응답 캐싱은 Cache API</strong> — 오프라인 대응 전용입니다.</li>
+<li><strong>비밀은 어디에도 두지 않습니다</strong> — 브라우저 저장소는 사용자가 전부 볼 수 있습니다.</li>
+</ul>
+
+<blockquote>
+<p><strong>AI에게 요청할 때의 팁:</strong> "저장해줘"라고만 하면 대부분 <code>localStorage</code>가 나옵니다. <strong>수명과 범위를 함께 말해주면</strong> 훨씬 정확한 코드가 나옵니다. 예를 들어 "이 폼 입력값을 <strong>탭을 닫으면 사라지게</strong> 임시 저장해줘", "이미지 목록을 <strong>오프라인에서도 보이게</strong> 저장해줘"처럼 조건을 붙이세요.</p>
+</blockquote>
+
+  </article>
+</body>
+</html>
