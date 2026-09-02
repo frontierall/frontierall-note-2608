@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>서브에이전트 11개로 코드베이스 조사하기 · 07 LLM_RAG_Agent</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@1.3.9/dist/web/static/pretendard.css">
+<style>
+  :root {
+    --primary: #0066cc; --primary-focus: #0071e3;
+    --canvas: #ffffff; --parchment: #f5f5f7;
+    --black: #000000; --ink: #1d1d1f; --ink-80: #333333; --ink-48: #7a7a7a;
+    --hairline: #e0e0e0;
+    --warn-bg: #fff8e6; --warn-line: #f0dba8;
+    --bad-bg: #fdeeee; --bad-line: #f0c0c0; --bad-ink: #a32d2d;
+    --good-bg: #e9f6ee; --good-line: #b9e0c8; --good-ink: #1c7a4a;
+    --accent: #7c5cff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--canvas); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', 'Apple SD Gothic Neo', 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-size: 17px; line-height: 1.47; letter-spacing: -0.374px;
+  }
+  .global-nav {
+    position: sticky; top: 0; z-index: 20; height: 44px; background: var(--black);
+    display: flex; align-items: center; justify-content: space-between; padding: 0 22px;
+  }
+  .global-nav .brand { color: #fff; font-size: 12px; font-weight: 600; letter-spacing: -0.12px; text-decoration: none; }
+  .global-nav .meta { color: rgba(255,255,255,0.72); font-size: 12px; letter-spacing: -0.12px; }
+  .sub-nav {
+    position: sticky; top: 44px; z-index: 19; min-height: 52px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 22px;
+    background: rgba(245,245,247,0.8);
+    -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+  .sub-nav .category { font-size: 21px; font-weight: 600; letter-spacing: 0.231px; color: var(--ink); text-decoration: none; }
+  .btn-primary {
+    display: inline-block; background: var(--primary); color: #fff; border: none;
+    border-radius: 9999px; padding: 8px 18px; font-size: 14px; font-family: inherit;
+    text-decoration: none; cursor: pointer; transition: transform .15s; white-space: nowrap;
+  }
+  .btn-primary:active { transform: scale(0.95); }
+  .btn-primary:focus-visible { outline: 2px solid var(--primary-focus); outline-offset: 2px; }
+
+  main.content { max-width: 720px; margin: 0 auto; padding: 64px 24px 96px; }
+  .eyebrow { display: block; font-size: 14px; font-weight: 600; letter-spacing: -0.224px; color: var(--ink-48); margin-bottom: 12px; }
+  h1.headline { font-size: 40px; font-weight: 600; line-height: 1.10; letter-spacing: 0; margin: 0 0 14px; }
+  p.tagline { font-size: 28px; font-weight: 400; line-height: 1.14; letter-spacing: 0.196px; margin: 0 0 20px; color: var(--ink-80); }
+  p.byline { font-size: 14px; color: var(--ink-48); letter-spacing: -0.224px; margin: 0; }
+
+  .toc { background: var(--parchment); border-radius: 18px; padding: 20px 24px; margin-top: 32px; }
+  .toc strong { font-size: 15px; }
+  .toc ol { margin: 8px 0 0; padding-left: 22px; }
+  .toc li { margin: 5px 0; font-size: 15px; }
+  .toc a { color: var(--ink); text-decoration: none; }
+  .toc a:hover { color: var(--primary); text-decoration: underline; }
+
+  section.block { margin-top: 60px; scroll-margin-top: 110px; }
+  h2.h { font-size: 28px; font-weight: 600; line-height: 1.2; margin: 0 0 6px; letter-spacing: -0.4px; }
+  h2.h .num { color: var(--ink-48); font-weight: 600; margin-right: 10px; }
+  p.deck { font-size: 17px; color: var(--ink-80); margin: 0 0 24px; }
+  h3.sub { font-size: 19px; font-weight: 600; margin: 34px 0 10px; letter-spacing: -0.3px; }
+  h4.sub2 { font-size: 16px; font-weight: 600; margin: 22px 0 6px; }
+  p { margin: 0 0 16px; }
+
+  .callout { border: 1px solid var(--warn-line); background: var(--warn-bg); border-radius: 12px; padding: 14px 18px; margin: 20px 0; font-size: 15px; }
+  .callout.bad { border-color: var(--bad-line); background: var(--bad-bg); }
+  .callout.good { border-color: var(--good-line); background: var(--good-bg); }
+  .callout .lbl { display: block; font-weight: 600; margin-bottom: 4px; font-size: 14px; }
+  .callout.bad .lbl { color: var(--bad-ink); }
+  .callout.good .lbl { color: var(--good-ink); }
+  .callout p:last-child { margin-bottom: 0; }
+
+  .fig { margin: 28px 0; }
+  .fig svg { width: 100%; height: auto; display: block; }
+  .fig figcaption { font-size: 14px; color: var(--ink-48); letter-spacing: -0.224px; margin-top: 10px; }
+
+  .scroll { overflow-x: auto; margin: 20px 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--hairline); vertical-align: top; }
+  th { font-size: 13px; color: var(--ink-48); font-weight: 600; letter-spacing: -0.1px; border-bottom: 1.5px solid var(--hairline); white-space: nowrap; }
+  tbody tr:last-child td { border-bottom: none; }
+
+  pre { background: #1d1d1f; color: #f5f5f7; border-radius: 12px; padding: 16px 18px; overflow-x: auto;
+        font: 13px/1.6 ui-monospace, SFMono-Regular, Consolas, monospace; margin: 16px 0; letter-spacing: 0; }
+  code { font: 13px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace; background: var(--parchment);
+         padding: 1px 6px; border-radius: 5px; letter-spacing: 0; }
+  pre code { background: none; padding: 0; color: inherit; font-size: 13px; }
+
+  ul.plain { margin: 0 0 16px; padding-left: 22px; }
+  ul.plain li { margin: 7px 0; }
+
+  .scene { border: 1px solid var(--hairline); border-radius: 18px; padding: 22px 24px; margin: 22px 0; }
+  .scene .tag { display: inline-block; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; margin-bottom: 10px; }
+  .scene .tag.f { background: var(--bad-bg); color: var(--bad-ink); }
+  .scene .tag.s { background: var(--good-bg); color: var(--good-ink); }
+  .scene h4 { font-size: 19px; font-weight: 600; margin: 0 0 10px; letter-spacing: -0.3px; }
+  .scene .lesson { margin: 14px 0 0; padding-top: 14px; border-top: 1px solid var(--hairline); font-size: 15px; }
+  .scene .lesson b { color: var(--primary); }
+
+  .check { list-style: none; margin: 0; padding: 0; }
+  .check li { border-top: 1px solid var(--hairline); padding: 14px 0 14px 30px; position: relative; font-size: 16px; }
+  .check li:last-child { border-bottom: 1px solid var(--hairline); }
+  .check li::before { position: absolute; left: 0; top: 13px; font-size: 15px; font-weight: 700; }
+  .check.yes li::before { content: "○"; color: var(--good-ink); }
+  .check.no li::before { content: "✕"; color: var(--bad-ink); }
+  .check li b { display: block; margin-bottom: 2px; }
+  .check li span { color: var(--ink-80); font-size: 15px; }
+
+  .kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; margin: 22px 0; }
+  .kpi div { border: 1px solid var(--hairline); border-radius: 14px; padding: 16px 18px; }
+  .kpi .v { font-size: 26px; font-weight: 600; letter-spacing: -0.5px; display: block; }
+  .kpi .k { font-size: 13px; color: var(--ink-48); }
+
+  footer.site-footer { background: var(--parchment); color: var(--ink-80); padding: 64px 24px 32px; }
+  .footer-links { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px 32px; }
+  .footer-links a { display: block; font-size: 17px; line-height: 2.41; color: var(--ink-80); text-decoration: none; }
+  .footer-links a:hover { color: var(--ink); }
+  .footer-legal { max-width: 1000px; margin: 32px auto 0; padding-top: 16px; border-top: 1px solid var(--hairline); font-size: 12px; color: var(--ink-48); letter-spacing: -0.12px; }
+
+  @media (max-width: 640px) {
+    main.content { padding: 48px 20px 72px; }
+    h1.headline { font-size: 28px; }
+    p.tagline { font-size: 20px; }
+    h2.h { font-size: 23px; }
+    .sub-nav { padding: 0 16px; }
+    .sub-nav .category { font-size: 17px; }
+    .footer-links { grid-template-columns: repeat(2, 1fr); gap: 4px 20px; }
+  }
+  @media (max-width: 380px) { .global-nav .meta { display: none; } }
+</style>
+</head>
+<body>
+  <nav class="global-nav">
+    <a class="brand" href="../../index.html">AI 프로덕트 마스터</a>
+    <span class="meta">인공지능 심화(160H)</span>
+  </nav>
+  <nav class="sub-nav">
+    <a class="category" href="../index.html">07 LLM_RAG_Agent</a>
+    <a class="btn-primary" href="../index.html">카테고리로</a>
+  </nav>
+
+  <main class="content">
+    <span class="eyebrow">PART 07 · Multi-Agent 사례 연구</span>
+    <h1 class="headline">서브에이전트 11개로<br>코드베이스 조사하기</h1>
+    <p class="tagline">실제 프로젝트에서 무엇이 통했고, 무엇이 어떻게 실패했는가.</p>
+    <p class="byline">2026-09-03 · 실제 세션 기록 기반 · 대상: Multi-Agent를 처음 써보는 분</p>
+
+    <div class="toc">
+      <strong>이 문서의 순서</strong>
+      <ol>
+        <li><a href="#s1">서브에이전트가 뭔가요</a></li>
+        <li><a href="#s2">왜 나눠야 하나 — 컨텍스트라는 그릇</a></li>
+        <li><a href="#s3">실제로 이렇게 굴렸습니다 — 3단계 11개</a></li>
+        <li><a href="#s4">브리프 실물 — 뭐라고 써서 보냈나</a></li>
+        <li><a href="#s5"><strong>실패 3장면</strong> — 여기가 핵심입니다</a></li>
+        <li><a href="#s6">성공 장면 — 진짜 독립 검증은 이렇게 생겼다</a></li>
+        <li><a href="#s7">숫자로 본 비용</a></li>
+        <li><a href="#s8"><strong>체크리스트</strong> — 언제 쓰고 언제 쓰지 마나</a></li>
+        <li><a href="#s9">용어 정리</a></li>
+      </ol>
+    </div>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s1">
+      <h2 class="h"><span class="num">01</span>서브에이전트가 뭔가요</h2>
+      <p class="deck">비유부터 하겠습니다. 어려운 개념이 아닙니다.</p>
+
+      <p>여러분이 팀장이라고 해봅시다. 조사할 게 산더미인데 혼자 다 읽으면 머리가 터집니다. 그래서 <b>팀원 다섯에게 나눠 맡기고, 각자 요약 한 장씩 받습니다.</b> 팀원들이 읽은 수백 페이지는 여러분 책상에 오지 않고, <b>결론만</b> 옵니다.</p>
+
+      <p>서브에이전트가 정확히 이것입니다. 메인 AI(팀장)가 별도의 AI 인스턴스(팀원)에게 일을 맡기고, 그 팀원이 파일을 읽고 코드를 돌리고 계산한 뒤 <b>요약만</b> 돌려줍니다.</p>
+
+      <div class="callout">
+        <span class="lbl">핵심 한 줄</span>
+        <p>서브에이전트의 가장 큰 값은 "빨라서"가 아니라 <b>"메인 AI의 기억 공간을 안 쓰고 일을 끝내주기 때문"</b>입니다. 이걸 <b>컨텍스트 격리</b>라고 부릅니다.</p>
+      </div>
+
+      <h3 class="sub">이 문서가 다루는 실제 사례</h3>
+      <p>YouTube 영상 데이터를 분석하는 웹 대시보드 프로젝트입니다. 영상 260편의 <b>썸네일(미리보기 이미지)</b> 정보와 <b>조회수·좋아요·업로드 시간</b> 같은 기본 데이터가 CSV 파일에 들어 있고, 코드는 자바스크립트 파일 수십 개로 이뤄져 있습니다.</p>
+      <p>할 일은 두 가지였습니다. <b>(1)</b> 화면에 나오는 경고들이 다운로드 리포트에도 제대로 실리는지 점검하고, <b>(2)</b> 데이터를 파헤쳐 앱에 추가할 만한 아이디어를 뽑는 것.</p>
+      <p>혼자 하기엔 읽을 파일이 너무 많았습니다. 그래서 나눴습니다.</p>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s2">
+      <h2 class="h"><span class="num">02</span>왜 나눠야 하나 — 컨텍스트라는 그릇</h2>
+      <p class="deck">AI에게는 "한 번에 기억할 수 있는 양"이 정해져 있습니다.</p>
+
+      <p>AI가 대화 중에 기억할 수 있는 분량을 <b>컨텍스트 윈도우</b>라고 합니다. 그릇이라고 생각하세요. 파일을 읽을 때마다 그릇에 물이 찹니다. 그릇이 넘치면 앞의 내용을 잊어버립니다.</p>
+
+      <p>이번 조사에서 에이전트들이 실제로 읽고 계산한 양은 <b>토큰 약 113만</b>이었습니다. 토큰은 AI가 글을 세는 단위인데, 한국어는 대략 <b>한 글자에 1~1.5토큰</b>이라고 보면 됩니다. 113만 토큰이면 <b>책 여러 권 분량</b>입니다.</p>
+
+      <p>이걸 메인 AI가 혼자 읽었다면 그릇이 진작에 넘쳐서 <b>대화 자체가 불가능</b>했을 겁니다. 그런데 나눠 맡기면 이렇게 됩니다.</p>
+
+      <figure class="fig">
+        <svg viewBox="0 0 660 300" role="img" aria-labelledby="fig1t">
+          <title id="fig1t">에이전트 안에서 소비된 113만 토큰이 요약 2만 자로 줄어 메인 대화에 들어오는 그림</title>
+          <!-- 왼쪽: 에이전트 내부 -->
+          <rect x="8" y="30" width="240" height="230" rx="14" fill="#f5f5f7" stroke="#e0e0e0"/>
+          <text x="128" y="55" text-anchor="middle" font-size="13" font-weight="600" fill="#7a7a7a">에이전트 11개 안에서</text>
+          <text x="128" y="98" text-anchor="middle" font-size="34" font-weight="600" fill="#1d1d1f">1,128,155</text>
+          <text x="128" y="119" text-anchor="middle" font-size="13" fill="#7a7a7a">토큰 소비</text>
+          <text x="128" y="152" text-anchor="middle" font-size="13" fill="#333">파일 읽기 · 코드 실행</text>
+          <text x="128" y="171" text-anchor="middle" font-size="13" fill="#333">통계 계산 · 브라우저 구동</text>
+          <text x="128" y="190" text-anchor="middle" font-size="13" fill="#333">도구 호출 198회</text>
+          <rect x="34" y="208" width="188" height="32" rx="8" fill="#fdeeee" stroke="#f0c0c0"/>
+          <text x="128" y="228" text-anchor="middle" font-size="12.5" font-weight="600" fill="#a32d2d">메인 대화에 안 들어옴</text>
+
+          <!-- 깔때기 -->
+          <path d="M262 96 L332 140 L332 160 L262 204 Z" fill="#0066cc" opacity="0.12"/>
+          <path d="M262 96 L332 140 L332 160 L262 204" fill="none" stroke="#0066cc" stroke-width="1.5"/>
+          <text x="297" y="82" text-anchor="middle" font-size="12" font-weight="600" fill="#0066cc">요약</text>
+          <text x="297" y="228" text-anchor="middle" font-size="11.5" fill="#7a7a7a">각 1,500~2,500자</text>
+
+          <!-- 오른쪽: 메인 -->
+          <rect x="348" y="70" width="304" height="150" rx="14" fill="#fff" stroke="#0066cc" stroke-width="1.5"/>
+          <text x="500" y="95" text-anchor="middle" font-size="13" font-weight="600" fill="#7a7a7a">메인 대화가 실제로 받은 것</text>
+          <text x="500" y="136" text-anchor="middle" font-size="34" font-weight="600" fill="#0066cc">약 2만 자</text>
+          <text x="500" y="157" text-anchor="middle" font-size="13" fill="#7a7a7a">보고서 11장</text>
+          <text x="500" y="186" text-anchor="middle" font-size="13" fill="#333">= 원본의 대략 <tspan font-weight="600">1/50</tspan></text>
+          <text x="500" y="205" text-anchor="middle" font-size="12.5" fill="#7a7a7a">그릇에 여유가 남아 대화가 계속됨</text>
+
+          <text x="330" y="285" text-anchor="middle" font-size="12.5" fill="#7a7a7a">읽은 것은 버리고 <tspan font-weight="600" fill="#1d1d1f">결론만</tspan> 남긴다 — 이것이 컨텍스트 격리</text>
+        </svg>
+        <figcaption>그림 1. 에이전트가 소비한 113만 토큰은 메인 대화에 들어오지 않는다. 들어오는 것은 요약 11장뿐이다.</figcaption>
+      </figure>
+
+      <div class="callout">
+        <span class="lbl">그래서 언제 쓰나</span>
+        <p>읽어야 할 파일이 많고 <b>결론만 필요할 때</b>입니다. 반대로 "이 파일 3줄만 고쳐줘" 같은 일에 에이전트를 부르는 건 낭비입니다 — 팀원에게 시키고 보고받느니 직접 하는 게 빠릅니다.</p>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s3">
+      <h2 class="h"><span class="num">03</span>실제로 이렇게 굴렸습니다 — 3단계 11개</h2>
+      <p class="deck">한꺼번에 11개를 부른 게 아닙니다. 단계마다 목적이 달랐습니다.</p>
+
+      <figure class="fig">
+        <svg viewBox="0 0 660 430" role="img" aria-labelledby="fig2t">
+          <title id="fig2t">3단계 파이프라인: 점검 3개, 분석 5개, 검증 3개</title>
+          <!-- 1단계 -->
+          <text x="12" y="24" font-size="13" font-weight="600" fill="#0066cc">1단계 · 점검</text>
+          <text x="128" y="24" font-size="12" fill="#7a7a7a">"리포트가 화면의 경고를 싣고 있나?"</text>
+          <g font-size="12.5" fill="#1d1d1f">
+            <rect x="12" y="34" width="200" height="34" rx="9" fill="#eaf3fc" stroke="#bcd9f2"/><text x="26" y="56">종합 리포트 쪽</text>
+            <rect x="228" y="34" width="200" height="34" rx="9" fill="#eaf3fc" stroke="#bcd9f2"/><text x="242" y="56">발행 파이프라인</text>
+            <rect x="444" y="34" width="204" height="34" rx="9" fill="#eaf3fc" stroke="#bcd9f2"/><text x="458" y="56">화면의 경고 목록화</text>
+          </g>
+          <path d="M330 74 L330 92" stroke="#c8c8c8" stroke-width="1.5" marker-end="url(#ar)"/>
+          <defs><marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#c8c8c8"/></marker></defs>
+          <text x="340" y="88" font-size="11.5" fill="#a32d2d">→ 내 전제가 틀렸다는 게 여기서 드러남</text>
+
+          <!-- 2단계 -->
+          <text x="12" y="118" font-size="13" font-weight="600" fill="#1c7a4a">2단계 · 분석</text>
+          <text x="128" y="118" font-size="12" fill="#7a7a7a">"데이터를 파서 아이디어를 뽑아라" · 축을 5개로 분할</text>
+          <g font-size="12.5" fill="#1d1d1f">
+            <rect x="12" y="128" width="124" height="52" rx="9" fill="#e9f6ee" stroke="#b9e0c8"/><text x="24" y="149">A 제목×문구</text><text x="24" y="167" font-size="11" fill="#7a7a7a">언어 교란 발견</text>
+            <rect x="140" y="128" width="124" height="52" rx="9" fill="#e9f6ee" stroke="#b9e0c8"/><text x="152" y="149">B 시간·포맷</text><text x="152" y="167" font-size="11" fill="#7a7a7a">지역 프록시 발견</text>
+            <rect x="268" y="128" width="124" height="52" rx="9" fill="#e9f6ee" stroke="#b9e0c8"/><text x="280" y="149">C 반응</text><text x="280" y="167" font-size="11" fill="#7a7a7a">댓글 차단 버그</text>
+            <rect x="396" y="128" width="124" height="52" rx="9" fill="#e9f6ee" stroke="#b9e0c8"/><text x="408" y="149">D 색·정량</text><text x="408" y="167" font-size="11" fill="#7a7a7a">경계 취약성</text>
+            <rect x="524" y="128" width="124" height="52" rx="9" fill="#e9f6ee" stroke="#b9e0c8"/><text x="536" y="149">E 채널</text><text x="536" y="167" font-size="11" fill="#7a7a7a">템플릿 실재 확인</text>
+          </g>
+          <path d="M330 186 L330 210" stroke="#c8c8c8" stroke-width="1.5" marker-end="url(#ar)"/>
+          <text x="340" y="203" font-size="11.5" fill="#7a7a7a">아이디어 32건이 모임</text>
+
+          <!-- 3단계 -->
+          <text x="12" y="236" font-size="13" font-weight="600" fill="#7c5cff">3단계 · 검증</text>
+          <text x="128" y="236" font-size="12" fill="#7a7a7a">같은 목록 32건을 <tspan font-weight="600">서로 다른 기준</tspan>으로 판정</text>
+          <g font-size="12.5" fill="#1d1d1f">
+            <rect x="12" y="246" width="204" height="62" rx="9" fill="#f1eeff" stroke="#d3c9f7"/>
+            <text x="26" y="267" font-weight="600">데이터 검증자</text><text x="26" y="286" font-size="11.5" fill="#7a7a7a">수치를 직접 다시 계산</text><text x="26" y="302" font-size="11.5" fill="#7a7a7a">교란·다중비교 의심</text>
+            <rect x="228" y="246" width="204" height="62" rx="9" fill="#f1eeff" stroke="#d3c9f7"/>
+            <text x="242" y="267" font-weight="600">구현 검증자</text><text x="242" y="286" font-size="11.5" fill="#7a7a7a">이미 있나 · 몇 줄이면 되나</text><text x="242" y="302" font-size="11.5" fill="#7a7a7a">무엇이 깨지나</text>
+            <rect x="444" y="246" width="204" height="62" rx="9" fill="#f1eeff" stroke="#d3c9f7"/>
+            <text x="458" y="267" font-weight="600">제품 검증자</text><text x="458" y="286" font-size="11.5" fill="#7a7a7a">행동이 실제로 바뀌나</text><text x="458" y="302" font-size="11.5" fill="#7a7a7a">오독될 위험은 없나</text>
+          </g>
+          <path d="M330 314 L330 338" stroke="#c8c8c8" stroke-width="1.5" marker-end="url(#ar)"/>
+
+          <!-- 결과 -->
+          <rect x="12" y="348" width="636" height="66" rx="12" fill="#fff" stroke="#0066cc" stroke-width="1.5"/>
+          <text x="28" y="372" font-size="13" font-weight="600" fill="#1d1d1f">최종: 우선순위가 붙은 아이디어 32건</text>
+          <g font-size="12" fill="#333">
+            <text x="28" y="396">P1 즉시 <tspan font-weight="600">12</tspan>건</text>
+            <text x="140" y="396">P2 문장 수정 후 <tspan font-weight="600">3</tspan>건</text>
+            <text x="300" y="396">P3 설계 논의 <tspan font-weight="600">5</tspan>건</text>
+            <text x="430" y="396">P4 보류 <tspan font-weight="600">10</tspan>건</text>
+            <text x="540" y="396">이미 있음 <tspan font-weight="600">2</tspan>건</text>
+          </g>
+        </svg>
+        <figcaption>그림 2. 점검 → 분석 → 검증. 뒤 단계가 앞 단계의 결과물을 받아 판정한다.</figcaption>
+      </figure>
+
+      <h3 class="sub">단계마다 설계가 달랐던 점</h3>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>단계</th><th>나눈 기준</th><th>왜 그렇게 나눴나</th></tr></thead>
+          <tbody>
+            <tr><td><b>1단계 점검</b></td><td>파일 묶음별</td><td>같은 파일을 두 명이 읽으면 중복 보고가 나온다. 파일 목록을 아예 겹치지 않게 잘랐다.</td></tr>
+            <tr><td><b>2단계 분석</b></td><td>데이터 축별</td><td>축이 다르면 관심 컬럼이 다르다. 한 명이 5개 축을 보면 축당 예산이 1/5로 준다.</td></tr>
+            <tr><td><b>3단계 검증</b></td><td><b>역할별</b></td><td>여기만 <b>같은 자료</b>를 준다. 대신 <b>묻는 질문을 다르게</b> 해서 세 각도로 보게 했다.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>3단계가 앞의 둘과 다르다는 점이 중요합니다. 1·2단계는 <b>일을 쪼갠 것</b>이고, 3단계는 <b>같은 결과물을 여러 각도로 검사한 것</b>입니다. 목적이 다르면 나누는 방식도 달라야 합니다.</p>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s4">
+      <h2 class="h"><span class="num">04</span>브리프 실물 — 뭐라고 써서 보냈나</h2>
+      <p class="deck">에이전트에게 주는 지시문을 브리프라고 부르겠습니다. 여기서 결과의 절반이 결정됩니다.</p>
+
+      <p>실제로 보낸 브리프의 뼈대입니다. 다섯 덩어리로 되어 있습니다.</p>
+
+<pre><code>[1] 작업 폴더와 안전장치
+    절대 파일을 수정하지 마세요. git 명령도 실행하지 마세요.
+    스크립트는 임시 폴더에만 쓰세요.
+
+[2] 데이터와 환경
+    sample_data/...csv (260행, 73컬럼, UTF-8 BOM)
+    pandas 2.2.3 · scipy 1.15.3 사용 가능
+
+[3] 당신의 축 — 다른 사람 것은 건드리지 마세요
+    당신은 "제목 × 썸네일 문구"만 봅니다.
+    다른 에이전트 4명이 채널/타이밍/반응/색 축을 맡습니다.
+
+[4] 이미 있는 것 (또 제안하지 말 것)
+    thumbnail-cross.js 에 겹침률 패널이 이미 있습니다.
+    thumbnail.js 의 텍스트/문구 화면에 글자수 비교가 있습니다.
+
+[5] 지켜야 할 규칙과 보고 형식
+    표본 게이트: n>=30 신뢰 / 10~29 참고 / 10 미만 제외
+    상관을 인과로 쓰지 말 것
+    발견마다 수치와 n을 붙일 것. 추측은 "추측"이라고 명시할 것
+    안 되는 것으로 판명난 것도 이유와 함께 적을 것</code></pre>
+
+      <h3 class="sub">각 덩어리가 왜 필요한가</h3>
+      <ul class="plain">
+        <li><b>[1] 안전장치</b> — 에이전트가 파일을 고치면 누가 뭘 바꿨는지 추적이 안 됩니다. 조사 단계에서는 <b>읽기 전용</b>이 원칙입니다.</li>
+        <li><b>[2] 환경</b> — 없는 라이브러리를 찾느라 시간을 버리지 않게 미리 알려줍니다.</li>
+        <li><b>[3] 범위</b> — 이걸 안 쓰면 다섯이 같은 걸 발견해서 돌아옵니다.</li>
+        <li><b>[4] 이미 있는 것</b> — <b>가장 자주 빠뜨리는 항목입니다.</b> 이게 없으면 이미 구현된 기능을 "아이디어"라고 들고 옵니다.</li>
+        <li><b>[5] 규칙과 형식</b> — 특히 <b>"안 되는 것도 이유와 함께 적으라"</b>가 값집니다. 다음 사람이 같은 시도를 반복하지 않게 됩니다.</li>
+      </ul>
+
+      <div class="callout good">
+        <span class="lbl">효과가 컸던 한 줄</span>
+        <p><b>"추측은 '추측'이라고 명시하세요."</b> 이 한 줄 때문에 에이전트들이 확인한 것과 짐작한 것을 구분해서 보고했고, 덕분에 어디를 다시 검산해야 할지 바로 알 수 있었습니다.</p>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s5">
+      <h2 class="h"><span class="num">05</span>실패 3장면</h2>
+      <p class="deck">여기가 이 문서의 핵심입니다. 잘된 이야기보다 이쪽이 훨씬 쓸모 있습니다.</p>
+
+      <div class="scene">
+        <span class="tag f">실패 ①</span>
+        <h4>틀린 전제 하나가 세 명에게 그대로 복제됐다</h4>
+        <p>1단계 브리프에 저는 이렇게 썼습니다.</p>
+        <p><i>"썸네일 화면 8개가 전부 <code>excludeFromReport</code> 플래그를 달고 있어서 리포트에 안 들어갑니다. 이건 이미 확인된 사실이니 다시 확인할 필요 없습니다."</i></p>
+        <p><b>이게 틀렸습니다.</b> 코드에는 정반대의 주석이 있었습니다.</p>
+<pre><code>// 이 플래그는 여기서 <b>일부러 무시한다</b> —
+// "전체본에 넣지 않는다"는 뜻이지 "어떤 리포트에도 못 넣는다"가 아니다.</code></pre>
+        <p>실제로는 썸네일 전용 리포트가 화면 7개를 통째로 담고 있었습니다. 그런데 저는 이 틀린 전제를 <b>세 개 브리프에 모두 복사해서</b> 보냈습니다.</p>
+        <p>다행히 두 번째 에이전트가 <b>코드를 읽는 대신 실제로 브라우저를 띄워 리포트를 발행</b>해봤고, 거기서 전제가 깨졌습니다. 만약 셋 다 코드만 읽었다면 <b>셋 다 사이좋게 같은 결론</b>을 냈을 것이고, 저는 그걸 "세 명이 독립적으로 확인했다"고 읽었을 겁니다.</p>
+        <p class="lesson"><b>배운 것 —</b> 에이전트를 여러 개 돌린다고 독립 검증이 되지 않습니다. <b>같은 브리프를 받으면 같은 편향을 공유합니다.</b> 브리프에는 내 결론을 넣지 말고 <b>"확인하고 오라"</b>고 시켜야 합니다.</p>
+      </div>
+
+      <div class="scene">
+        <span class="tag f">실패 ②</span>
+        <h4>이미 구현된 기능을 두 명이 "발견"했다</h4>
+        <p>2단계에서 서로 다른 축을 맡은 에이전트 둘이 같은 것을 보고했습니다.</p>
+        <p><i>"저해상도 판별 플래그가 고장 났습니다. 640×480짜리 5건이 전부 '정상'으로 표시돼 있습니다."</i></p>
+        <p>데이터상으로는 맞는 말이었습니다. 저는 이걸 <b>"축이 다른 두 명이 독립적으로 같은 버그를 찾았다"</b>며 좋은 신호로 보고했습니다.</p>
+        <p>그런데 나중에 코드를 직접 확인해보니, <b>앱이 이미 그 불일치를 화면에 띄우고 있었습니다.</b></p>
+<pre><code>// thumbnail.js — 이미 있던 코드
+const smallButNotFlagged = all.filter(row =&gt;
+  가로해상도 &lt; 1280 &amp;&amp; 저해상도플래그 === 'N');
+// → "저해상도 플래그 불일치" 라는 항목으로 화면에 표시 중</code></pre>
+        <p>두 에이전트는 <b>CSV 데이터만 봤고 앱 코드는 안 봤습니다.</b> 제가 그들에게 준 축이 "데이터 분석"이었으니 당연한 결과였습니다. 문제는 <b>제가 코드 확인 없이 그대로 "발견"으로 전달한 것</b>입니다.</p>
+        <p class="lesson"><b>배운 것 —</b> 에이전트의 범위를 자르면 <b>그 밖은 못 봅니다.</b> 데이터 담당은 코드를 모르고, 코드 담당은 데이터를 모릅니다. 종합하는 사람(메인)이 <b>경계를 넘는 확인</b>을 해야 합니다.</p>
+      </div>
+
+      <div class="scene">
+        <span class="tag f">실패 ③</span>
+        <h4>같은 데이터인데 두 명의 결론이 정반대였다</h4>
+        <p>3단계 데이터 검증자가 2단계 분석자의 주장을 반박했습니다.</p>
+        <div class="scroll">
+          <table>
+            <thead><tr><th></th><th>주장</th></tr></thead>
+            <tbody>
+              <tr><td><b>분석자</b></td><td>"언어를 나눠서 보면 효과가 사라집니다. 한글만 보면 <b>p=0.606</b>"</td></tr>
+              <tr><td><b>검증자</b></td><td>"재현 안 됩니다. 한글만 봐도 효과가 남습니다. <b>p=0.046</b>"</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>둘 중 하나가 틀린 게 아니라 <b>둘 다 맞았습니다.</b> 제가 직접 양쪽 방식으로 다시 계산해보니 이렇게 나왔습니다.</p>
+        <div class="scroll">
+          <table>
+            <thead><tr><th>어떤 지표로 쟀나</th><th>전체</th><th>한글만</th><th>비한글만</th></tr></thead>
+            <tbody>
+              <tr><td><b>일평균 조회수</b>로 재면</td><td>p=0.026</td><td><b>p=0.606 (사라짐)</b></td><td>p=0.221</td></tr>
+              <tr><td><b>누적 조회수</b>로 재면</td><td>p=0.023</td><td><b>p=0.046 (남음)</b></td><td>p=1.000</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>분석자는 <b>일평균</b>으로, 검증자는 <b>누적</b>으로 쟀던 것입니다. 브리프 어디에도 "어느 지표로 재라"는 말이 없었기 때문입니다.</p>
+        <p class="lesson"><b>배운 것 —</b> 결론이 갈리면 <b>먼저 계산 조건이 같았는지 확인</b>하세요. 그리고 브리프에 <b>측정 방법을 못박아야</b> 이런 일이 안 생깁니다. 참고로 이 충돌은 <b>버그가 아니라 발견</b>이었습니다 — "지표를 바꾸면 결론이 뒤집힌다"는 사실 자체가 화면에 표시해야 할 정보였습니다.</p>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s6">
+      <h2 class="h"><span class="num">06</span>성공 장면 — 진짜 독립 검증은 이렇게 생겼다</h2>
+      <p class="deck">실패 ①과 대비해서 보면 차이가 선명합니다.</p>
+
+      <div class="scene">
+        <span class="tag s">성공</span>
+        <h4>세 검증자가 서로 다른 이유로 같은 항목을 막았다</h4>
+        <p>분석자들이 낸 아이디어 중 <b>"글자 없는 썸네일 = 호감형 카드를 만들자"</b>는 항목이 있었습니다. 통계적으로는 꽤 강해 보였습니다.</p>
+        <p>세 검증자가 <b>각자 다른 근거로</b> 이걸 막았습니다.</p>
+        <ul class="plain">
+          <li><b>데이터 검증자</b> — "효과 자체는 견고합니다. 다만 서로 다른 세 정의를 하나로 묶어서 표본을 만들었는데, 그 세 정의는 원래 <b>27건만 일치</b>합니다."</li>
+          <li><b>구현 검증자</b> — "이 지표는 기존 코드에 이미 있는 축과 <b>방향이 반대</b>입니다. 두 화면이 같은 것을 반대로 읽게 됩니다."</li>
+          <li><b>제품 검증자</b> — "<b>이름 자체가 처방입니다.</b> '호감형'은 댓글이 적어도 점수가 오르는 지표인데, 그러면 <b>무반응을 미덕으로 번역</b>하게 됩니다."</li>
+        </ul>
+        <p class="lesson"><b>왜 이건 진짜 검증인가 —</b> 셋에게 준 <b>자료는 같았지만 질문이 달랐습니다.</b> 그래서 각자 다른 곳을 봤고, 서로 다른 이유로 같은 결론에 닿았습니다. 실패 ①은 <b>같은 질문</b>을 세 명에게 줬기 때문에 같은 답이 나온 것이고, 이건 <b>다른 질문</b>인데도 같은 답이 나온 것입니다. <b>이 차이가 전부입니다.</b></p>
+      </div>
+
+      <div class="callout good">
+        <span class="lbl">기억할 공식</span>
+        <p><b>같은 자료 + 같은 질문</b> = 답이 같아도 증거가 아님 (편향 복제)<br>
+        <b>같은 자료 + 다른 질문</b> = 답이 같으면 강한 증거<br>
+        <b>다른 자료 + 다른 질문</b> = 가장 강함 (그림 2의 2단계에서 축이 다른 두 명이 같은 결함을 지목한 경우)</p>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s7">
+      <h2 class="h"><span class="num">07</span>숫자로 본 비용</h2>
+      <p class="deck">공짜가 아닙니다. 얼마나 들었는지 그대로 적습니다.</p>
+
+      <div class="kpi">
+        <div><span class="v">11개</span><span class="k">에이전트 (3+5+3)</span></div>
+        <div><span class="v">1.13M</span><span class="k">소비 토큰</span></div>
+        <div><span class="v">198회</span><span class="k">도구 호출</span></div>
+        <div><span class="v">32건</span><span class="k">최종 아이디어</span></div>
+      </div>
+
+      <figure class="fig">
+        <svg viewBox="0 0 660 390" role="img" aria-labelledby="fig3t">
+          <title id="fig3t">에이전트 11개의 토큰 소비량 가로 막대 그래프</title>
+          <g font-size="12" fill="#7a7a7a">
+            <text x="12" y="16" font-weight="600" fill="#0066cc">1단계 · 점검</text>
+          </g>
+          <g font-size="12.5">
+            <text x="12" y="42" fill="#333">종합 리포트 쪽</text>
+            <rect x="182" y="31" width="296" height="15" rx="3" fill="#0066cc" opacity="0.85"/>
+            <text x="486" y="43" fill="#7a7a7a" font-size="11.5">98,590</text>
+            <text x="12" y="66" fill="#333">발행 파이프라인</text>
+            <rect x="182" y="55" width="375" height="15" rx="3" fill="#0066cc" opacity="0.85"/>
+            <text x="565" y="67" fill="#7a7a7a" font-size="11.5">125,035</text>
+            <text x="12" y="90" fill="#333">화면의 경고 목록화</text>
+            <rect x="182" y="79" width="414" height="15" rx="3" fill="#0066cc" opacity="0.85"/>
+            <text x="604" y="91" fill="#7a7a7a" font-size="11.5">138,135</text>
+          </g>
+
+          <g font-size="12" fill="#7a7a7a"><text x="12" y="124" font-weight="600" fill="#1c7a4a">2단계 · 분석</text></g>
+          <g font-size="12.5">
+            <text x="12" y="150" fill="#333">A 제목 × 문구</text>
+            <rect x="182" y="139" width="257" height="15" rx="3" fill="#1c7a4a" opacity="0.85"/>
+            <text x="447" y="151" fill="#7a7a7a" font-size="11.5">85,652</text>
+            <text x="12" y="174" fill="#333">B 시간 · 포맷</text>
+            <rect x="182" y="163" width="264" height="15" rx="3" fill="#1c7a4a" opacity="0.85"/>
+            <text x="454" y="175" fill="#7a7a7a" font-size="11.5">88,015</text>
+            <text x="12" y="198" fill="#333">C 반응</text>
+            <rect x="182" y="187" width="273" height="15" rx="3" fill="#1c7a4a" opacity="0.85"/>
+            <text x="463" y="199" fill="#7a7a7a" font-size="11.5">91,134</text>
+            <text x="12" y="222" fill="#333">D 색 · 정량</text>
+            <rect x="182" y="211" width="315" height="15" rx="3" fill="#1c7a4a" opacity="0.85"/>
+            <text x="505" y="223" fill="#7a7a7a" font-size="11.5">104,859</text>
+            <text x="12" y="246" fill="#333">E 채널</text>
+            <rect x="182" y="235" width="253" height="15" rx="3" fill="#1c7a4a" opacity="0.85"/>
+            <text x="443" y="247" fill="#7a7a7a" font-size="11.5">84,439</text>
+          </g>
+
+          <g font-size="12" fill="#7a7a7a"><text x="12" y="280" font-weight="600" fill="#7c5cff">3단계 · 검증</text></g>
+          <g font-size="12.5">
+            <text x="12" y="306" fill="#333">데이터 검증자</text>
+            <rect x="182" y="295" width="353" height="15" rx="3" fill="#7c5cff" opacity="0.85"/>
+            <text x="543" y="307" fill="#7a7a7a" font-size="11.5">117,586</text>
+            <text x="12" y="330" fill="#333">구현 검증자</text>
+            <rect x="182" y="319" width="331" height="15" rx="3" fill="#7c5cff" opacity="0.85"/>
+            <text x="521" y="331" fill="#7a7a7a" font-size="11.5">110,397</text>
+            <text x="12" y="354" fill="#333">제품 검증자</text>
+            <rect x="182" y="343" width="253" height="15" rx="3" fill="#7c5cff" opacity="0.85"/>
+            <text x="443" y="355" fill="#7a7a7a" font-size="11.5">84,313</text>
+          </g>
+          <line x1="182" y1="368" x2="648" y2="368" stroke="#e0e0e0"/>
+          <text x="182" y="384" font-size="11.5" fill="#7a7a7a">0</text>
+          <text x="596" y="384" font-size="11.5" fill="#7a7a7a">140,000 토큰</text>
+        </svg>
+        <figcaption>그림 3. 에이전트별 토큰 소비. 한 에이전트당 8~14만 토큰 선에서 안정적이었다.</figcaption>
+      </figure>
+
+      <h3 class="sub">이 비용이 아깝지 않았던 이유</h3>
+      <ul class="plain">
+        <li><b>혼자서는 불가능했습니다.</b> 113만 토큰은 대화 하나에 다 담을 수 없는 양입니다.</li>
+        <li><b>깊이가 달랐습니다.</b> 한 축에 8만 토큰을 쓴 덕분에 검정 40개를 돌리고 다중비교 보정까지 했습니다. 혼자 5개 축을 봤다면 축당 예산이 1/5로 줄어 표면만 훑었을 겁니다.</li>
+        <li><b>제 오류가 세 번 잡혔습니다.</b> 실패 ①·③과, 제가 옛 버전 파일을 읽고 있다는 지적까지.</li>
+      </ul>
+
+      <div class="callout">
+        <span class="lbl">반대로 아까웠던 지점</span>
+        <p>결과가 <b>요약으로만</b> 오기 때문에 중간 과정을 볼 수 없습니다. 틀렸는지 확인하려면 결국 메인이 검산해야 하고, 실제로 이번에도 주요 수치는 전부 다시 계산했습니다. <b>검산 비용을 미리 예산에 넣으세요.</b></p>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s8">
+      <h2 class="h"><span class="num">08</span>체크리스트</h2>
+      <p class="deck">여기만 떼어 다른 프로젝트에 써도 됩니다.</p>
+
+      <h3 class="sub">이럴 때 서브에이전트를 쓰세요</h3>
+      <ul class="check yes">
+        <li><b>읽을 파일이 많고 결론만 필요할 때</b><span>파일 내용이 아니라 판단만 있으면 되는 경우. 컨텍스트 격리의 값이 가장 큽니다.</span></li>
+        <li><b>독립적인 일을 동시에 여러 개 돌릴 때</b><span>서로 결과를 기다리지 않아도 되는 작업들. 축·파일·주제로 자를 수 있어야 합니다.</span></li>
+        <li><b>한 주제를 깊게 파야 할 때</b><span>축당 예산을 온전히 줄 수 있습니다. 혼자 여러 축을 보면 전부 얕아집니다.</span></li>
+        <li><b>같은 결과물을 여러 각도로 검사할 때</b><span>단, 반드시 <b>질문을 다르게</b> 줘야 합니다. 같은 질문이면 검증이 아닙니다.</span></li>
+      </ul>
+
+      <h3 class="sub">이럴 땐 쓰지 마세요</h3>
+      <ul class="check no">
+        <li><b>어디를 고칠지 이미 아는 작은 수정</b><span>파일과 줄 번호를 아는 일은 직접 하는 게 빠릅니다. 보고받는 시간이 더 듭니다.</span></li>
+        <li><b>축이 서로 얽혀 있어서 경계를 넘는 게 핵심일 때</b><span>다섯으로 자르면 "언어 × 채널 × 시대"가 얽힌 문제는 아무도 못 봅니다.</span></li>
+        <li><b>"여러 명이 같은 답을 내면 맞겠지"를 기대할 때</b><span>실패 ①이 정확히 이 함정입니다. 같은 브리프 = 같은 편향입니다.</span></li>
+        <li><b>사실 확인 한 건</b><span>파일 하나 grep 한 번이면 끝나는 일에 에이전트를 부르지 마세요.</span></li>
+      </ul>
+
+      <h3 class="sub">브리프 작성 규칙 7가지</h3>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>#</th><th>규칙</th><th>안 지키면</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td><b>내 결론을 전제로 주지 말 것.</b> "확인하고 오라"고 시킬 것</td><td>실패 ① — 틀린 전제가 전원에게 복제됨</td></tr>
+            <tr><td>2</td><td><b>"이미 있는 것"을 명시할 것</b></td><td>구현된 기능을 아이디어로 들고 옴</td></tr>
+            <tr><td>3</td><td><b>범위를 겹치지 않게 자를 것.</b> 남의 영역을 명시적으로 금지</td><td>중복 보고, 예산 낭비</td></tr>
+            <tr><td>4</td><td><b>측정 방법을 못박을 것</b> (어느 지표, 어느 기준)</td><td>실패 ③ — 결론이 갈리고 원인 추적에 시간이 듦</td></tr>
+            <tr><td>5</td><td><b>읽기 전용을 기본으로</b>. 파일 수정·git 금지</td><td>누가 뭘 바꿨는지 추적 불가</td></tr>
+            <tr><td>6</td><td><b>"추측은 추측이라고 쓰라"</b>고 요구할 것</td><td>확인한 것과 짐작한 것이 뒤섞임</td></tr>
+            <tr><td>7</td><td><b>"안 되는 것도 이유와 함께"</b> 적게 할 것</td><td>다음 사람이 같은 시도를 반복함</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 class="sub">결과를 받은 뒤 메인이 해야 할 일</h3>
+      <ul class="plain">
+        <li><b>중요한 판정은 직접 검산하세요.</b> 이번에는 "높음" 등급 주장을 전부 다시 계산했고, 그 과정에서 두 건을 정정했습니다.</li>
+        <li><b>경계를 넘는 확인을 하세요.</b> 데이터 담당이 "버그다"라고 하면, 코드가 이미 처리하고 있는지 확인하는 건 메인의 몫입니다 (실패 ②).</li>
+        <li><b>결론이 갈리면 조건부터 맞춰보세요.</b> 대개 계산 방법이 달랐던 것입니다 (실패 ③).</li>
+        <li><b>보고서를 그대로 믿지 마세요.</b> 에이전트도 틀립니다. 다만 <b>여러분도 틀립니다</b> — 이번에는 에이전트가 저를 세 번 잡아냈습니다.</li>
+      </ul>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s9">
+      <h2 class="h"><span class="num">09</span>용어 정리</h2>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>용어</th><th>뜻</th></tr></thead>
+          <tbody>
+            <tr><td><b>서브에이전트</b></td><td>메인 AI가 일을 맡기는 별도의 AI 인스턴스. 자기 작업 공간에서 일하고 요약만 돌려준다.</td></tr>
+            <tr><td><b>컨텍스트 윈도우</b></td><td>AI가 한 번에 기억할 수 있는 분량. 그릇의 크기.</td></tr>
+            <tr><td><b>컨텍스트 격리</b></td><td>에이전트가 읽은 내용이 메인의 그릇에 들어오지 않는 것. 서브에이전트의 핵심 이점.</td></tr>
+            <tr><td><b>토큰</b></td><td>AI가 글을 세는 단위. 한국어는 대략 한 글자에 1~1.5토큰.</td></tr>
+            <tr><td><b>브리프</b></td><td>에이전트에게 주는 지시문. 범위·규칙·보고 형식을 담는다.</td></tr>
+            <tr><td><b>파이프라인</b></td><td>앞 단계의 결과를 뒤 단계가 받아 처리하는 구조. 이번엔 점검 → 분석 → 검증.</td></tr>
+            <tr><td><b>편향 복제</b></td><td>같은 브리프를 받은 에이전트들이 같은 실수를 공유하는 현상. 다수결이 안 통하는 이유.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout">
+        <span class="lbl">한 문장으로 요약하면</span>
+        <p>서브에이전트는 <b>일을 나누는 도구</b>이지 <b>정답을 확인하는 도구</b>가 아닙니다. 확인하려면 <b>질문을 다르게</b> 주고, 중요한 건 <b>직접 검산</b>하세요.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-links">
+      <a href="../../00_사전학습/index.html">00 사전 학습</a>
+      <a href="../../01_오리엔테이션/index.html">01 오리엔테이션</a>
+      <a href="../../02_바이브코딩/index.html">02 바이브코딩</a>
+      <a href="../../03_UXUI디자인/index.html">03 UXUI디자인</a>
+      <a href="../../04_노코드프로토타이핑/index.html">04 노코드프로토타이핑</a>
+      <a href="../../05_서비스기획/index.html">05 서비스기획</a>
+      <a href="../../06_데이터ML/index.html">06 데이터ML</a>
+      <a href="../../07_LLM_RAG_Agent/index.html">07 LLM_RAG_Agent</a>
+      <a href="../../08_해커톤/index.html">08 해커톤</a>
+    </div>
+    <div class="footer-legal">AI 프로덕트 마스터 · frontierall</div>
+  </footer>
+</body>
+</html>
