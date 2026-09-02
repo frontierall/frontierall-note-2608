@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Code 스킬 만들기 · AI 프로덕트 마스터</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@1.3.9/dist/web/static/pretendard.css">
+<style>
+  :root {
+    --primary: #0066cc; --primary-focus: #0071e3;
+    --canvas: #ffffff; --parchment: #f5f5f7; --pearl: #fafafc;
+    --black: #000000; --ink: #1d1d1f; --ink-80: #333333; --ink-48: #7a7a7a;
+    --hairline: #e0e0e0;
+    --warn: #bf4800; --warn-bg: #fff6f0;
+    --ok: #1a7f37; --ok-bg: #f2faf4;
+    --dead: #c9302c; --dead-bg: #fdf3f3;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--canvas); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', 'Apple SD Gothic Neo', 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-size: 17px; line-height: 1.47; letter-spacing: -0.374px;
+  }
+  .global-nav {
+    position: sticky; top: 0; z-index: 20; height: 44px; background: var(--black);
+    display: flex; align-items: center; justify-content: space-between; padding: 0 22px;
+  }
+  .global-nav .brand { color: #fff; font-size: 12px; font-weight: 600; letter-spacing: -0.12px; text-decoration: none; }
+  .global-nav .meta { color: rgba(255,255,255,0.72); font-size: 12px; letter-spacing: -0.12px; }
+  .sub-nav {
+    position: sticky; top: 44px; z-index: 19; height: 52px;
+    display: flex; align-items: center; justify-content: space-between; padding: 0 22px;
+    background: rgba(245,245,247,0.8);
+    -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+  .sub-nav .category { font-size: 21px; font-weight: 600; letter-spacing: 0.231px; color: var(--ink); text-decoration: none; }
+  .btn-primary {
+    display: inline-block; background: var(--primary); color: #fff; border: none;
+    border-radius: 9999px; padding: 8px 18px; font-size: 14px; font-family: inherit;
+    text-decoration: none; cursor: pointer; transition: transform .15s;
+  }
+  .btn-primary:active { transform: scale(0.95); }
+  .btn-primary:focus-visible { outline: 2px solid var(--primary-focus); outline-offset: 2px; }
+
+  .progress-track {
+    position: fixed; top: 95px; left: 0; right: 0; height: 2px; z-index: 18;
+    background: transparent; pointer-events: none;
+  }
+  .progress-track span { display: block; height: 100%; width: 0; background: var(--primary); transition: width .1s linear; }
+
+  .toc {
+    position: fixed; top: 150px; left: calc(50% - 570px); width: 156px; z-index: 15;
+    display: none; font-size: 12px; letter-spacing: -0.12px;
+  }
+  .toc a {
+    display: block; padding: 4px 0 4px 10px; color: var(--ink-48); text-decoration: none;
+    border-left: 2px solid var(--hairline); transition: color .15s, border-color .15s;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .toc a:hover { color: var(--ink); }
+  .toc a.active { color: var(--primary); border-left-color: var(--primary); font-weight: 600; }
+  @media (min-width: 1180px) { .toc { display: block; } }
+
+  article { max-width: 720px; margin: 0 auto; padding: 64px 24px 96px; }
+
+  .eyebrow { display: block; font-size: 14px; font-weight: 600; letter-spacing: -0.224px; color: var(--ink-48); margin-bottom: 12px; }
+  h1 { font-size: 40px; font-weight: 600; line-height: 1.10; letter-spacing: 0; margin: 0 0 28px; }
+  h2 {
+    font-size: 28px; font-weight: 600; line-height: 1.14; letter-spacing: 0.196px;
+    margin: 56px 0 16px; padding-top: 32px; border-top: 1px solid var(--hairline);
+    scroll-margin-top: 116px;
+  }
+  h3 { font-size: 21px; font-weight: 600; line-height: 1.19; letter-spacing: 0.231px; margin: 32px 0 12px; }
+  h4 { font-size: 17px; font-weight: 600; letter-spacing: -0.374px; margin: 24px 0 8px; }
+  p { color: var(--ink); font-size: 17px; line-height: 1.47; letter-spacing: -0.374px; }
+  ul, ol { font-size: 17px; line-height: 1.47; letter-spacing: -0.374px; }
+  li { margin-bottom: 6px; }
+  strong { color: var(--ink); }
+  a { color: var(--primary); }
+
+  code {
+    background: var(--pearl); border: 1px solid var(--hairline);
+    border-radius: 5px; padding: 2px 6px; font-size: 14px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+  }
+  pre {
+    background: var(--pearl); border: 1px solid var(--hairline);
+    border-radius: 8px; padding: 18px 20px; overflow-x: auto;
+  }
+  pre code { background: none; border: none; padding: 0; font-size: 14px; line-height: 1.6; }
+
+  /* ── 코드 블록 복사 버튼 — 왕초보가 오타 없이 그대로 옮기도록 ── */
+  .codeblock { position: relative; margin: 16px 0; }
+  .codeblock pre { margin: 0; padding-top: 40px; }
+  .codeblock .copy {
+    position: absolute; top: 8px; right: 8px; z-index: 2;
+    font: inherit; font-size: 12px; letter-spacing: -0.12px; cursor: pointer;
+    background: var(--canvas); color: var(--ink-48); border: 1px solid var(--hairline);
+    border-radius: 999px; padding: 4px 12px; transition: color .15s, border-color .15s;
+  }
+  .codeblock .copy:hover { color: var(--ink); border-color: var(--primary); }
+  .codeblock .copy.done { color: var(--ok); border-color: var(--ok); }
+  .codeblock .copy:focus-visible { outline: 2px solid var(--primary-focus); outline-offset: 2px; }
+  .codeblock .label {
+    position: absolute; top: 12px; left: 20px; z-index: 1;
+    font-size: 12px; letter-spacing: -0.12px; color: var(--ink-48);
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  blockquote { margin: 24px 0; padding: 4px 0 4px 20px; border-left: 2px solid var(--hairline); }
+  blockquote p { margin: 0; font-size: 14px; letter-spacing: -0.224px; color: var(--ink-80); }
+
+  table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; border-collapse: collapse; font-size: 14px; margin: 16px 0; }
+  th, td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--hairline); white-space: nowrap; vertical-align: top; }
+  th { color: var(--ink-48); font-weight: 600; letter-spacing: -0.224px; }
+  table.wrap td, table.wrap th { white-space: normal; min-width: 108px; }
+  table.wrap td:first-child, table.wrap th:first-child {
+    min-width: 96px; position: sticky; left: 0; background: var(--canvas);
+    box-shadow: 1px 0 0 var(--hairline);
+  }
+
+  hr { border: none; height: 1px; background: var(--hairline); margin: 48px 0; }
+
+  .summary {
+    background: var(--pearl); border: 1px solid var(--hairline);
+    border-radius: 12px; padding: 16px 18px; margin: 16px 0 20px;
+  }
+  .summary p { margin: 0 0 6px; font-size: 15px; letter-spacing: -0.224px; }
+  .summary p:last-child { margin-bottom: 0; }
+  .summary .k {
+    display: inline-block; min-width: 62px; font-size: 12px; font-weight: 700;
+    color: var(--ink-48); letter-spacing: -0.12px;
+  }
+
+  .pros-cons { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 18px 0; }
+  .pros-cons > div { border: 1px solid var(--hairline); border-radius: 12px; padding: 14px 16px; }
+  .pros-cons .head { font-size: 13px; font-weight: 700; letter-spacing: -0.12px; margin-bottom: 8px; }
+  .pros-cons .pros { background: var(--ok-bg); }
+  .pros-cons .pros .head { color: var(--ok); }
+  .pros-cons .cons { background: var(--warn-bg); }
+  .pros-cons .cons .head { color: var(--warn); }
+  .pros-cons code { background: rgba(255,255,255,.7); font-size: 13px; }
+  .pros-cons p { font-size: 14px; letter-spacing: -0.224px; line-height: 1.5; margin: 0 0 8px; }
+  .pros-cons p:last-child { margin-bottom: 0; }
+
+  .decision { list-style: none; margin: 20px 0; padding: 0; counter-reset: step; }
+  .decision li {
+    position: relative; padding: 14px 16px 14px 52px; margin-bottom: 10px;
+    border: 1px solid var(--hairline); border-radius: 12px; font-size: 15px; letter-spacing: -0.224px;
+  }
+  .decision li::before {
+    counter-increment: step; content: counter(step);
+    position: absolute; left: 16px; top: 15px;
+    width: 22px; height: 22px; border-radius: 999px; background: var(--primary); color: #fff;
+    font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+  }
+  .decision .q { display: block; font-weight: 600; margin-bottom: 4px; }
+  .decision .a { display: block; color: var(--ink-80); font-size: 14px; }
+
+  figure { margin: 24px 0; }
+  figure img {
+    display: block; width: 100%; height: auto;
+    border: 1px solid var(--hairline); border-radius: 10px;
+  }
+  figure svg { display: block; width: 100%; height: auto; }
+  figcaption { font-size: 13px; color: var(--ink-48); letter-spacing: -0.154px; margin-top: 10px; }
+
+  .viz {
+    border: 1px solid var(--hairline); border-radius: 14px; padding: 18px;
+    background: var(--canvas); margin: 24px 0;
+  }
+  .viz-title { font-size: 13px; font-weight: 700; letter-spacing: -0.12px; color: var(--ink-48); margin-bottom: 14px; }
+
+  /* ── 파일 트리 ── */
+  .tree {
+    font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 13.5px; line-height: 1.9;
+    background: var(--pearl); border: 1px solid var(--hairline); border-radius: 10px;
+    padding: 16px 18px; margin: 16px 0; overflow-x: auto;
+  }
+  .tree .row { white-space: pre; }
+  .tree .fname { color: var(--ink); }
+  .tree .must { color: var(--primary); font-weight: 700; }
+  .tree .why { color: var(--ink-48); font-family: inherit; }
+
+  /* ── 미니 빌더 위젯 ── */
+  .builder label { display: block; font-size: 13px; font-weight: 600; color: var(--ink-80); margin: 14px 0 6px; letter-spacing: -0.154px; }
+  .builder input, .builder textarea {
+    width: 100%; font: inherit; font-size: 15px; padding: 9px 13px; color: var(--ink);
+    border: 1px solid var(--hairline); border-radius: 9px; background: var(--canvas);
+  }
+  .builder textarea { min-height: 96px; resize: vertical; line-height: 1.5; }
+  .builder input:focus-visible, .builder textarea:focus-visible { outline: 2px solid var(--primary-focus); outline-offset: 1px; }
+  .builder .hint { font-size: 12.5px; color: var(--ink-48); letter-spacing: -0.12px; margin: 5px 0 0; }
+  .builder .out { margin-top: 20px; }
+  .builder .err { color: var(--dead); font-size: 13px; margin-top: 6px; }
+
+  .callout {
+    border-radius: 12px; padding: 14px 16px; margin: 20px 0;
+    font-size: 15px; letter-spacing: -0.224px; line-height: 1.5;
+  }
+  .callout.tip { background: var(--ok-bg); border: 1px solid rgba(26,127,55,.2); }
+  .callout.warn { background: var(--warn-bg); border: 1px solid rgba(191,72,0,.2); }
+  .callout.danger { background: var(--dead-bg); border: 1px solid rgba(201,48,44,.2); }
+  .callout .head { display: block; font-size: 12px; font-weight: 700; letter-spacing: -0.12px; margin-bottom: 6px; }
+  .callout.tip .head { color: var(--ok); }
+  .callout.warn .head { color: var(--warn); }
+  .callout.danger .head { color: var(--dead); }
+  .callout p { margin: 0; font-size: 15px; letter-spacing: -0.224px; }
+
+  .dl-row {
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    border: 1px solid var(--hairline); border-radius: 12px; padding: 16px 18px; margin: 20px 0;
+    background: var(--pearl);
+  }
+  .dl-row .t { flex: 1 1 240px; font-size: 15px; letter-spacing: -0.224px; }
+  .dl-row .t b { display: block; font-size: 16px; margin-bottom: 3px; }
+  .dl-row .t span { color: var(--ink-48); font-size: 13px; }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+  @media (max-width: 640px) {
+    article { padding: 48px 20px 72px; }
+    h1 { font-size: 28px; }
+    h2 { font-size: 21px; }
+    .sub-nav { padding: 0 16px; }
+    .sub-nav .category { font-size: 17px; }
+    .pros-cons { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 380px) { .global-nav .meta { display: none; } }
+</style>
+</head>
+<body>
+  <nav class="global-nav">
+    <a class="brand" href="../../index.html">AI 프로덕트 마스터</a>
+    <span class="meta">인공지능 심화(160H)</span>
+  </nav>
+  <nav class="sub-nav">
+    <a class="category" href="../index.html">02 바이브코딩</a>
+    <a class="btn-primary" href="../../index.html">전체 커리큘럼</a>
+  </nav>
+  <div class="progress-track" aria-hidden="true"><span id="progress"></span></div>
+
+  <nav class="toc" id="toc" aria-label="목차"></nav>
+
+  <article>
+
+<span class="eyebrow">PART 02 · 바이브코딩 교안</span>
+<h1>Claude Code 스킬 만들기</h1>
+<p>같은 지시를 매번 다시 쓰고 계신가요? <strong>"표는 이 형식으로", "색은 이 팔레트로", "먼저 이것부터 확인하고"</strong> — 이런 설명을 대화창에 반복해서 붙여넣는 일이 하루에 몇 번씩 생깁니다. 그런데 붙여넣는 걸 자주 깜빡하고, 깜빡하면 결과물이 매번 조금씩 달라집니다.</p>
+<p><strong>스킬(Skill)</strong>은 그 반복을 없애는 장치입니다. 한 번 적어두면, 필요한 순간에 Claude가 알아서 꺼내 읽습니다.</p>
+
+<ul>
+<li>스킬이 정확히 무엇이고, 프롬프트를 붙여넣는 것과 뭐가 다른지</li>
+<li><strong>10분 만에 직접 스킬 하나 만들기</strong> — 잘 됐는지 눈으로 확인하는 방법까지</li>
+<li>실제로 쓰이는 스킬 해부 — 수업용 PPT를 만들어 주는 <code>edu-slides</code></li>
+<li>만든 스킬을 나중에 어떻게 불러 쓰는지, 안 불려올 땐 뭘 고치는지</li>
+</ul>
+
+<div class="callout tip">
+  <span class="head">이 교안을 읽기 전에</span>
+  <p>Claude Code가 설치돼 있고, 터미널에서 <code>claude</code> 를 실행해 본 적이 있으면 충분합니다. 프로그래밍 지식은 필요 없습니다. 3장까지만 따라 해도 스킬 하나가 완성됩니다.</p>
+</div>
+
+<h2 id="s1">1. 스킬이 뭔가요</h2>
+
+<p><strong>스킬은 "필요할 때만 펴 보는 설명서"입니다.</strong></p>
+
+<p>요리로 비유해 봅시다. 주방에 요리책이 스무 권 꽂혀 있습니다. 요리사가 그걸 전부 외우고 다니지는 않습니다. <strong>김치찌개를 만들 차례가 되면 그때 해당 페이지를 펴 봅니다.</strong> 평소에는 책장에 꽂혀 있을 뿐이라 주방이 복잡해지지 않습니다.</p>
+
+<p>스킬이 정확히 그렇습니다. 폴더 안에 설명서를 넣어두면, Claude는 평소엔 <strong>제목과 한 줄 설명만</strong> 알고 있습니다. 그러다 관련된 일이 들어오면 그때 펴서 읽습니다.</p>
+
+<figure>
+<svg viewBox="0 0 680 250" role="img" aria-label="프롬프트를 매번 붙여넣는 방식과 스킬을 쓰는 방식 비교">
+  <rect x="0" y="0" width="680" height="250" fill="#fafafc" rx="12"/>
+  <text x="24" y="34" font-size="13" font-weight="700" fill="#bf4800" font-family="sans-serif">지금까지 — 매번 붙여넣기</text>
+  <g font-family="sans-serif" font-size="12" fill="#333">
+    <rect x="24" y="46" width="120" height="34" rx="8" fill="#fff" stroke="#e0e0e0"/>
+    <text x="38" y="68">요청 1</text>
+    <rect x="152" y="46" width="150" height="34" rx="8" fill="#fff6f0" stroke="#f0d0bb"/>
+    <text x="166" y="68">+ 긴 지침 붙여넣기</text>
+    <text x="312" y="68" fill="#7a7a7a">→ 결과 A</text>
+    <rect x="24" y="90" width="120" height="34" rx="8" fill="#fff" stroke="#e0e0e0"/>
+    <text x="38" y="112">요청 2</text>
+    <rect x="152" y="90" width="150" height="34" rx="8" fill="#fdf3f3" stroke="#eec9c8"/>
+    <text x="166" y="112" fill="#c9302c">(깜빡함)</text>
+    <text x="312" y="112" fill="#c9302c">→ 결과 B · 다름</text>
+    <rect x="24" y="134" width="120" height="34" rx="8" fill="#fff" stroke="#e0e0e0"/>
+    <text x="38" y="156">요청 3</text>
+    <rect x="152" y="134" width="150" height="34" rx="8" fill="#fff6f0" stroke="#f0d0bb"/>
+    <text x="166" y="156">+ 조금 다른 지침</text>
+    <text x="312" y="156" fill="#c9302c">→ 결과 C · 또 다름</text>
+  </g>
+  <line x1="424" y1="20" x2="424" y2="230" stroke="#e0e0e0"/>
+  <text x="452" y="34" font-size="13" font-weight="700" fill="#1a7f37" font-family="sans-serif">스킬 — 한 번만 적어둠</text>
+  <g font-family="sans-serif" font-size="12" fill="#333">
+    <rect x="452" y="46" width="196" height="52" rx="10" fill="#f2faf4" stroke="#bfe0c8"/>
+    <text x="466" y="68" font-weight="700">SKILL.md</text>
+    <text x="466" y="86" fill="#7a7a7a" font-size="11">한 번 저장해 두면 계속 쓰임</text>
+    <rect x="452" y="112" width="88" height="30" rx="8" fill="#fff" stroke="#e0e0e0"/>
+    <text x="466" y="132">요청 1</text>
+    <text x="548" y="132" fill="#1a7f37">→ 결과 A</text>
+    <rect x="452" y="148" width="88" height="30" rx="8" fill="#fff" stroke="#e0e0e0"/>
+    <text x="466" y="168">요청 2</text>
+    <text x="548" y="168" fill="#1a7f37">→ 결과 A</text>
+    <rect x="452" y="184" width="88" height="30" rx="8" fill="#fff" stroke="#e0e0e0"/>
+    <text x="466" y="204">요청 3</text>
+    <text x="548" y="204" fill="#1a7f37">→ 결과 A</text>
+  </g>
+</svg>
+<figcaption>지침을 매번 붙여넣으면 빠뜨리거나 조금씩 달라집니다. 스킬은 한 번 적어두면 매번 같은 기준이 적용됩니다.</figcaption>
+</figure>
+
+<h3>프롬프트를 붙여넣는 것과 뭐가 다른가요</h3>
+
+<table class="wrap">
+<thead><tr><th></th><th>매번 붙여넣기</th><th>스킬</th></tr></thead>
+<tbody>
+<tr><td>어디에 있나</td><td>내 메모장, 카톡, 머릿속</td><td>내 컴퓨터의 정해진 폴더</td></tr>
+<tr><td>언제 적용되나</td><td>내가 기억해서 붙여넣을 때만</td><td>관련된 요청이 오면 자동으로</td></tr>
+<tr><td>결과가 일정한가</td><td>붙여넣기 나름</td><td>항상 같은 기준</td></tr>
+<tr><td>다른 사람과 공유</td><td>매번 복사해서 전달</td><td>폴더를 통째로 전달</td></tr>
+<tr><td>대화가 무거워지나</td><td>매번 길어짐</td><td>필요할 때만 읽음</td></tr>
+</tbody>
+</table>
+
+<div class="callout tip">
+  <span class="head">핵심</span>
+  <p>스킬은 <strong>"무엇을 하는지"보다 "언제 꺼내야 하는지"</strong>가 더 중요합니다. 아무리 잘 쓴 스킬도 꺼내지지 않으면 없는 것과 같습니다. 이 이야기는 4장에서 자세히 다룹니다.</p>
+</div>
+
+<h2 id="s2">2. 스킬은 어디에 두나요</h2>
+
+<p>스킬은 <strong>폴더 하나 + 그 안의 <code>SKILL.md</code> 파일 하나</strong>가 최소 단위입니다. 그 폴더를 어디에 두느냐에 따라 적용 범위가 달라집니다.</p>
+
+<table class="wrap">
+<thead><tr><th>종류</th><th>두는 위치</th><th>언제 쓰나</th></tr></thead>
+<tbody>
+<tr>
+  <td>전역 스킬</td>
+  <td><code>C:\Users\내이름\.claude\skills\</code><br><span style="color:var(--ink-48);font-size:13px">맥·리눅스는 <code>~/.claude/skills/</code></span></td>
+  <td>어느 프로젝트에서나 쓰고 싶을 때. <strong>대부분 이쪽</strong></td>
+</tr>
+<tr>
+  <td>프로젝트 스킬</td>
+  <td>프로젝트 폴더 안<br><code>.claude\skills\</code></td>
+  <td>그 프로젝트에서만 쓸 때. git에 올려 팀과 공유 가능</td>
+</tr>
+</tbody>
+</table>
+
+<p>폴더 구조는 이렇게 생겼습니다. 스킬 이름이 곧 폴더 이름입니다.</p>
+
+<div class="tree">
+<div class="row"><span class="fname">C:\Users\내이름\.claude\skills\</span></div>
+<div class="row">  ├─ <span class="fname">class-note\</span>        <span class="why">← 스킬 1 (폴더 이름 = 스킬 이름)</span></div>
+<div class="row">  │    └─ <span class="must">SKILL.md</span>       <span class="why">← 반드시 이 이름, 대문자</span></div>
+<div class="row">  └─ <span class="fname">edu-slides\</span>       <span class="why">← 스킬 2</span></div>
+<div class="row">       └─ <span class="must">SKILL.md</span></div>
+</div>
+
+<div class="callout warn">
+  <span class="head">이름 규칙</span>
+  <p>파일 이름은 반드시 <strong><code>SKILL.md</code></strong> 입니다. <code>skill.md</code>, <code>Skill.md</code>, <code>SKILL.txt</code> 는 인식되지 않습니다. 폴더 이름은 <strong>영문 소문자와 하이픈</strong>만 씁니다(<code>class-note</code> ○, <code>수업노트</code> ✗, <code>Class Note</code> ✗).</p>
+</div>
+
+<h2 id="s3">3. 10분 실습 — 첫 스킬 만들기</h2>
+
+<p>바로 하나 만들어 봅니다. 만들 것은 <strong>수업 노트를 정해진 형식으로 정리해 주는 스킬</strong>입니다.</p>
+
+<p>이 예제를 고른 이유가 있습니다. 스킬이 <strong>제대로 불려왔는지 눈으로 바로 확인</strong>할 수 있기 때문입니다. 결과물에 <code>📘</code> 이모지와 표가 나오면 스킬이 작동한 것이고, 안 나오면 안 된 것입니다. 애매할 일이 없습니다.</p>
+
+<h3>1단계 — 폴더 만들기</h3>
+
+<p>Claude Code 대화창에 그냥 이렇게 말해도 됩니다. 직접 만들고 싶다면 아래 명령을 씁니다.</p>
+
+<div class="codeblock" data-label="Windows PowerShell">
+<pre><code>mkdir "$env:USERPROFILE\.claude\skills\class-note"</code></pre>
+</div>
+
+<div class="codeblock" data-label="맥 · 리눅스 · Git Bash">
+<pre><code>mkdir -p ~/.claude/skills/class-note</code></pre>
+</div>
+
+<h3>2단계 — SKILL.md 쓰기</h3>
+
+<p>방금 만든 폴더 안에 <code>SKILL.md</code> 파일을 만들고 아래 내용을 그대로 넣습니다.</p>
+
+<div class="codeblock" data-label="~/.claude/skills/class-note/SKILL.md">
+<pre><code>---
+name: class-note
+description: 수업에서 배운 내용을 노트로 정리할 때 사용한다. "수업 노트 정리해줘", "오늘 배운 것 정리", "강의 내용 요약해줘" 같은 요청에 쓴다.
+---
+
+# 수업노트 정리
+
+아래 형식을 **그대로** 지켜서 정리한다. 형식을 바꾸지 않는다.
+
+## 📘 수업노트 · (오늘 날짜 YYYY-MM-DD)
+
+| 배운 것 | 한 줄 요약 |
+|---|---|
+| (핵심 개념) | (한 문장으로) |
+
+### 🔁 다음에 복습할 것
+- 2~3개만 고른다. 많이 적지 않는다.
+
+### ❓ 아직 모르겠는 것
+- 솔직하게 적는다. 없으면 "없음"이라고 적는다.
+
+## 규칙
+- 표는 5줄을 넘기지 않는다. 넘으면 덜 중요한 것을 버린다.
+- 한 줄 요약은 한 문장으로 끝낸다.
+- 어려운 말이 나오면 괄호로 쉬운 말을 덧붙인다.</code></pre>
+</div>
+
+<p>위쪽 <code>---</code> 사이에 있는 두 줄이 <strong>가장 중요합니다.</strong> 이게 뭔지는 다음 장에서 설명합니다. 지금은 그대로 두세요.</p>
+
+<h3>3단계 — 잘 등록됐는지 확인하기</h3>
+
+<p>파일을 저장하면 <strong>Claude Code를 껐다 켤 필요 없이</strong> 바로 인식됩니다. 확인하는 방법은 두 가지입니다.</p>
+
+<ol class="decision">
+<li><span class="q">대화창에 <code>/</code> 를 입력해 봅니다</span><span class="a">목록에 <code>class-note</code> 가 보이면 등록된 것입니다.</span></li>
+<li><span class="q">그냥 시켜 봅니다</span><span class="a">"오늘 배운 것 정리해줘" 라고 말한 뒤, 결과에 <strong>📘 와 표</strong>가 나오는지 봅니다.</span></li>
+</ol>
+
+<div class="callout tip">
+  <span class="head">확인 포인트</span>
+  <p>📘 이모지와 <code>🔁 다음에 복습할 것</code> 항목이 나왔다면 <strong>성공입니다.</strong> 그냥 줄글로만 정리해 줬다면 스킬이 안 불려온 것입니다. 그 경우 8장을 보세요.</p>
+</div>
+
+<h3>내 스킬 만들어 보기</h3>
+
+<p>아래 칸을 채우면 <code>SKILL.md</code> 내용이 만들어집니다. 복사해서 파일에 붙여넣으면 바로 내 스킬이 됩니다.</p>
+
+<div class="viz builder">
+  <div class="viz-title">SKILL.md 만들기</div>
+
+  <label for="b-name">스킬 이름 (영문 소문자·하이픈)</label>
+  <input id="b-name" type="text" value="class-note" placeholder="예: daily-report">
+  <p class="hint">폴더 이름으로도 그대로 씁니다.</p>
+
+  <label for="b-desc">언제 쓰는 스킬인가요</label>
+  <textarea id="b-desc" placeholder="예: 하루 업무를 보고서로 정리할 때 사용한다. &quot;일일보고 써줘&quot;, &quot;오늘 한 일 정리&quot; 같은 요청에 쓴다.">수업에서 배운 내용을 노트로 정리할 때 사용한다. "수업 노트 정리해줘", "오늘 배운 것 정리", "강의 내용 요약해줘" 같은 요청에 쓴다.</textarea>
+  <p class="hint"><strong>사용자가 실제로 할 법한 말</strong>을 그대로 넣는 것이 요령입니다.</p>
+
+  <label for="b-body">지켜야 할 규칙 (한 줄에 하나씩)</label>
+  <textarea id="b-body">표는 5줄을 넘기지 않는다.
+한 줄 요약은 한 문장으로 끝낸다.
+어려운 말이 나오면 괄호로 쉬운 말을 덧붙인다.</textarea>
+
+  <div class="out">
+    <div class="codeblock" data-label="SKILL.md">
+      <pre><code id="b-out"></code></pre>
+    </div>
+    <div class="codeblock" data-label="폴더 만들기 (PowerShell)">
+      <pre><code id="b-cmd"></code></pre>
+    </div>
+  </div>
+</div>
+
+<h2 id="s4">4. SKILL.md 뜯어보기</h2>
+
+<p><code>SKILL.md</code> 는 두 부분으로 되어 있습니다.</p>
+
+<div class="summary">
+  <p><span class="k">윗부분</span> <code>---</code> 로 감싼 <strong>이름표</strong>. Claude가 <strong>평소에 늘 보고 있는</strong> 부분입니다.</p>
+  <p><span class="k">아랫부분</span> 실제 <strong>설명서 본문</strong>. 스킬이 <strong>꺼내질 때만</strong> 읽는 부분입니다.</p>
+</div>
+
+<p>이 구분이 스킬의 전부라고 해도 과언이 아닙니다. Claude는 대화 내내 스킬 수십 개의 <strong>이름표만</strong> 들고 있습니다. 본문까지 전부 들고 있으면 대화가 금방 무거워지기 때문입니다. 그러다 요청이 들어오면 <strong>이름표만 보고</strong> "이 스킬을 펴 볼까?"를 판단합니다.</p>
+
+<p>그래서 <code>description</code> 한 줄이 스킬의 성패를 가릅니다.</p>
+
+<h3>description 잘 쓰는 법</h3>
+
+<div class="pros-cons">
+  <div class="cons">
+    <div class="head">✗ 이렇게 쓰면 안 불려옵니다</div>
+    <p><code>description: PPT를 만듭니다.</code></p>
+    <p>무엇을 하는지만 있고 <strong>언제 써야 하는지가 없습니다.</strong> 사용자가 "수업 자료 좀 만들어줘"라고 했을 때 이 스킬을 펴야 할지 판단할 근거가 없습니다.</p>
+  </div>
+  <div class="pros">
+    <div class="head">✓ 이렇게 쓰면 잘 불려옵니다</div>
+    <p><code>description: 비개발자용 교육 슬라이드(16:9 pptx)를 정해진 디자인으로 만든다. "수업 자료 PPT 만들어줘", "강의 슬라이드", "교육용 pptx" 같은 요청에 사용한다.</code></p>
+    <p><strong>사용자가 실제로 쓸 법한 표현</strong>이 들어 있습니다. 판단할 근거가 생깁니다.</p>
+  </div>
+</div>
+
+<ul>
+<li><strong>"언제"를 먼저 씁니다.</strong> "~할 때 사용한다"로 시작하면 자연스럽게 써집니다.</li>
+<li><strong>사용자가 할 법한 말을 그대로 넣습니다.</strong> 따옴표로 두세 개 예시를 넣으면 확실해집니다.</li>
+<li><strong>한국어 요청이면 한국어로 씁니다.</strong> 수업에서 한국어로 말할 거라면 description도 한국어가 낫습니다.</li>
+<li><strong>너무 넓게 잡지 않습니다.</strong> "문서를 만든다" 같은 설명은 온갖 상황에 다 걸려서 엉뚱할 때 튀어나옵니다.</li>
+</ul>
+
+<div class="callout warn">
+  <span class="head">자주 하는 오해</span>
+  <p>특정 단어를 넣으면 그 단어가 나올 때 <strong>기계적으로</strong> 켜지는 것이 아닙니다. Claude가 그 문장을 <strong>읽고 판단</strong>합니다. 그래서 키워드를 나열하는 것보다 <strong>어떤 상황인지 문장으로 설명</strong>하는 편이 잘 작동합니다.</p>
+</div>
+
+<h2 id="s5">5. 스킬이 커지면 — 파일 나누기</h2>
+
+<p>스킬이 길어지면 <code>SKILL.md</code> 하나에 다 넣지 않고 나눕니다. 이유는 <strong>아까 그 "요리책" 논리와 같습니다.</strong></p>
+
+<p><code>SKILL.md</code> 는 스킬이 꺼내질 때 <strong>통째로 읽힙니다.</strong> 여기에 1000줄짜리 색상표와 코드를 다 넣으면, 스킬을 쓸 때마다 그 1000줄이 전부 대화에 들어옵니다. 그래서 <strong>"항상 필요한 것"만 SKILL.md에 남기고</strong>, 나머지는 옆 파일로 빼서 <strong>필요할 때만 읽게</strong> 합니다.</p>
+
+<table class="wrap">
+<thead><tr><th>폴더</th><th>넣는 것</th><th>언제 읽히나</th></tr></thead>
+<tbody>
+<tr><td><code>SKILL.md</code></td><td>작업 순서, 핵심 규칙, 다른 파일 안내</td><td>스킬이 꺼내질 때 항상</td></tr>
+<tr><td><code>scripts/</code></td><td>실제로 실행되는 코드</td><td>실행할 때만 (읽지 않고 돌림)</td></tr>
+<tr><td><code>reference/</code></td><td>긴 표, 상세 규격, 원본 지침</td><td>자세히 확인이 필요할 때만</td></tr>
+<tr><td><code>examples/</code></td><td>예제 파일, 견본</td><td>흉내 낼 것이 필요할 때만</td></tr>
+</tbody>
+</table>
+
+<div class="callout tip">
+  <span class="head">기준 하나만 기억하세요</span>
+  <p><strong>매번 필요한가?</strong> → <code>SKILL.md</code>. <strong>가끔 필요한가?</strong> → 옆 파일로 빼고 SKILL.md에 "자세한 건 <code>reference/…</code> 참고"라고 한 줄 적어둡니다.</p>
+</div>
+
+<h2 id="s6">6. 실제 사례 — 수업 PPT를 만드는 스킬</h2>
+
+<p>이제 실제로 돌아가는 스킬을 봅니다. <code>edu-slides</code> 는 <strong>수업용 슬라이드를 정해진 디자인으로 만들어 주는 스킬</strong>입니다. 이런 결과가 나옵니다.</p>
+
+<figure>
+  <img src="images/slide-cover.png" alt="edu-slides로 만든 표지 슬라이드. 상단 네이비 바에 강의 정보, 큰 제목의 강조어만 파랑, 하단 파란 띠와 우측 하단 페이지 번호.">
+  <figcaption>표지 — 강조할 단어 하나만 파랑. 나머지는 검정.</figcaption>
+</figure>
+
+<figure>
+  <img src="images/slide-step.png" alt="STEP 1 슬라이드. 파란 원 안에 번호 1,2,3이 있고 오른쪽에 한 줄 설명, 아래에 연파랑 팁 상자.">
+  <figcaption>단계 설명 — 번호 배지 + 한 줄 설명, 아래에 팁 상자 하나.</figcaption>
+</figure>
+
+<figure>
+  <img src="images/slide-checklist.png" alt="체크리스트 슬라이드. 위쪽 빨간 경고 띠, 아래 2x2 카드 네 개에 각각 체크 아이콘과 소제목.">
+  <figcaption>체크리스트 — 위에 경고 한 줄, 아래 2×2 카드.</figcaption>
+</figure>
+
+<p>중요한 건 <strong>이 세 장이 서로 다른 대화에서 만들어져도 간격·색·글자 크기가 완전히 같다</strong>는 점입니다. 그게 스킬을 쓰는 이유입니다.</p>
+
+<h3>폴더는 이렇게 생겼습니다</h3>
+
+<div class="tree">
+<div class="row"><span class="fname">edu-slides\</span></div>
+<div class="row">  ├─ <span class="must">SKILL.md</span>                 <span class="why">← 작업 순서와 핵심 규칙만 (짧게)</span></div>
+<div class="row">  ├─ <span class="fname">scripts\</span></div>
+<div class="row">  │    ├─ <span class="fname">deck.py</span>            <span class="why">← 디자인이 코드로 박혀 있는 곳</span></div>
+<div class="row">  │    └─ <span class="fname">build.py</span>           <span class="why">← 내용(JSON) → pptx 변환</span></div>
+<div class="row">  ├─ <span class="fname">reference\</span></div>
+<div class="row">  │    └─ <span class="fname">design-spec.md</span>     <span class="why">← 색·크기 원본 지침 (필요할 때만 읽음)</span></div>
+<div class="row">  └─ <span class="fname">examples\</span></div>
+<div class="row">       └─ <span class="fname">sample-deck.json</span>   <span class="why">← 내용을 어떻게 적는지 견본</span></div>
+</div>
+
+<h3>왜 디자인을 "코드로" 박아 두었나</h3>
+
+<p>이게 이 스킬의 핵심 결정입니다. 색과 간격을 <strong>글로만</strong> 적어두면 이런 일이 생깁니다.</p>
+
+<ul>
+<li>1장은 카드 간격이 30, 3장은 40 — 매번 조금씩 달라집니다.</li>
+<li>페이지 번호를 어떤 장에는 깜빡하고 안 넣습니다.</li>
+<li>말풍선 상자가 페이지 번호를 덮어 버립니다.</li>
+</ul>
+
+<p>그래서 이 스킬은 <strong>"카드를 그린다", "표지를 만든다" 같은 동작을 파이썬 함수로 미리 만들어 두었습니다.</strong> 함수를 부르면 간격과 색은 항상 같습니다. 사람이(그리고 Claude가) 정할 수 있는 건 <strong>내용뿐</strong>입니다. 실수할 여지 자체를 없앤 것입니다.</p>
+
+<p>그래서 내용은 이렇게 간단하게 적습니다.</p>
+
+<div class="codeblock" data-label="내용만 적으면 됩니다 (JSON)">
+<pre><code>{
+  "type": "step_detail",
+  "step_no": "1",
+  "title": "폴더부터 나눕니다",
+  "items": [
+    "주제별로 폴더를 만듭니다. **아이디어 · 중요메모** 정도면 충분합니다.",
+    "폴더 안에 다시 작은 갈래를 둡니다."
+  ],
+  "callout": "처음부터 완벽하게 나누지 마세요.",
+  "callout_kind": "tip"
+}</code></pre>
+</div>
+
+<h3>"눈으로 확인"이 작업 순서에 들어 있는 이유</h3>
+
+<p><code>edu-slides</code> 의 <code>SKILL.md</code> 에는 이런 문장이 있습니다.</p>
+
+<blockquote><p><strong>눈으로 확인한다.</strong> 스크립트가 에러 없이 끝난 것은 "잘 나왔다"가 아니다.</p></blockquote>
+
+<p>슬라이드를 만드는 코드는 <strong>글자가 카드 밖으로 삐져나가도 에러를 내지 않습니다.</strong> 조용히 잘못된 파일을 만들어 냅니다. 그래서 이 스킬은 만든 뒤 PDF로 바꿔 이미지로 뽑아 <strong>직접 보는 단계</strong>를 순서에 넣어 두었습니다.</p>
+
+<div class="callout tip">
+  <span class="head">여러분의 스킬에도 넣으세요</span>
+  <p>스킬을 만들 때 <strong>"어떻게 확인하는지"를 함께 적어두면</strong> 품질이 확 올라갑니다. "결과에 표가 있는지 본다", "링크를 눌러 열리는지 본다" 처럼 <strong>구체적으로</strong> 적습니다.</p>
+</div>
+
+<h3>이 스킬 직접 받아서 써보기</h3>
+
+<div class="dl-row">
+  <div class="t">
+    <b>edu-slides.zip</b>
+    <span>SKILL.md · 스크립트 · 예제 · 견본 슬라이드(pptx/pdf) 포함 · 약 119KB</span>
+  </div>
+  <a class="btn-primary" href="edu-slides.zip" download>내려받기</a>
+</div>
+
+<p>압축을 풀면 <code>edu-slides</code> 폴더가 나옵니다. 그 폴더를 통째로 <code>C:\Users\내이름\.claude\skills\</code> 안에 넣으면 끝입니다.</p>
+
+<div class="codeblock" data-label="넣고 나면 이 모양이어야 합니다">
+<pre><code>C:\Users\내이름\.claude\skills\edu-slides\SKILL.md   ← 이 경로에 파일이 있어야 함</code></pre>
+</div>
+
+<p>슬라이드를 실제로 만들려면 파이썬 라이브러리 하나가 필요합니다.</p>
+
+<div class="codeblock" data-label="필수 — 이것만 있으면 동작합니다">
+<pre><code>pip install python-pptx</code></pre>
+</div>
+
+<table class="wrap">
+<thead><tr><th>준비물</th><th>필요 여부</th><th>없으면</th></tr></thead>
+<tbody>
+<tr><td><code>python-pptx</code></td><td><strong>필수</strong></td><td>슬라이드가 아예 안 만들어집니다</td></tr>
+<tr><td>Pretendard 폰트</td><td>권장</td><td>다른 한글 폰트로 자동 대체됩니다 (모양만 조금 달라짐)</td></tr>
+<tr><td>LibreOffice</td><td>선택</td><td>PDF 미리보기를 못 만듭니다. pptx는 정상적으로 나옵니다</td></tr>
+</tbody>
+</table>
+
+<h2 id="s7">7. 만든 스킬 쓰는 법</h2>
+
+<h3>① 그냥 말하면 됩니다 (기본)</h3>
+
+<p>스킬을 부르는 특별한 명령은 필요 없습니다. <strong>하고 싶은 일을 그대로 말하면</strong> Claude가 이름표를 보고 알아서 꺼냅니다.</p>
+
+<div class="codeblock" data-label="대화창에 이렇게">
+<pre><code>이번 주 수업 슬라이드 만들어줘.
+시리즈명은 "디하클 칼럼니스트 1기", 강의명은 "개인 노트 만들기".
+표지 / 오늘 할 것 / STEP 1~2 / 마무리 이렇게 6장이면 돼.</code></pre>
+</div>
+
+<h3>② 이름을 대고 부르기 (확실한 방법)</h3>
+
+<p>꼭 그 스킬로 하고 싶을 때는 <strong>이름을 직접 말합니다.</strong> 가장 확실합니다.</p>
+
+<div class="codeblock" data-label="대화창에 이렇게">
+<pre><code>edu-slides 스킬로 이번 수업 슬라이드 만들어줘.</code></pre>
+</div>
+
+<p>또는 대화창에 <code>/</code> 를 입력하면 스킬 목록이 뜹니다. 거기서 <code>/edu-slides</code> 처럼 골라도 됩니다.</p>
+
+<h3>③ 고치기</h3>
+
+<p><code>SKILL.md</code> 를 열어 고치고 저장하면 그만입니다. <strong>다시 시작할 필요 없습니다.</strong> "이 스킬에서 카드 색을 좀 더 연하게 바꿔줘" 처럼 Claude에게 고쳐 달라고 해도 됩니다.</p>
+
+<h3>④ 다른 PC로 옮기기</h3>
+
+<ul>
+<li><strong>간단하게</strong> — 스킬 폴더를 복사해서 새 PC의 <code>.claude\skills\</code> 에 넣습니다.</li>
+<li><strong>여러 PC에서 계속 쓸 거라면</strong> — 스킬 폴더를 git 저장소로 만들어 두면 <code>git pull</code> 로 동기화됩니다.</li>
+<li><strong>수업에서 같이 쓸 거라면</strong> — 프로젝트 안 <code>.claude\skills\</code> 에 넣고 저장소에 올립니다. 저장소를 받은 사람 모두가 같은 스킬을 씁니다.</li>
+</ul>
+
+<div class="callout danger">
+  <span class="head">옮기기 전에 꼭</span>
+  <p>스킬 파일에 <strong>비밀번호나 API 키를 절대 적지 마세요.</strong> 스킬은 폴더째 복사되고 저장소에 올라갑니다. 한 번 올라간 키는 지워도 기록에 남습니다.</p>
+</div>
+
+<h2 id="s8">8. 안 될 때 — 점검 순서</h2>
+
+<p>가장 흔한 증상은 <strong>"스킬을 만들었는데 안 불려온다"</strong> 입니다. 위에서부터 차례로 확인하세요.</p>
+
+<ol class="decision">
+<li><span class="q">파일 이름이 <code>SKILL.md</code> 가 맞나요?</span><span class="a">메모장으로 저장하면 <code>SKILL.md.txt</code> 가 되는 일이 많습니다. 파일 확장자 표시를 켜고 확인하세요.</span></li>
+<li><span class="q">위치가 <code>.claude\skills\스킬이름\SKILL.md</code> 인가요?</span><span class="a"><code>skills</code> 폴더 바로 밑에 <code>SKILL.md</code> 를 두면 안 됩니다. <strong>반드시 스킬 이름 폴더를 한 겹 거쳐야</strong> 합니다.</span></li>
+<li><span class="q"><code>---</code> 두 줄이 제대로 있나요?</span><span class="a">맨 첫 줄이 <code>---</code> 여야 합니다. 앞에 빈 줄이 있으면 인식되지 않습니다.</span></li>
+<li><span class="q"><code>name</code> 이 폴더 이름과 같나요?</span><span class="a">폴더는 <code>class-note</code> 인데 <code>name: 수업노트</code> 로 적는 실수가 잦습니다.</span></li>
+<li><span class="q"><code>description</code> 에 "언제 쓰는지"가 있나요?</span><span class="a">여기까지 왔는데도 안 불려온다면 <strong>십중팔구 이 문제</strong>입니다. 4장으로 돌아가 사용자가 할 법한 말을 넣으세요.</span></li>
+<li><span class="q">그래도 안 되면 이름을 대고 부르세요</span><span class="a">"class-note 스킬로 정리해줘" 라고 하면 확실히 불립니다. 이러면 <strong>description 문제인지 아닌지</strong> 판별됩니다.</span></li>
+</ol>
+
+<h3>그 밖에 자주 하는 실수</h3>
+
+<table class="wrap">
+<thead><tr><th>증상</th><th>원인</th><th>해결</th></tr></thead>
+<tbody>
+<tr><td>엉뚱한 때 튀어나온다</td><td>description이 너무 넓다</td><td>범위를 좁히고 예시 표현을 구체적으로</td></tr>
+<tr><td>결과가 매번 다르다</td><td>규칙이 "잘 정리한다" 처럼 모호하다</td><td>"표는 5줄 이하" 처럼 숫자로 못 박기</td></tr>
+<tr><td>대화가 무겁고 느리다</td><td>SKILL.md가 너무 길다</td><td>긴 표·규격을 <code>reference/</code> 로 분리</td></tr>
+<tr><td>스킬이 시키는 대로 안 한다</td><td>규칙이 너무 많다</td><td>정말 중요한 것 5개만 남기기</td></tr>
+</tbody>
+</table>
+
+<h2 id="s9">9. 직접 해보기</h2>
+
+<p>수업에서 만들어 볼 스킬 후보입니다. <strong>결과를 눈으로 확인할 수 있는 것</strong>을 고르세요.</p>
+
+<ol class="decision">
+<li><span class="q">복습 퀴즈 만들기 스킬</span><span class="a">수업 내용을 주면 <strong>객관식 5문제 + 정답을 맨 아래 접어서</strong> 만들어 주는 스킬.</span></li>
+<li><span class="q">깃 커밋 메시지 스킬</span><span class="a">변경 내용을 주면 <strong>정해진 형식</strong>(한 줄 요약 + 빈 줄 + 상세 3줄)으로 써 주는 스킬.</span></li>
+<li><span class="q">과제 피드백 스킬</span><span class="a">코드를 주면 <strong>잘한 것 2개 → 고칠 것 2개 → 다음 목표 1개</strong> 순서로만 말해 주는 스킬.</span></li>
+</ol>
+
+<h3>완성 기준</h3>
+
+<ul>
+<li><code>~/.claude/skills/</code> 아래에 폴더가 있고, 그 안에 <code>SKILL.md</code> 가 있다.</li>
+<li><code>description</code> 에 <strong>사용자가 할 법한 말</strong>이 두 개 이상 들어 있다.</li>
+<li>이름을 대지 <strong>않고</strong> 자연스럽게 요청했을 때 스킬이 불려온다.</li>
+<li>결과물에 <strong>내가 정한 형식</strong>(이모지·표·순서)이 실제로 나타난다.</li>
+</ul>
+
+<h2 id="s10">10. 정리</h2>
+
+<ul>
+<li><strong>스킬 = 폴더 하나 + <code>SKILL.md</code> 하나.</strong> 그게 최소 단위입니다.</li>
+<li><strong><code>description</code> 이 전부입니다.</strong> "언제 쓰는지"와 "사용자가 할 법한 말"을 넣으세요.</li>
+<li><strong>매번 필요한 것만 SKILL.md에.</strong> 긴 규격과 코드는 옆 파일로 빼세요.</li>
+<li><strong>결과가 흔들리면 코드로 박으세요.</strong> 글로 적은 규칙은 조금씩 달라지지만, 함수는 항상 같습니다.</li>
+<li><strong>확인하는 방법까지 적으세요.</strong> "에러가 없다"와 "잘 나왔다"는 다릅니다.</li>
+<li><strong>비밀은 넣지 않습니다.</strong> 스킬은 복사되고 공유되는 물건입니다.</li>
+</ul>
+
+<blockquote>
+<p><strong>수업에서 쓰실 때:</strong> 3장(10분 실습)까지만 같이 해도 수강생 전원이 자기 스킬을 하나씩 갖게 됩니다. 6장의 <code>edu-slides</code> 는 <strong>"스킬이 커지면 이렇게 된다"</strong>를 보여주는 완성 사례이므로, 시간이 부족하면 결과 이미지 세 장만 보여주고 넘어가도 됩니다.</p>
+</blockquote>
+
+  </article>
+
+<script>
+(function () {
+  "use strict";
+
+  // ─────────────────────────────────────────────
+  // 1) 읽기 진행 표시 + 목차
+  // ─────────────────────────────────────────────
+  var bar = document.getElementById("progress");
+  function onScroll() {
+    var h = document.documentElement.scrollHeight - window.innerHeight;
+    var p = h > 0 ? (window.scrollY / h) * 100 : 0;
+    bar.style.width = Math.min(100, Math.max(0, p)) + "%";
+  }
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+
+  var TOC = [
+    ["s1", "스킬이 뭔가요"], ["s2", "어디에 두나"], ["s3", "10분 실습"],
+    ["s4", "SKILL.md"], ["s5", "파일 나누기"], ["s6", "실제 사례"],
+    ["s7", "쓰는 법"], ["s8", "안 될 때"], ["s9", "직접 해보기"], ["s10", "정리"]
+  ];
+  var toc = document.getElementById("toc");
+  toc.innerHTML = TOC.map(function (t) {
+    return '<a href="#' + t[0] + '" data-id="' + t[0] + '">' + t[1] + "</a>";
+  }).join("");
+  var links = {};
+  TOC.forEach(function (t) { links[t[0]] = toc.querySelector('[data-id="' + t[0] + '"]'); });
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) {
+          Object.keys(links).forEach(function (k) { links[k].classList.remove("active"); });
+          if (links[en.target.id]) links[en.target.id].classList.add("active");
+        }
+      });
+    }, { rootMargin: "-120px 0px -70% 0px" });
+    TOC.forEach(function (t) {
+      var el = document.getElementById(t[0]);
+      if (el) io.observe(el);
+    });
+  }
+
+  // ─────────────────────────────────────────────
+  // 2) 코드 블록 라벨 + 복사 버튼
+  //    왕초보가 손으로 옮겨 적다 오타를 내는 일을 막습니다.
+  // ─────────────────────────────────────────────
+  Array.prototype.forEach.call(document.querySelectorAll(".codeblock"), function (box) {
+    var label = box.getAttribute("data-label");
+    if (label) {
+      var l = document.createElement("span");
+      l.className = "label";
+      l.textContent = label;
+      box.appendChild(l);
+    }
+    var btn = document.createElement("button");
+    btn.className = "copy";
+    btn.type = "button";
+    btn.textContent = "복사";
+    btn.addEventListener("click", function () {
+      var code = box.querySelector("code");
+      var text = code ? code.textContent : "";
+      function done() {
+        btn.textContent = "복사됨";
+        btn.classList.add("done");
+        setTimeout(function () { btn.textContent = "복사"; btn.classList.remove("done"); }, 1600);
+      }
+      // 클립보드 API는 https 또는 localhost 에서만 동작합니다.
+      // 파일을 직접 열었을 때(file://)를 위해 예전 방식으로 물러섭니다.
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(done)["catch"](fallback);
+      } else {
+        fallback();
+      }
+      function fallback() {
+        var ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand("copy"); done(); } catch (e) { btn.textContent = "직접 복사하세요"; }
+        document.body.removeChild(ta);
+      }
+    });
+    box.appendChild(btn);
+  });
+
+  // ─────────────────────────────────────────────
+  // 3) SKILL.md 만들기 위젯
+  //    입력한 값이 그대로 파일 내용이 되도록, 꾸미지 않고 그대로 조립합니다.
+  // ─────────────────────────────────────────────
+  var elName = document.getElementById("b-name");
+  var elDesc = document.getElementById("b-desc");
+  var elBody = document.getElementById("b-body");
+  var outSkill = document.getElementById("b-out");
+  var outCmd = document.getElementById("b-cmd");
+
+  function slug(s) {
+    return (s || "").trim().toLowerCase()
+      .replace(/\s+/g, "-")
+      .replace(/[^a-z0-9-]/g, "")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "");
+  }
+
+  function build() {
+    var raw = elName.value;
+    var name = slug(raw) || "my-skill";
+    var desc = (elDesc.value || "").trim().replace(/\s*\n\s*/g, " ");
+    var rules = (elBody.value || "").split("\n")
+      .map(function (s) { return s.trim(); })
+      .filter(function (s) { return s.length > 0; })
+      .map(function (s) { return "- " + s; })
+      .join("\n");
+
+    var title = raw && slug(raw) !== raw.trim() ? raw.trim() : name;
+
+    outSkill.textContent =
+      "---\n" +
+      "name: " + name + "\n" +
+      "description: " + (desc || "(언제 쓰는 스킬인지 한 문장으로 적으세요)") + "\n" +
+      "---\n\n" +
+      "# " + title + "\n\n" +
+      "아래 규칙을 지켜서 작업한다.\n\n" +
+      (rules || "- (지켜야 할 규칙을 한 줄씩 적으세요)") + "\n";
+
+    outCmd.textContent =
+      'mkdir "$env:USERPROFILE\\.claude\\skills\\' + name + '"\n' +
+      'notepad "$env:USERPROFILE\\.claude\\skills\\' + name + '\\SKILL.md"';
+  }
+
+  [elName, elDesc, elBody].forEach(function (el) {
+    el.addEventListener("input", build);
+  });
+  build();
+})();
+</script>
+</body>
+</html>
