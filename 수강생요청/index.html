@@ -132,6 +132,71 @@
     padding-left: 12px; border-left: 2px solid var(--hairline); letter-spacing: -0.224px;
   }
 
+
+  /* ---- 제작 기록 ---- */
+  .made {
+    font-size: 12px; font-weight: 600; color: var(--ink-80); background: var(--parchment);
+    border: 1px solid var(--hairline); border-radius: 999px; padding: 2px 9px;
+    flex: 0 0 auto; font-variant-numeric: tabular-nums;
+  }
+  .made.on { color: #0a7d32; background: rgba(10,125,50,0.08); border-color: rgba(10,125,50,0.25); }
+
+  .rec { margin: 0 0 18px; }
+  .rec-list { list-style: none; margin: 0 0 10px; padding: 0; }
+  .rec-list li {
+    display: flex; align-items: baseline; gap: 10px;
+    font-size: 14px; color: var(--ink-80); letter-spacing: -0.224px;
+    padding: 8px 0; border-bottom: 1px solid var(--parchment);
+  }
+  .rec-list li .d { color: var(--ink-48); font-variant-numeric: tabular-nums; flex: 0 0 auto; font-size: 13px; }
+  .rec-list li .m { flex: 1 1 auto; word-break: break-word; }
+  .rec-list li .pinned { flex: 0 0 auto; font-size: 11px; color: var(--ink-48); }
+  .rec-list li .del {
+    flex: 0 0 auto; border: none; background: none; cursor: pointer; padding: 2px 6px;
+    color: var(--ink-48); font-size: 15px; line-height: 1; border-radius: 6px; font-family: inherit;
+  }
+  .rec-list li .del:hover { color: #c0392b; background: var(--parchment); }
+  .rec-list li .del:focus-visible { outline: 2px solid var(--primary-focus); outline-offset: 1px; }
+
+  .rec-form { display: flex; gap: 8px; align-items: stretch; flex-wrap: wrap; }
+  .rec-form input {
+    flex: 1 1 220px; min-width: 0; font-family: inherit; font-size: 14px; color: var(--ink);
+    border: 1px solid var(--hairline); border-radius: 10px; padding: 9px 12px; background: var(--canvas);
+    letter-spacing: -0.224px;
+  }
+  .rec-form input:focus { outline: none; border-color: var(--primary); }
+  .rec-form button {
+    flex: 0 0 auto; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+    border: 1px solid var(--primary); background: var(--primary); color: #fff;
+    border-radius: 10px; padding: 9px 16px; transition: transform .15s;
+  }
+  .rec-form button:active { transform: scale(0.96); }
+  .rec-form button:focus-visible { outline: 2px solid var(--primary-focus); outline-offset: 2px; }
+
+  /* ---- 상단 요약 패널 ---- */
+  .summary {
+    border: 1px solid var(--hairline); border-radius: 14px; padding: 20px; margin: 0 0 28px;
+  }
+  .summary .s-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+  .summary .s-title { font-size: 17px; font-weight: 600; }
+  .summary .s-num { font-size: 14px; color: var(--ink-48); font-variant-numeric: tabular-nums; }
+  .summary .s-num strong { color: var(--ink); font-size: 17px; }
+  .summary .s-track { height: 10px; background: var(--parchment); border-radius: 999px; overflow: hidden; margin-bottom: 14px; }
+  .summary .s-fill { height: 100%; background: var(--primary); border-radius: 999px; width: 0; transition: width .25s; }
+  .summary .s-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .summary .s-actions button {
+    font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+    border: 1px solid var(--hairline); background: var(--canvas); color: var(--ink-80);
+    border-radius: 999px; padding: 7px 14px;
+  }
+  .summary .s-actions button:hover { border-color: var(--primary); color: var(--primary); }
+  .summary .s-actions button:focus-visible { outline: 2px solid var(--primary-focus); outline-offset: 2px; }
+  .summary .s-hint { font-size: 13px; color: var(--ink-48); letter-spacing: -0.12px; margin: 12px 0 0; line-height: 1.65; }
+  .summary .s-hint code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px;
+    background: var(--parchment); border-radius: 5px; padding: 1px 5px;
+  }
+
   footer.site-footer { background: var(--parchment); color: var(--ink-80); padding: 64px 24px 32px; }
   .footer-links { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px 32px; }
   .footer-links a { display: block; font-size: 17px; line-height: 2.41; color: var(--ink-80); text-decoration: none; }
@@ -173,6 +238,19 @@
       <p>· 한 응답 안에 서로 다른 아이디어가 여럿 있으면(예: “건강관리앱, 상담 업무 자동화, 뉴스레터”) 각 주제에 나눠 넣었습니다.</p>
       <p>· “아직 잘 모르겠습니다”, “없음” 같은 응답은 아이디어로 세지 않고 <strong>미정</strong>으로 따로 셌습니다. 그 숫자도 신호입니다.</p>
       <p>· 원문은 각 항목의 <strong>“응답 원문 보기”</strong>를 펼치면 그대로 볼 수 있습니다. 오탈자와 끊긴 문장도 손대지 않았습니다.</p>
+    </div>
+
+    <div class="summary" id="summary">
+      <div class="s-head">
+        <span class="s-title">수업에서 실제로 만든 것</span>
+        <span class="s-num"><strong id="s-started">0</strong> / <span id="s-total">28</span>개 주제 착수 · 총 <strong id="s-records">0</strong>건 기록</span>
+      </div>
+      <div class="s-track"><div class="s-fill" id="s-fill"></div></div>
+      <div class="s-actions">
+        <button type="button" id="btn-export">기록 내보내기</button>
+        <button type="button" id="btn-reset">이 브라우저 기록 지우기</button>
+      </div>
+      <p class="s-hint">아래 각 주제의 <strong>“+ 1건 기록”</strong>을 누르면 오늘 날짜로 한 줄이 쌓입니다. 기록은 <strong>이 브라우저에만 저장됩니다.</strong> 모두에게 보이게 하려면 <strong>기록 내보내기</strong>로 받은 파일로 <code>수강생요청/progress.js</code>를 덮어쓴 뒤 커밋·푸시하세요. 같은 기록을 여러 번 내보내도 개수는 늘지 않습니다.</p>
     </div>
 
     <!-- ================= 한눈에 보기 ================= -->
@@ -239,8 +317,8 @@
       <h2 class="block-title">① 만들고 싶은 제품 · 서비스</h2>
       <p class="lead">“생성형 AI를 활용해 기획해 보고 싶은 제품(서비스) 아이디어” 문항. 아이디어가 없으면 관심 분야만 적어도 된다고 안내한 문항입니다.</p>
 
-      <div class="cluster">
-        <h4>업무를 스스로 돌리는 시스템 <span class="tally">5건</span></h4>
+      <div class="cluster" data-rec="q1-01" data-title="업무를 스스로 돌리는 시스템">
+        <h4>업무를 스스로 돌리는 시스템 <span class="tally">언급 5건</span></h4>
         <p>단순 자동화보다 <strong>루프</strong>를 그린 응답이 눈에 띕니다. 회의록으로 끝나지 않고 액션플랜 → 진척관리까지, 실행 결과를 다시 다음 판단에 넣는 구조를 그렸습니다.</p>
         <details>
           <summary>응답 원문 보기</summary>
@@ -254,8 +332,8 @@
         </details>
       </div>
 
-      <div class="cluster">
-        <h4>건강 · 헬스케어 <span class="tally">4건</span></h4>
+      <div class="cluster" data-rec="q1-02" data-title="건강 · 헬스케어">
+        <h4>건강 · 헬스케어 <span class="tally">언급 4건</span></h4>
         <p>개인 건강관리부터 <strong>병원 동행</strong>처럼 오프라인 행위를 붙인 서비스까지 폭이 넓습니다.</p>
         <details>
           <summary>응답 원문 보기</summary>
@@ -268,8 +346,8 @@
         </details>
       </div>
 
-      <div class="cluster">
-        <h4>콘텐츠 제작 · 수익화 <span class="tally">5건</span></h4>
+      <div class="cluster" data-rec="q1-03" data-title="콘텐츠 제작 · 수익화">
+        <h4>콘텐츠 제작 · 수익화 <span class="tally">언급 5건</span></h4>
         <p>“만들고 싶다”가 아니라 <strong>“만드는 과정을 자동화하고 싶다”</strong>가 공통점입니다. 아이디어 → 대본 → 편집, 수요 추정 → 프롬프트 생성처럼 파이프라인 단위로 적었습니다.</p>
         <details>
           <summary>응답 원문 보기</summary>
@@ -283,8 +361,8 @@
         </details>
       </div>
 
-      <div class="cluster">
-        <h4>상담 · 심리 · 교육 <span class="tally">3건</span></h4>
+      <div class="cluster" data-rec="q1-04" data-title="상담 · 심리 · 교육">
+        <h4>상담 · 심리 · 교육 <span class="tally">언급 3건</span></h4>
         <p>세 응답 모두 <strong>당사자 사이에 제3자를 끼워 넣는 구조</strong>입니다. 사춘기 자녀와 부모 사이의 상담 전문가, 학생·학부모 대상 코칭처럼 “중개”가 핵심입니다.</p>
         <details>
           <summary>응답 원문 보기</summary>
@@ -296,8 +374,8 @@
         </details>
       </div>
 
-      <div class="cluster">
-        <h4>생활 편의 · 일정 <span class="tally">5건</span></h4>
+      <div class="cluster" data-rec="q1-05" data-title="생활 편의 · 일정">
+        <h4>생활 편의 · 일정 <span class="tally">언급 5건</span></h4>
         <p>구체적 제품보다 <strong>방향</strong>을 적은 응답이 많습니다. 취미·일상에서 시작해 특화 제품으로 넓히겠다는 단계 구상도 있었습니다.</p>
         <details>
           <summary>응답 원문 보기</summary>
@@ -311,8 +389,8 @@
         </details>
       </div>
 
-      <div class="cluster">
-        <h4>금융 · 혜택 · 결제 <span class="tally">2건</span></h4>
+      <div class="cluster" data-rec="q1-06" data-title="금융 · 혜택 · 결제">
+        <h4>금융 · 혜택 · 결제 <span class="tally">언급 2건</span></h4>
         <p>카드 혜택 앱은 이미 많지만, <strong>구독·페이 혜택까지 합쳐 위치 기반으로 판단</strong>하는 조합은 아직 비어 있는 자리입니다.</p>
         <details>
           <summary>응답 원문 보기</summary>
@@ -323,8 +401,8 @@
         </details>
       </div>
 
-      <div class="cluster">
-        <h4>커뮤니티 · 창업 <span class="tally">2건</span></h4>
+      <div class="cluster" data-rec="q1-07" data-title="커뮤니티 · 창업">
+        <h4>커뮤니티 · 창업 <span class="tally">언급 2건</span></h4>
         <p>둘 다 콘텐츠가 아니라 <strong>단계·맥락으로 나뉜 게시판</strong>을 그렸습니다.</p>
         <details>
           <summary>응답 원문 보기</summary>
@@ -335,8 +413,8 @@
         </details>
       </div>
 
-      <div class="cluster">
-        <h4>그 외 개별 아이디어 <span class="tally">3건</span></h4>
+      <div class="cluster" data-rec="q1-08" data-title="그 외 개별 아이디어">
+        <h4>그 외 개별 아이디어 <span class="tally">언급 3건</span></h4>
         <p>묶이지 않지만 그래서 더 눈여겨볼 만한 것들입니다. 특히 공공데이터 활용은 <a href="../06_데이터ML/index.html">PART 06</a> 실습 소재로 바로 쓸 수 있습니다.</p>
         <details>
           <summary>응답 원문 보기</summary>
@@ -348,8 +426,8 @@
         </details>
       </div>
 
-      <div class="cluster">
-        <h4>정보 수집 · 요약 <span class="tally">2건</span></h4>
+      <div class="cluster" data-rec="q1-09" data-title="정보 수집 · 요약">
+        <h4>정보 수집 · 요약 <span class="tally">언급 2건</span></h4>
         <p>①번에서는 두 건뿐이지만, ②번 ‘만들고 싶은 앱’과 ③번 ‘향후 주제’에서 같은 요구가 계속 나옵니다. 문항을 건너뛰며 반복되는 유일한 주제입니다.</p>
         <details>
           <summary>응답 원문 보기</summary>
@@ -360,8 +438,8 @@
         </details>
       </div>
 
-      <div class="cluster">
-        <h4>예약 · 지도 연동 <span class="tally">1건</span></h4>
+      <div class="cluster" data-rec="q1-10" data-title="예약 · 지도 연동">
+        <h4>예약 · 지도 연동 <span class="tally">언급 1건</span></h4>
         <details>
           <summary>응답 원문 보기</summary>
           <ul>
@@ -371,7 +449,7 @@
       </div>
 
       <div class="cluster">
-        <h4>미정 · 분야만 적음 <span class="tally">2건</span></h4>
+        <h4>미정 · 분야만 적음 <span class="tally">언급 2건</span></h4>
         <p>아이디어가 없다기보다 <strong>같이 할 사람과 난이도를 먼저 보고 정하겠다</strong>는 쪽에 가깝습니다.</p>
         <details>
           <summary>응답 원문 보기</summary>
@@ -388,8 +466,8 @@
       <h2 class="block-title">② 만들고 싶은 앱</h2>
       <p class="lead">①번과 겹치는 응답이 많지만, 이쪽은 <strong>기능 단위</strong>로 더 구체적입니다. “화면만 만드는 것이 아니라 회원가입, 예약, 결과 분석, 지도 연동 등 실제 서비스에 필요한 기능까지”라는 문장이 이 문항의 성격을 잘 보여 줍니다.</p>
 
-      <div class="cluster">
-        <h4>예약 · 지도 · 회원가입 등 실서비스 기능 <span class="tally">2건</span></h4>
+      <div class="cluster" data-rec="q2-01" data-title="예약 · 지도 · 회원가입 등 실서비스 기능">
+        <h4>예약 · 지도 · 회원가입 등 실서비스 기능 <span class="tally">언급 2건</span></h4>
         <p>‘똑닥’ 같은 예약 시스템, 심리테스트 결과 분석, 지도 연동 길찾기 — <strong>같은 세 가지를 여러 문항에 걸쳐 반복해서 적은 응답</strong>이 있습니다. 이 조합은 회원가입 · DB · 외부 API · 배포를 한 번에 요구해서, 하나만 제대로 만들면 <a href="../02_바이브코딩/index.html">PART 02</a>부터 <a href="../08_해커톤/index.html">PART 08</a>까지를 관통합니다.</p>
         <details>
           <summary>응답 원문 보기</summary>
@@ -400,8 +478,8 @@
         </details>
       </div>
 
-      <div class="cluster">
-        <h4>건강 · 헬스케어 <span class="tally">4건</span></h4>
+      <div class="cluster" data-rec="q2-02" data-title="건강 · 헬스케어">
+        <h4>건강 · 헬스케어 <span class="tally">언급 4건</span></h4>
         <p>이 문항에서 가장 많이 반복된 단어가 <strong>‘건강관리앱’</strong>입니다. 이미 회사에서 헬스케어 솔루션을 개발 중이라 그 고도화에 집중하겠다는 응답도 있었습니다.</p>
         <details>
           <summary>응답 원문 보기</summary>
@@ -414,8 +492,8 @@
         </details>
       </div>
 
-      <div class="cluster">
-        <h4>정보를 모아 요약해서 알려 주는 앱 <span class="tally">3건</span></h4>
+      <div class="cluster" data-rec="q2-03" data-title="정보를 모아 요약해서 알려 주는 앱">
+        <h4>정보를 모아 요약해서 알려 주는 앱 <span class="tally">언급 3건</span></h4>
         <p>뉴스레터, 관심 뉴스 요약, 날씨 요약 + 코디 추천 — 전부 <strong>“수집 → 요약 → 내가 있는 곳으로 배달”</strong> 한 가지 패턴입니다. 이 설문 전체에서 가장 여러 번 반복된 요구입니다.</p>
         <details>
           <summary>응답 원문 보기</summary>
@@ -427,8 +505,8 @@
         </details>
       </div>
 
-      <div class="cluster">
-        <h4>업무 자동화 <span class="tally">2건</span></h4>
+      <div class="cluster" data-rec="q2-04" data-title="업무 자동화">
+        <h4>업무 자동화 <span class="tally">언급 2건</span></h4>
         <p>상담 업무, 폴더·파일 분류 — <strong>회사에서 지금 하고 있는 반복</strong>을 그대로 가져왔습니다. 소재가 이미 손에 있다는 뜻이라 프로젝트로 잇기 가장 쉬운 쪽입니다.</p>
         <details>
           <summary>응답 원문 보기</summary>
@@ -439,8 +517,8 @@
         </details>
       </div>
 
-      <div class="cluster">
-        <h4>생활 편의 · 여행 · 날씨 <span class="tally">5건</span></h4>
+      <div class="cluster" data-rec="q2-05" data-title="생활 편의 · 여행 · 날씨">
+        <h4>생활 편의 · 여행 · 날씨 <span class="tally">언급 5건</span></h4>
         <p>‘만들고 싶은 앱’ 문항에서 가장 큰 덩어리입니다. 여행 일정, 날씨에 맞춘 코디 추천처럼 <strong>매일 한 번씩 열어 볼 이유가 있는</strong> 앱이 많습니다.</p>
         <details>
           <summary>응답 원문 보기</summary>
@@ -454,8 +532,8 @@
         </details>
       </div>
 
-      <div class="cluster">
-        <h4>상담 · 심리 · 교육 <span class="tally">3건</span></h4>
+      <div class="cluster" data-rec="q2-06" data-title="상담 · 심리 · 교육">
+        <h4>상담 · 심리 · 교육 <span class="tally">언급 3건</span></h4>
         <p>①번과 같은 구조입니다. 당사자끼리 직접 말하기 어려운 자리에 <strong>전문가를 중간에 두는</strong> 설계를 그렸습니다.</p>
         <details>
           <summary>응답 원문 보기</summary>
@@ -467,8 +545,8 @@
         </details>
       </div>
 
-      <div class="cluster">
-        <h4>금융 · 혜택 · 결제 <span class="tally">1건</span></h4>
+      <div class="cluster" data-rec="q2-07" data-title="금융 · 혜택 · 결제">
+        <h4>금융 · 혜택 · 결제 <span class="tally">언급 1건</span></h4>
         <details>
           <summary>응답 원문 보기</summary>
           <ul>
@@ -477,8 +555,8 @@
         </details>
       </div>
 
-      <div class="cluster">
-        <h4>그 외 — 사용자조사 도구 <span class="tally">1건</span></h4>
+      <div class="cluster" data-rec="q2-08" data-title="그 외 — 사용자조사 도구">
+        <h4>그 외 — 사용자조사 도구 <span class="tally">언급 1건</span></h4>
         <p>이 목록에서 유일하게 <strong>서비스가 아니라 리서치 도구</strong>를 만들겠다는 응답입니다.</p>
         <details>
           <summary>응답 원문 보기</summary>
@@ -489,7 +567,7 @@
       </div>
 
       <div class="cluster">
-        <h4>미정 <span class="tally">3건</span></h4>
+        <h4>미정 <span class="tally">언급 3건</span></h4>
         <details>
           <summary>응답 원문 보기</summary>
           <ul>
@@ -506,8 +584,8 @@
       <h2 class="block-title">③ 향후 다뤘으면 하는 주제</h2>
       <p class="lead">수업 쪽 요청입니다. 크게 <strong>“지금 있는 걸 끝까지”</strong>와 <strong>“없는 걸 새로”</strong> 둘로 갈립니다.</p>
 
-      <div class="cluster">
-        <h4>수집 → 요약 → 카톡 · 디스코드 전송 <span class="tally">3건</span></h4>
+      <div class="cluster" data-rec="q3-01" data-title="수집 → 요약 → 카톡 · 디스코드 전송">
+        <h4>수집 → 요약 → 카톡 · 디스코드 전송 <span class="tally">언급 3건</span></h4>
         <p>이 설문을 통틀어 <strong>가장 여러 번, 가장 구체적으로 반복된 요청</strong>입니다. “단순한 실습을 넘어 실제 생활이나 업무에 활용할 수 있는”이라는 단서가 붙었습니다. 예제가 아니라 <strong>계속 돌아가는 것</strong>을 원한다는 뜻입니다.</p>
         <details>
           <summary>응답 원문 보기</summary>
@@ -519,8 +597,8 @@
         </details>
       </div>
 
-      <div class="cluster">
-        <h4>기획력 · 마케팅력 · UI/UX <span class="tally">4건</span></h4>
+      <div class="cluster" data-rec="q3-02" data-title="기획력 · 마케팅력 · UI/UX">
+        <h4>기획력 · 마케팅력 · UI/UX <span class="tally">언급 4건</span></h4>
         <p>코드가 아니라 <strong>그 앞뒤</strong>를 요청했습니다. 만들 수 있는 사람은 늘어나는데 “무엇을 왜 만들지”와 “만든 걸 어떻게 알릴지”가 비어 있다고 느낀다는 신호로 읽힙니다.</p>
         <details>
           <summary>응답 원문 보기</summary>
@@ -533,8 +611,8 @@
         </details>
       </div>
 
-      <div class="cluster">
-        <h4>환경 · 인프라 · 로컬 LLM <span class="tally">4건</span></h4>
+      <div class="cluster" data-rec="q3-03" data-title="환경 · 인프라 · 로컬 LLM">
+        <h4>환경 · 인프라 · 로컬 LLM <span class="tally">언급 4건</span></h4>
         <p>커리큘럼 밖의 요청입니다. “A-Z”, “구축”이라는 표현대로 <strong>남의 API를 쓰는 게 아니라 내 손으로 세우는 것</strong>을 원합니다. ‘하네스 엔지니어링’은 에이전트 개발에서 쓰이는 표현으로, 모델 자체보다 <strong>모델을 감싸는 도구·컨텍스트·루프 설계</strong>를 가리킵니다.</p>
         <details>
           <summary>응답 원문 보기</summary>
@@ -547,8 +625,8 @@
         </details>
       </div>
 
-      <div class="cluster">
-        <h4>영상 · 게임 · 하드웨어 <span class="tally">3건</span></h4>
+      <div class="cluster" data-rec="q3-04" data-title="영상 · 게임 · 하드웨어">
+        <h4>영상 · 게임 · 하드웨어 <span class="tally">언급 3건</span></h4>
         <p>현 커리큘럼에 없는 영역입니다. 특히 <strong>AI × 하드웨어</strong>는 유튜브 문항에서도 같은 사람이 다시 적어, 이 과정 밖에서라도 답이 필요한 관심사로 보입니다.</p>
         <details>
           <summary>응답 원문 보기</summary>
@@ -560,8 +638,8 @@
         </details>
       </div>
 
-      <div class="cluster">
-        <h4>지금 아젠다 그대로, 최신 툴로 <span class="tally">1건</span></h4>
+      <div class="cluster" data-rec="q3-05" data-title="지금 아젠다 그대로, 최신 툴로">
+        <h4>지금 아젠다 그대로, 최신 툴로 <span class="tally">언급 1건</span></h4>
         <p>유일하게 <strong>현 커리큘럼 전체를 그대로 인용하며 “충분하다”</strong>고 답한 응답입니다. 새 주제를 넣기 전에 이 목소리도 같이 놓고 봐야 합니다.</p>
         <details>
           <summary>응답 원문 보기</summary>
@@ -572,7 +650,7 @@
       </div>
 
       <div class="cluster">
-        <h4>미정 <span class="tally">3건</span></h4>
+        <h4>미정 <span class="tally">언급 3건</span></h4>
         <details>
           <summary>응답 원문 보기</summary>
           <ul>
@@ -589,8 +667,8 @@
       <h2 class="block-title">④ 유튜브에서 다뤘으면 하는 주제</h2>
       <p class="lead">수업과 성격이 다릅니다. 여기서는 <strong>깊이보다 폭</strong>, 강의보다 <strong>소개 · 활용팁</strong>을 원한다는 응답이 뚜렷합니다.</p>
 
-      <div class="cluster">
-        <h4>AI 도구 소개와 활용팁 <span class="tally">5건</span></h4>
+      <div class="cluster" data-rec="q4-01" data-title="AI 도구 소개와 활용팁">
+        <h4>AI 도구 소개와 활용팁 <span class="tally">언급 5건</span></h4>
         <p>이 문항의 압도적 1위입니다. 새 도구가 나왔을 때 <strong>“이건 어떤 상황에 쓰는 것”</strong>을 짧게 정리해 주는 콘텐츠를 원합니다.</p>
         <details>
           <summary>응답 원문 보기</summary>
@@ -604,8 +682,8 @@
         </details>
       </div>
 
-      <div class="cluster">
-        <h4>포맷에 대한 요청 <span class="tally">2건</span></h4>
+      <div class="cluster" data-rec="q4-02" data-title="포맷에 대한 요청">
+        <h4>포맷에 대한 요청 <span class="tally">언급 2건</span></h4>
         <p>내용이 아니라 <strong>형식</strong>을 짚은 응답입니다. 강의 영상은 이미 수업에서 충분하니 유튜브는 다른 역할을 맡기자는 이야기로 읽힙니다.</p>
         <details>
           <summary>응답 원문 보기</summary>
@@ -616,8 +694,8 @@
         </details>
       </div>
 
-      <div class="cluster">
-        <h4>유튜브 자체를 만드는 법 · 수익화 <span class="tally">2건</span></h4>
+      <div class="cluster" data-rec="q4-03" data-title="유튜브 자체를 만드는 법 · 수익화">
+        <h4>유튜브 자체를 만드는 법 · 수익화 <span class="tally">언급 2건</span></h4>
         <p>“유튜브에서 보고 싶은 것”을 묻자 <strong>“유튜브를 어떻게 하는지”</strong>를 답했습니다. 콘텐츠 제작·수익화는 다른 문항에서도 반복되는 관심사입니다.</p>
         <details>
           <summary>응답 원문 보기</summary>
@@ -628,8 +706,8 @@
         </details>
       </div>
 
-      <div class="cluster">
-        <h4>아이디어 → 실제 서비스까지의 전 과정 <span class="tally">1건</span></h4>
+      <div class="cluster" data-rec="q4-04" data-title="아이디어 → 실제 서비스까지의 전 과정">
+        <h4>아이디어 → 실제 서비스까지의 전 과정 <span class="tally">언급 1건</span></h4>
         <details>
           <summary>응답 원문 보기</summary>
           <ul>
@@ -638,8 +716,8 @@
         </details>
       </div>
 
-      <div class="cluster">
-        <h4>그 외 <span class="tally">3건</span></h4>
+      <div class="cluster" data-rec="q4-05" data-title="그 외">
+        <h4>그 외 <span class="tally">언급 3건</span></h4>
         <details>
           <summary>응답 원문 보기</summary>
           <ul>
@@ -759,5 +837,7 @@
     </div>
     <div class="footer-legal">AI 프로덕트 마스터 · frontierall</div>
   </footer>
+<script src="progress.js"></script>
+<script src="record.js"></script>
 </body>
 </html>
