@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>서브에이전트 실전 사례 · 07 LLM_RAG_Agent</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@1.3.9/dist/web/static/pretendard.css">
+<style>
+  :root {
+    --primary: #0066cc; --primary-focus: #0071e3;
+    --canvas: #ffffff; --parchment: #f5f5f7;
+    --black: #000000; --ink: #1d1d1f; --ink-80: #333333; --ink-48: #7a7a7a;
+    --hairline: #e0e0e0;
+    --code-bg: #1d1d1f; --code-ink: #f5f5f7;
+    --accent: #bf5af2;
+    --warn-bg: #fff8e6; --warn-line: #f0d68a; --warn-ink: #8a6300;
+    --good-bg: #e9f6ef; --good-line: #b6ddc7; --good-ink: #157f5b;
+    --bad-bg: #fdeeec; --bad-line: #f3c6bf; --bad-ink: #c0362c;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--canvas); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', 'Apple SD Gothic Neo', 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-size: 17px; line-height: 1.6; letter-spacing: -0.374px;
+    word-break: keep-all;
+  }
+
+  /* ---------- 네비 ---------- */
+  .global-nav {
+    position: sticky; top: 0; z-index: 20; height: 44px; background: var(--black);
+    display: flex; align-items: center; justify-content: space-between; padding: 0 22px;
+  }
+  .global-nav .brand { color: #fff; font-size: 12px; font-weight: 600; letter-spacing: -0.12px; text-decoration: none; }
+  .global-nav .meta { color: rgba(255,255,255,0.72); font-size: 12px; letter-spacing: -0.12px; }
+  .sub-nav {
+    position: sticky; top: 44px; z-index: 19; height: 52px;
+    display: flex; align-items: center; justify-content: space-between; padding: 0 22px;
+    background: rgba(245,245,247,0.8);
+    -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+  .sub-nav .category { font-size: 21px; font-weight: 600; letter-spacing: 0.231px; color: var(--ink); text-decoration: none; }
+  .btn-ghost {
+    display: inline-block; border: 1px solid var(--hairline); background: #fff; color: var(--ink);
+    border-radius: 9999px; padding: 7px 16px; font-size: 13px; text-decoration: none;
+  }
+  .btn-ghost:hover { border-color: var(--primary); color: var(--primary); }
+
+  /* ---------- 레이아웃 ---------- */
+  main.content { max-width: 780px; margin: 0 auto; padding: 60px 24px 110px; }
+  .eyebrow { display: block; font-size: 14px; font-weight: 600; letter-spacing: -0.224px; color: var(--ink-48); margin-bottom: 12px; }
+  h1.headline { font-size: 40px; font-weight: 700; line-height: 1.14; margin: 0 0 16px; letter-spacing: -0.5px; }
+  p.tagline { font-size: 21px; line-height: 1.45; margin: 0 0 24px; color: var(--ink-80); }
+
+  section.block { margin-top: 64px; scroll-margin-top: 110px; }
+  h2.section-title {
+    font-size: 27px; font-weight: 700; letter-spacing: -0.4px; margin: 0 0 8px; line-height: 1.3;
+  }
+  h2.section-title .no {
+    display: inline-block; min-width: 1.6em; color: var(--primary); font-weight: 700;
+  }
+  p.section-lead { color: var(--ink-48); font-size: 16px; margin: 0 0 22px; }
+  h3.sub-title { font-size: 19px; font-weight: 600; margin: 32px 0 10px; letter-spacing: -0.3px; }
+  h4.mini-title { font-size: 16px; font-weight: 600; margin: 22px 0 8px; }
+  p { margin: 0 0 14px; }
+
+  /* ---------- 목차 ---------- */
+  nav.toc { background: var(--parchment); border-radius: 18px; padding: 24px 26px; margin: 34px 0 0; }
+  nav.toc .label { font-size: 13px; font-weight: 600; color: var(--ink-48); margin-bottom: 12px; }
+  nav.toc ol { margin: 0; padding-left: 20px; }
+  nav.toc li { padding: 4px 0; font-size: 16px; }
+  nav.toc a { color: var(--ink-80); text-decoration: none; }
+  nav.toc a:hover { color: var(--primary); }
+
+  /* ---------- 박스 ---------- */
+  .plain, .callout, .warn, .good, .bad {
+    border-radius: 14px; padding: 18px 20px; margin: 18px 0; font-size: 16px;
+  }
+  .plain { background: var(--parchment); }
+  .callout { background: #eef5ff; border: 1px solid #cfe0f7; border-left: 4px solid var(--primary); }
+  .warn { background: var(--warn-bg); border: 1px solid var(--warn-line); border-left: 4px solid #d9a300; }
+  .good { background: var(--good-bg); border: 1px solid var(--good-line); border-left: 4px solid var(--good-ink); }
+  .bad  { background: var(--bad-bg);  border: 1px solid var(--bad-line);  border-left: 4px solid var(--bad-ink); }
+  .plain b.h, .callout b.h, .warn b.h, .good b.h, .bad b.h {
+    display: block; font-size: 14px; margin-bottom: 7px; letter-spacing: -0.1px;
+  }
+  .callout b.h { color: var(--primary); }
+  .warn b.h { color: var(--warn-ink); }
+  .good b.h { color: var(--good-ink); }
+  .bad b.h  { color: var(--bad-ink); }
+  .plain p:last-child, .callout p:last-child, .warn p:last-child,
+  .good p:last-child, .bad p:last-child { margin-bottom: 0; }
+
+  /* ---------- 코드 ---------- */
+  .code-wrap { margin: 16px 0; border-radius: 14px; overflow: hidden; border: 1px solid var(--hairline); }
+  .code-head {
+    background: #2c2c2e; color: #d9d9de; font-size: 12px; padding: 9px 16px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  pre.code {
+    margin: 0; background: var(--code-bg); color: var(--code-ink);
+    padding: 18px 16px; overflow-x: auto;
+    font-family: 'SF Mono', ui-monospace, Menlo, Consolas, monospace;
+    font-size: 13.5px; line-height: 1.65; letter-spacing: 0;
+  }
+  pre.code .cm { color: #8a8f98; }
+  pre.code .hl { color: #ffd479; }
+  pre.code .st { color: #78c7a8; }
+  code.inl {
+    background: var(--parchment); padding: 2px 6px; border-radius: 5px;
+    font-family: 'SF Mono', ui-monospace, Menlo, Consolas, monospace; font-size: 14px;
+  }
+
+  /* ---------- 표 ---------- */
+  .tw { overflow-x: auto; margin: 18px 0; border: 1px solid var(--hairline); border-radius: 14px; }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; min-width: 480px; }
+  th, td { padding: 11px 14px; text-align: left; border-bottom: 1px solid var(--hairline); vertical-align: top; }
+  thead th { background: var(--parchment); font-size: 13px; color: var(--ink-48); font-weight: 600; white-space: nowrap; }
+  tbody tr:last-child td { border-bottom: none; }
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  caption { caption-side: bottom; text-align: left; font-size: 13px; color: var(--ink-48); padding: 10px 14px; }
+
+  /* ---------- 다이어그램 ---------- */
+  /* 좁은 화면에서 SVG를 그대로 줄이면 글자가 4~5px로 뭉개진다.
+     최소 폭을 주고 가로로 스크롤되게 한다. */
+  figure.diagram { margin: 24px 0; overflow-x: auto; }
+  figure.diagram svg { width: 100%; min-width: 580px; height: auto; display: block; }
+  figure.diagram figcaption { font-size: 13.5px; color: var(--ink-48); margin-top: 10px; text-align: center; }
+
+  /* ---------- 카드 ---------- */
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(215px, 1fr)); gap: 14px; margin: 20px 0; }
+  .card {
+    border: 1px solid var(--hairline); border-radius: 16px; padding: 20px; background: #fff;
+  }
+  .card .tag {
+    display: inline-block; font-size: 12px; font-weight: 700; padding: 3px 10px;
+    border-radius: 999px; background: var(--parchment); color: var(--ink-48); margin-bottom: 10px;
+  }
+  .card .name { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+  .card .desc { font-size: 14px; color: var(--ink-48); line-height: 1.55; }
+
+  .metric { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin: 20px 0; }
+  .metric > div { border: 1px solid var(--hairline); border-radius: 14px; padding: 16px 18px; }
+  .metric .v { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.15; }
+  .metric .k { font-size: 13px; color: var(--ink-48); margin-top: 4px; }
+
+  /* ---------- 접기 ---------- */
+  details.fold { border: 1px solid var(--hairline); border-radius: 14px; margin: 16px 0; background: #fff; }
+  details.fold > summary {
+    cursor: pointer; padding: 14px 18px; font-weight: 600; font-size: 15px; color: var(--ink-80);
+    list-style: none; display: flex; align-items: center; gap: 9px;
+  }
+  details.fold > summary::-webkit-details-marker { display: none; }
+  details.fold > summary::before { content: '▸'; color: var(--ink-48); font-size: 12px; }
+  details.fold[open] > summary::before { content: '▾'; }
+  details.fold[open] > summary { border-bottom: 1px solid var(--hairline); }
+  details.fold .fold-body { padding: 4px 18px 18px; }
+
+  ul.clean { padding-left: 21px; margin: 12px 0; }
+  ul.clean li { margin-bottom: 9px; }
+  .dim { color: var(--ink-48); }
+
+  /* ---------- 푸터 ---------- */
+  footer.site-footer { background: var(--parchment); color: var(--ink-80); padding: 56px 24px 32px; }
+  .footer-inner { max-width: 780px; margin: 0 auto; font-size: 15px; }
+  .footer-inner a { color: var(--ink-80); }
+  .footer-legal { max-width: 780px; margin: 26px auto 0; padding-top: 16px; border-top: 1px solid var(--hairline); font-size: 12px; color: var(--ink-48); }
+
+  @media (max-width: 640px) {
+    body { font-size: 16px; }
+    main.content { padding: 44px 18px 72px; }
+    h1.headline { font-size: 28px; }
+    p.tagline { font-size: 18px; }
+    h2.section-title { font-size: 22px; }
+    .sub-nav { padding: 0 16px; }
+    .sub-nav .category { font-size: 16px; }
+  }
+  @media (max-width: 380px) { .global-nav .meta { display: none; } }
+</style>
+</head>
+<body>
+
+<nav class="global-nav">
+  <a class="brand" href="../../index.html">frontierall note · 2608</a>
+  <span class="meta">AI 프로덕트 마스터</span>
+</nav>
+<div class="sub-nav">
+  <a class="category" href="../index.html">07 LLM_RAG_Agent</a>
+  <a class="btn-ghost" href="../index.html">← 카테고리</a>
+</div>
+
+<main class="content">
+
+  <span class="eyebrow">실전 사례 연구 · Multi-Agent</span>
+  <h1 class="headline">서브에이전트 3개로<br>분석 보고서 만들기</h1>
+  <p class="tagline">개념 설명이 아니라 <b>실제로 있었던 작업 하나</b>를 처음부터 끝까지 따라갑니다.
+     에이전트를 어떻게 나눴고, 무엇을 시켰고, <b>결과를 어떻게 의심했는지</b>까지.</p>
+
+  <div class="callout">
+    <b class="h">이 문서를 읽고 나면</b>
+    <p>① 서브에이전트를 <b>언제 써야 하고 언제 쓰면 안 되는지</b> 판단할 수 있습니다.<br>
+       ② 에이전트에게 줄 프롬프트를 <b>어떻게 써야 헛소리를 막는지</b> 알게 됩니다.<br>
+       ③ <b>에이전트 결과를 검증하는 절차</b>를 자기 작업에 적용할 수 있습니다.</p>
+  </div>
+
+  <nav class="toc">
+    <div class="label">목차</div>
+    <ol>
+      <li><a href="#s1">서브에이전트가 뭔가요?</a></li>
+      <li><a href="#s2">언제 쓰고, 언제 쓰면 안 되나</a></li>
+      <li><a href="#s3">이번 사례: 어떤 문제였나</a></li>
+      <li><a href="#s4">왜 하필 3개로 나눴나</a></li>
+      <li><a href="#s5">실제로 준 프롬프트 전문</a></li>
+      <li><a href="#s6">헛소리를 막는 장치 5가지</a></li>
+      <li><a href="#s7">전체 흐름 한눈에 보기</a></li>
+      <li><a href="#s8">결과 — 무엇을 찾아냈나</a></li>
+      <li><a href="#s9">⚠️ 가장 중요한 단계: 검증</a></li>
+      <li><a href="#s10">비용과 시간</a></li>
+      <li><a href="#s11">흔한 실수 5가지</a></li>
+      <li><a href="#s12">따라 하기 체크리스트</a></li>
+    </ol>
+  </nav>
+
+  <!-- ══════════ 1 ══════════ -->
+  <section class="block" id="s1">
+    <h2 class="section-title"><span class="no">1</span>서브에이전트가 뭔가요?</h2>
+    <p class="section-lead">한 문장으로: <b>“내가 부리는 또 다른 AI 조수”</b>입니다.</p>
+
+    <p>여러분이 Claude에게 일을 시키면 Claude 혼자 처리합니다.
+       그런데 일이 크면 Claude가 <b>자기 밑에 조수를 여러 명 두고</b> 각자에게 다른 일을 맡길 수 있습니다.
+       이 조수를 <b>서브에이전트(sub-agent)</b>라고 부릅니다.</p>
+
+    <figure class="diagram">
+      <svg viewBox="0 0 720 250" role="img" aria-label="단일 에이전트와 멀티 에이전트 비교">
+        <defs>
+          <marker id="ar" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+            <path d="M0,0 L9,4.5 L0,9 z" fill="#7a7a7a"/>
+          </marker>
+        </defs>
+        <!-- 왼쪽: 단일 -->
+        <text x="20" y="24" font-size="14" font-weight="700" fill="#1d1d1f">혼자 하기</text>
+        <rect x="20" y="40" width="130" height="46" rx="12" fill="#f5f5f7" stroke="#e0e0e0"/>
+        <text x="85" y="68" font-size="13" fill="#1d1d1f" text-anchor="middle">나(사용자)</text>
+        <line x1="85" y1="86" x2="85" y2="112" stroke="#7a7a7a" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="20" y="118" width="130" height="46" rx="12" fill="#0066cc"/>
+        <text x="85" y="146" font-size="13" fill="#fff" text-anchor="middle" font-weight="600">Claude</text>
+        <line x1="85" y1="164" x2="85" y2="190" stroke="#7a7a7a" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="20" y="196" width="130" height="40" rx="12" fill="#fff" stroke="#e0e0e0"/>
+        <text x="85" y="221" font-size="13" fill="#1d1d1f" text-anchor="middle">결과 1개</text>
+
+        <line x1="195" y1="20" x2="195" y2="240" stroke="#e0e0e0" stroke-dasharray="4 4"/>
+
+        <!-- 오른쪽: 멀티 -->
+        <text x="240" y="24" font-size="14" font-weight="700" fill="#1d1d1f">서브에이전트 쓰기</text>
+        <rect x="240" y="40" width="130" height="46" rx="12" fill="#f5f5f7" stroke="#e0e0e0"/>
+        <text x="305" y="68" font-size="13" fill="#1d1d1f" text-anchor="middle">나(사용자)</text>
+        <line x1="305" y1="86" x2="305" y2="106" stroke="#7a7a7a" stroke-width="1.5" marker-end="url(#ar)"/>
+        <rect x="240" y="112" width="130" height="42" rx="12" fill="#0066cc"/>
+        <text x="305" y="138" font-size="13" fill="#fff" text-anchor="middle" font-weight="600">Claude (지휘)</text>
+
+        <path d="M305,154 L305,168 L420,168 L420,182" fill="none" stroke="#7a7a7a" stroke-width="1.5" marker-end="url(#ar)"/>
+        <path d="M305,154 L305,182" fill="none" stroke="#7a7a7a" stroke-width="1.5" marker-end="url(#ar)"/>
+        <path d="M305,154 L305,168 L190,168 L190,182" fill="none" stroke="#7a7a7a" stroke-width="1.5" marker-end="url(#ar)"/>
+
+        <rect x="140" y="188" width="100" height="48" rx="12" fill="#eef5ff" stroke="#cfe0f7"/>
+        <text x="190" y="209" font-size="12" fill="#1d1d1f" text-anchor="middle" font-weight="600">조수 A</text>
+        <text x="190" y="225" font-size="11" fill="#7a7a7a" text-anchor="middle">관점 1</text>
+        <rect x="255" y="188" width="100" height="48" rx="12" fill="#eef5ff" stroke="#cfe0f7"/>
+        <text x="305" y="209" font-size="12" fill="#1d1d1f" text-anchor="middle" font-weight="600">조수 B</text>
+        <text x="305" y="225" font-size="11" fill="#7a7a7a" text-anchor="middle">관점 2</text>
+        <rect x="370" y="188" width="100" height="48" rx="12" fill="#eef5ff" stroke="#cfe0f7"/>
+        <text x="420" y="209" font-size="12" fill="#1d1d1f" text-anchor="middle" font-weight="600">조수 C</text>
+        <text x="420" y="225" font-size="11" fill="#7a7a7a" text-anchor="middle">관점 3</text>
+
+        <text x="530" y="120" font-size="13" fill="#7a7a7a">→ 셋이 동시에 일하고,</text>
+        <text x="530" y="142" font-size="13" fill="#7a7a7a">→ 지휘하는 Claude가</text>
+        <text x="530" y="164" font-size="13" fill="#7a7a7a">   결과를 모아 정리</text>
+      </svg>
+      <figcaption>왼쪽은 순서대로 혼자 처리. 오른쪽은 셋이 동시에 다른 관점으로 처리한 뒤 합칩니다.</figcaption>
+    </figure>
+
+    <div class="plain">
+      <b class="h">핵심 장점 두 가지</b>
+      <p><b>① 동시에 일합니다.</b> 셋이 각자 10분씩 걸리는 일을 순서대로 하면 30분인데, 동시에 하면 10분입니다.</p>
+      <p><b>② 서로의 기억을 공유하지 않습니다.</b> 이게 의외로 중요합니다 —
+         조수 A가 “얼굴이 중요하다”는 결론을 냈어도 조수 B는 그걸 모르고 <b>백지에서 다시 봅니다.</b>
+         그래서 <b>서로 눈치 보지 않는 독립적인 의견</b>이 나옵니다.</p>
+    </div>
+
+    <div class="warn">
+      <b class="h">대신 이런 단점이 있습니다</b>
+      <p>조수는 <b>내가 말해준 것만 압니다.</b> 지금까지의 대화 맥락을 모르기 때문에,
+         파일 경로 하나만 빠뜨려도 엉뚱한 곳을 뒤지거나 <b>기억으로 지어냅니다.</b>
+         그래서 <a href="#s5">5장</a>의 프롬프트 작성이 이 문서에서 가장 중요한 부분입니다.</p>
+    </div>
+  </section>
+
+  <!-- ══════════ 2 ══════════ -->
+  <section class="block" id="s2">
+    <h2 class="section-title"><span class="no">2</span>언제 쓰고, 언제 쓰면 안 되나</h2>
+    <p class="section-lead">초보자가 가장 많이 하는 실수가 <b>안 써도 될 일에 쓰는 것</b>입니다.</p>
+
+    <div class="cards">
+      <div class="card" style="border-color:var(--good-line); background:var(--good-bg)">
+        <span class="tag" style="background:#fff; color:var(--good-ink)">써야 할 때</span>
+        <div class="name">관점이 여러 개일 때</div>
+        <div class="desc">같은 자료를 통계·구조·실무 눈으로 각각 봐야 할 때. 한 명이 세 역할을 하면 앞 결론에 끌려갑니다.</div>
+      </div>
+      <div class="card" style="border-color:var(--good-line); background:var(--good-bg)">
+        <span class="tag" style="background:#fff; color:var(--good-ink)">써야 할 때</span>
+        <div class="name">읽을 파일이 많을 때</div>
+        <div class="desc">파일 50개를 훑어야 하는데 결론만 필요할 때. 조수가 다 읽고 요약만 가져옵니다.</div>
+      </div>
+      <div class="card" style="border-color:var(--good-line); background:var(--good-bg)">
+        <span class="tag" style="background:#fff; color:var(--good-ink)">써야 할 때</span>
+        <div class="name">서로 독립적인 일일 때</div>
+        <div class="desc">A의 결과가 B의 입력이 아닐 때. 순서가 필요하면 나누는 의미가 없습니다.</div>
+      </div>
+      <div class="card" style="border-color:var(--bad-line); background:var(--bad-bg)">
+        <span class="tag" style="background:#fff; color:var(--bad-ink)">쓰면 안 될 때</span>
+        <div class="name">파일 하나만 보면 될 때</div>
+        <div class="desc">“이 값이 뭐지?” 같은 단순 확인. 직접 열어보는 게 빠르고 정확합니다.</div>
+      </div>
+      <div class="card" style="border-color:var(--bad-line); background:var(--bad-bg)">
+        <span class="tag" style="background:#fff; color:var(--bad-ink)">쓰면 안 될 때</span>
+        <div class="name">순서가 있는 일일 때</div>
+        <div class="desc">“설계 → 구현 → 테스트”처럼 앞이 끝나야 뒤가 되는 일. 동시에 못 합니다.</div>
+      </div>
+      <div class="card" style="border-color:var(--bad-line); background:var(--bad-bg)">
+        <span class="tag" style="background:#fff; color:var(--bad-ink)">쓰면 안 될 때</span>
+        <div class="name">검증할 수 없을 때</div>
+        <div class="desc">결과가 맞는지 확인할 방법이 없으면, 조수를 늘릴수록 <b>틀린 내용이 늘어납니다.</b></div>
+      </div>
+    </div>
+
+    <div class="bad">
+      <b class="h">가장 위험한 오해</b>
+      <p>“에이전트를 많이 띄우면 더 똑똑해진다” — <b>아닙니다.</b>
+         에이전트는 각자 헛소리를 할 수 있고, <b>그 헛소리가 세 배로 늘어날 뿐</b>입니다.
+         에이전트를 늘리는 것이 안전해지는 유일한 조건은
+         <b>“결과를 하나하나 검증할 수 있을 때”</b>입니다. (→ <a href="#s9">9장</a>)</p>
+    </div>
+  </section>
+
+  <!-- ══════════ 3 ══════════ -->
+  <section class="block" id="s3">
+    <h2 class="section-title"><span class="no">3</span>이번 사례: 어떤 문제였나</h2>
+
+    <h3 class="sub-title">상황</h3>
+    <p>유튜브 <b>조회수 100만 이상 롱폼 영상 260편</b>의 썸네일을 분석한 자료가 있었습니다.
+       분석 도구가 만들어 준 패키지에는 이런 것들이 들어 있었습니다.</p>
+
+    <div class="metric">
+      <div><div class="v">90 KB</div><div class="k">분석 문서 (마크다운)</div></div>
+      <div><div class="v">45개</div><div class="k">표 CSV</div></div>
+      <div><div class="v">13개</div><div class="k">차트 이미지</div></div>
+      <div><div class="v">260행</div><div class="k">원본 데이터 CSV</div></div>
+    </div>
+
+    <h3 class="sub-title">요구사항</h3>
+    <p>“이 자료로 <b>최종 분석 보고서</b>를 만들어 달라. 단 <b>허위나 추측이 아닌 정확한 사실</b>만.”</p>
+
+    <div class="callout">
+      <b class="h">왜 이 일에 서브에이전트가 맞았나</b>
+      <p>이 자료는 <b>보는 눈에 따라 완전히 다른 결론</b>이 나오는 종류였습니다.</p>
+      <ul class="clean" style="margin-bottom:0">
+        <li><b>통계로 보면</b> — “검정 결과 의미 있는 게 하나도 없다”</li>
+        <li><b>구조로 보면</b> — “이 차이는 요소 때문이 아니라 채널 때문이다”</li>
+        <li><b>실무로 보면</b> — “그래서 뭘 할 수 있고 뭘 못 하나”</li>
+      </ul>
+      <p style="margin-top:10px">한 명이 셋을 다 하면 <b>먼저 낸 결론에 나머지가 끌려갑니다.</b>
+         통계에서 “의미 없음”이 나오면 실무 관점도 자연히 소극적으로 흐르죠.
+         그래서 <b>서로 모르게</b> 따로 시켰습니다.</p>
+    </div>
+  </section>
+
+  <!-- ══════════ 4 ══════════ -->
+  <section class="block" id="s4">
+    <h2 class="section-title"><span class="no">4</span>왜 하필 3개로 나눴나</h2>
+    <p class="section-lead">개수가 중요한 게 아니라 <b>“무엇으로 나눴는가”</b>가 중요합니다.</p>
+
+    <p>나누는 기준은 여러 가지가 있습니다. 이번에는 <b>관점(역할)</b>으로 나눴습니다.</p>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>나누는 기준</th><th>예시</th><th>이번에 골랐나</th></tr></thead>
+        <tbody>
+          <tr><td><b>관점 · 역할</b></td><td>통계 검증 / 구조 분석 / 실무 적용</td><td><b style="color:var(--good-ink)">✔ 선택</b></td></tr>
+          <tr><td>자료 조각</td><td>1~3장 / 4~6장 / 7~8장</td><td class="dim">아니오 — 자료가 서로 얽혀 있어 쪼개면 맥락이 끊김</td></tr>
+          <tr><td>작업 단계</td><td>수집 → 분석 → 작성</td><td class="dim">아니오 — 순서가 있어 동시에 못 함</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <span class="tag" style="background:#eef5ff; color:var(--primary)">에이전트 1</span>
+        <div class="name">통계 검증관</div>
+        <div class="desc"><b>“무엇이 실제로 의미 있는 결과인가?”</b><br>
+          숫자를 의심하는 역할. 자료의 판정이 맞는지, 계산이 재현되는지 확인합니다.</div>
+      </div>
+      <div class="card">
+        <span class="tag" style="background:#eef5ff; color:var(--primary)">에이전트 2</span>
+        <div class="name">구조 분석가</div>
+        <div class="desc"><b>“이 차이는 진짜 원인이 뭔가?”</b><br>
+          차이가 썸네일 때문인지, 장르나 채널 때문인지 파고듭니다.</div>
+      </div>
+      <div class="card">
+        <span class="tag" style="background:#eef5ff; color:var(--primary)">에이전트 3</span>
+        <div class="name">실무 검토자</div>
+        <div class="desc"><b>“그래서 뭘 할 수 있나?”</b><br>
+          말할 수 있는 것과 없는 것을 실무자 언어로 가릅니다.</div>
+      </div>
+    </div>
+
+    <div class="warn">
+      <b class="h">일부러 겹치게 설계했습니다</b>
+      <p>세 에이전트에게 <b>같은 자료 전부</b>를 줬습니다. 조각내지 않았습니다.</p>
+      <p>이유는 <b>교차 검증</b> 때문입니다. 서로 다른 관점의 셋이 같은 자료를 보고
+         <b>독립적으로 같은 곳을 짚으면</b> 그건 우연이 아닙니다.
+         실제로 에이전트 2와 3이 서로 모르는 채로 <b>“채널 쏠림이 문제”</b>라는 같은 지점을 지적했고,
+         그게 최종 보고서의 핵심 결론이 됐습니다.</p>
+    </div>
+  </section>
+
+  <!-- ══════════ 5 ══════════ -->
+  <section class="block" id="s5">
+    <h2 class="section-title"><span class="no">5</span>실제로 준 프롬프트 전문</h2>
+    <p class="section-lead">이 문서에서 <b>가장 실용적인 부분</b>입니다. 그대로 베껴 쓰셔도 됩니다.</p>
+
+    <p>서브에이전트 프롬프트는 <b>5개 블록</b>으로 구성했습니다. 순서에도 이유가 있습니다.</p>
+
+    <figure class="diagram">
+      <svg viewBox="0 0 720 210" role="img" aria-label="프롬프트 5블록 구조">
+        <g font-size="13" fill="#1d1d1f">
+          <rect x="10" y="10" width="700" height="34" rx="9" fill="#0066cc"/>
+          <text x="24" y="32" fill="#fff" font-weight="700">① 역할  “당신은 통계 검증관입니다”</text>
+          <text x="560" y="32" fill="rgba(255,255,255,.75)" font-size="12">← 관점을 고정</text>
+
+          <rect x="10" y="50" width="700" height="34" rx="9" fill="#eef5ff" stroke="#cfe0f7"/>
+          <text x="24" y="72" font-weight="700">② 자료 위치  절대 경로를 전부 명시</text>
+          <text x="500" y="72" fill="#7a7a7a" font-size="12">← 이게 없으면 지어냅니다</text>
+
+          <rect x="10" y="90" width="700" height="34" rx="9" fill="#fdeeec" stroke="#f3c6bf"/>
+          <text x="24" y="112" font-weight="700" fill="#c0362c">③ 절대 규칙  “허위·추측 금지, 출처 명시”</text>
+          <text x="540" y="112" fill="#c0362c" font-size="12">← 가장 중요</text>
+
+          <rect x="10" y="130" width="700" height="34" rx="9" fill="#f5f5f7" stroke="#e0e0e0"/>
+          <text x="24" y="152" font-weight="700">④ 질문 목록  구체적으로 5개</text>
+          <text x="530" y="152" fill="#7a7a7a" font-size="12">← “분석해줘”는 금지</text>
+
+          <rect x="10" y="170" width="700" height="34" rx="9" fill="#f5f5f7" stroke="#e0e0e0"/>
+          <text x="24" y="192" font-weight="700">⑤ 출력 형식  “그대로 옮길 수 있는 완성된 글”</text>
+          <text x="470" y="192" fill="#7a7a7a" font-size="12">← 과정 나열을 막습니다</text>
+        </g>
+      </svg>
+    </figure>
+
+    <h3 class="sub-title">실제 프롬프트 (에이전트 1 · 통계 검증관)</h3>
+
+    <div class="code-wrap">
+      <div class="code-head"><span>서브에이전트 프롬프트</span><span>실제 사용본</span></div>
+<pre class="code"><span class="cm">// ① 역할 — 첫 줄에서 관점을 못박습니다</span>
+당신은 <span class="hl">통계 검증관</span> 관점으로 유튜브 썸네일 분석 자료를 검토합니다.
+최종 보고서의 한 축이 됩니다.
+
+<span class="cm">// ② 자료 위치 — 절대 경로. "그 폴더"라고 하면 못 찾습니다</span>
+## 자료 위치 (Windows, Git Bash 사용 가능)
+- 분석 패키지: D:/.../yt-insight-썸네일패키지_2026-09-02/
+  - <span class="st">썸네일_분석.md</span> (90KB, 주 자료)
+  - <span class="st">AI_분석요청.md</span> (반드시 먼저 읽을 것)
+  - tables/*.csv (45개), chart-data/*.csv|json (26개)
+- 원본 데이터: D:/.../yt-insight-통합+썸네일_전체_2026-08-24.csv (260행)
+
+<span class="cm">// ③ 절대 규칙 — 여기가 헛소리를 막는 핵심입니다</span>
+## 절대 규칙 (사용자가 명시적으로 요구함)
+1. <span class="hl">허위·추측 금지.</span> 모든 수치는 위 파일에서 읽었거나 원본 CSV에서
+   직접 계산한 것이어야 합니다. <span class="hl">기억이나 일반 상식으로 숫자를 쓰지 마세요.</span>
+2. <span class="hl">모든 숫자에 출처를 답니다.</span>
+   예: (썸네일_분석.md 5장 / tables/23_....csv) 또는 (원본 CSV 직접 계산, n=260)
+3. <span class="hl">판정을 뒤집지 마세요.</span> 자료에 "우연과 구분 안 됨", "판정 불가"라고
+   적힌 것은 그대로 그렇게 보고합니다.
+4. <span class="hl">처방 금지.</span> 이 표본은 조회수 100만 이상만 모여 있어 실패 사례가
+   없습니다. "이렇게 하면 잘 된다"는 문장을 쓰지 마세요.
+5. 확인이 안 되는 것은 <span class="hl">"자료로 확인 불가"</span>라고 쓰세요.
+   비워두거나 추측하지 마세요.
+
+<span class="cm">// ④ 질문 목록 — "분석해줘"가 아니라 답할 것을 구체적으로</span>
+## 당신이 답할 것
+1. 통계적으로 살아남은 발견 — 보정 후에도 유의한 항목만.
+   각각에 표본 수 n, 효과 크기, q값, 출처 파일.
+2. 판정 불가로 남은 축 — "차이가 없다"가 아니라 "못 가린다"인 항목들.
+3. 자료가 스스로 밝힌 방법론 한계 — 초보자도 알게 한 문장씩.
+4. 교차 검증 결과 — 본문 표와 CSV 값이 일치하는지 최소 5개 표본 검사.
+5. 원본 CSV로 직접 재계산해 본 것 2~3개.
+
+<span class="cm">// ⑤ 출력 형식 — 과정 나열을 막습니다</span>
+## 출력 형식
+한국어. 마크다운. 표를 적극 사용.
+최종 답변은 <span class="hl">다른 사람이 그대로 보고서에 옮길 수 있는 완성된 글</span>이어야
+합니다(중간 과정 나열 금지). 분량은 필요한 만큼.</pre>
+    </div>
+
+    <details class="fold">
+      <summary>에이전트 2 · 3의 프롬프트는 무엇이 달랐나</summary>
+      <div class="fold-body">
+        <p><b>①② ③⑤ 블록은 거의 그대로 복사했습니다.</b> 달라진 것은 <b>역할 한 줄</b>과 <b>④ 질문 목록</b>뿐입니다.</p>
+        <div class="tw">
+          <table>
+            <thead><tr><th>에이전트</th><th>역할 한 줄</th><th>④ 질문의 초점</th></tr></thead>
+            <tbody>
+              <tr><td>1 · 통계 검증관</td><td>“무엇이 실제로 유의한가”</td><td>유의한 발견 / 판정 불가 / 교차 검증</td></tr>
+              <tr><td>2 · 구조 분석가</td><td>“요소의 효과인가 장르·채널의 효과인가”</td><td>카테고리별 문법 / <b>채널 쏠림 직접 계산</b> / 장르 교란 증거</td></tr>
+              <tr><td>3 · 실무 검토자</td><td>“말할 수 있는 것과 없는 것”</td><td>통념 대조표 / 적용 불가 목록 / 다음에 재야 할 것</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>에이전트 2에게는 <b>계산에 쓸 정규식과 컬럼명까지</b> 프롬프트에 넣어줬습니다.
+           그래야 세 에이전트가 <b>같은 기준</b>으로 센 값을 내놓습니다.</p>
+        <div class="code-wrap">
+          <div class="code-head"><span>에이전트 2에게 준 계산 기준</span></div>
+<pre class="code"><span class="cm">// 사전을 직접 주면 에이전트가 제멋대로 정하지 않습니다</span>
+- 위기: 폭락|붕괴|추락|급락|초비상|끔찍|무너|위기|경고|충격|공포|파산|최악
+- 해결·출구: 방법|하는 ?법|비법|꿀팁|루틴|해결|회복|고치|살리
+- 권위·직함: 의사|명의|교수|박사|전문의|셰프|변호사|원장|CEO|대표
+- 질문형: [?？]
+<span class="hl">낱말 사전이라 실제보다 낮게 나온다는 점을 반드시 밝히세요.</span></pre>
+      </div>
+    </details>
+  </section>
+
+  <!-- ══════════ 6 ══════════ -->
+  <section class="block" id="s6">
+    <h2 class="section-title"><span class="no">6</span>헛소리를 막는 장치 5가지</h2>
+    <p class="section-lead">위 프롬프트의 ③번 블록을 하나씩 뜯어봅니다. <b>이게 이 문서의 핵심 노하우입니다.</b></p>
+
+    <h4 class="mini-title">① “기억이나 일반 상식으로 숫자를 쓰지 마세요”</h4>
+    <p>AI는 <b>모르면 그럴듯하게 지어냅니다.</b> “유튜브 썸네일은 보통 얼굴이 있으면 CTR이 높습니다” 같은
+       <b>어디서 본 듯한 문장</b>을 데이터에서 나온 것처럼 씁니다.
+       이 한 줄이 그것을 명시적으로 금지합니다.</p>
+
+    <h4 class="mini-title">② “모든 숫자에 출처를 답니다”</h4>
+    <p>출처를 달라고 하면 <b>지어낸 숫자는 출처를 못 답니다.</b> 자동 필터가 됩니다.
+       그리고 나중에 검증할 때 <b>어디를 열어볼지</b> 바로 알 수 있습니다.</p>
+    <div class="good">
+      <b class="h">실제 효과</b>
+      <p>세 에이전트가 낸 답에는 <code class="inl">(원본 CSV 직접 계산, n=47)</code>,
+         <code class="inl">(패키지 표 32/34)</code> 같은 표시가 문장마다 붙어 있었습니다.
+         덕분에 검증이 <b>“이 값을 다시 계산해 보자”</b>로 단순해졌습니다.</p>
+    </div>
+
+    <h4 class="mini-title">③ “판정을 뒤집지 마세요”</h4>
+    <p>원자료에는 <b>“우연과 구분 안 됨”, “판정 불가”</b> 같은 조심스러운 표현이 많았습니다.
+       그런데 AI는 <b>깔끔한 결론을 좋아해서</b> 이런 것을 “다소 높은 경향” 같은 말로 슬쩍 바꿉니다.
+       그러면 원자료가 애써 막아둔 오해가 되살아납니다.</p>
+
+    <h4 class="mini-title">④ “처방 금지 — 실패 사례가 없습니다”</h4>
+    <div class="plain">
+      <p>이번 데이터는 <b>이미 100만을 넘긴 영상만</b> 모여 있었습니다.
+         즉 <b>“A를 쓰고 실패한 영상”이 0편</b>이라, “A를 쓰면 성공한다”를 검증할 방법이 원천적으로 없습니다.</p>
+      <p style="margin-bottom:0"><b>합격자 260명의 공부법만 모아 놓고 “이 공부법이 합격시킨다”고 말할 수 없는 것</b>과 같습니다.
+         이 한계를 프롬프트에 <b>이유까지 함께</b> 적어줘야 에이전트가 지킵니다. 금지만 하면 이유를 몰라 슬쩍 어깁니다.</p>
+    </div>
+
+    <h4 class="mini-title">⑤ “확인 안 되면 <b>확인 불가</b>라고 쓰세요”</h4>
+    <p>이걸 안 적으면 AI는 <b>빈칸을 싫어해서</b> 뭐라도 채워 넣습니다.
+       “확인 불가”라는 <b>합법적인 출구</b>를 만들어 주는 것이 중요합니다.</p>
+
+    <div class="callout">
+      <b class="h">정리 — 이 5개는 세트입니다</b>
+      <p><b>①②</b>는 지어내는 것을 막고, <b>③④</b>는 결론을 부풀리는 것을 막고,
+         <b>⑤</b>는 억지로 채우는 것을 막습니다. 하나만 빼도 그 구멍으로 샙니다.</p>
+    </div>
+  </section>
+
+  <!-- ══════════ 7 ══════════ -->
+  <section class="block" id="s7">
+    <h2 class="section-title"><span class="no">7</span>전체 흐름 한눈에 보기</h2>
+
+    <figure class="diagram">
+      <svg viewBox="0 0 720 430" role="img" aria-label="전체 작업 흐름">
+        <defs>
+          <marker id="ar2" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+            <path d="M0,0 L9,4.5 L0,9 z" fill="#7a7a7a"/>
+          </marker>
+          <marker id="ar3" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+            <path d="M0,0 L9,4.5 L0,9 z" fill="#c0362c"/>
+          </marker>
+        </defs>
+
+        <!-- 단계 라벨 -->
+        <g font-size="11" fill="#7a7a7a" font-weight="600">
+          <text x="12" y="34">STEP 1</text>
+          <text x="12" y="120">STEP 2</text>
+          <text x="12" y="246">STEP 3</text>
+          <text x="12" y="330">STEP 4</text>
+          <text x="12" y="404">STEP 5</text>
+        </g>
+
+        <!-- 1. 입력 -->
+        <rect x="90" y="16" width="540" height="42" rx="11" fill="#f5f5f7" stroke="#e0e0e0"/>
+        <text x="360" y="36" font-size="13.5" font-weight="700" text-anchor="middle" fill="#1d1d1f">분석 패키지 + 원본 CSV 260행</text>
+        <text x="360" y="51" font-size="11.5" text-anchor="middle" fill="#7a7a7a">마크다운 90KB · 표 45개 · 차트 13개</text>
+
+        <line x1="360" y1="58" x2="360" y2="80" stroke="#7a7a7a" stroke-width="1.5" marker-end="url(#ar2)"/>
+
+        <!-- 2. 팬아웃 -->
+        <rect x="90" y="86" width="540" height="34" rx="10" fill="#0066cc"/>
+        <text x="360" y="108" font-size="13" font-weight="700" text-anchor="middle" fill="#fff">지휘 Claude — 같은 자료를 셋 모두에게, 관점만 다르게</text>
+
+        <path d="M240,120 L240,140" stroke="#7a7a7a" stroke-width="1.5" marker-end="url(#ar2)" fill="none"/>
+        <path d="M360,120 L360,140" stroke="#7a7a7a" stroke-width="1.5" marker-end="url(#ar2)" fill="none"/>
+        <path d="M480,120 L480,140" stroke="#7a7a7a" stroke-width="1.5" marker-end="url(#ar2)" fill="none"/>
+
+        <rect x="160" y="146" width="160" height="72" rx="13" fill="#eef5ff" stroke="#cfe0f7"/>
+        <text x="240" y="170" font-size="12.5" font-weight="700" text-anchor="middle">① 통계 검증관</text>
+        <text x="240" y="188" font-size="11" text-anchor="middle" fill="#7a7a7a">무엇이 유의한가</text>
+        <text x="240" y="205" font-size="11" text-anchor="middle" fill="#0066cc">13.6분 · 155k토큰</text>
+
+        <rect x="280" y="146" width="160" height="72" rx="13" fill="#eef5ff" stroke="#cfe0f7" transform="translate(0,0)"/>
+        <text x="360" y="170" font-size="12.5" font-weight="700" text-anchor="middle">② 구조 분석가</text>
+        <text x="360" y="188" font-size="11" text-anchor="middle" fill="#7a7a7a">요소인가 채널인가</text>
+        <text x="360" y="205" font-size="11" text-anchor="middle" fill="#0066cc">11.3분 · 134k토큰</text>
+
+        <rect x="400" y="146" width="160" height="72" rx="13" fill="#eef5ff" stroke="#cfe0f7"/>
+        <text x="480" y="170" font-size="12.5" font-weight="700" text-anchor="middle">③ 실무 검토자</text>
+        <text x="480" y="188" font-size="11" text-anchor="middle" fill="#7a7a7a">뭘 할 수 있나</text>
+        <text x="480" y="205" font-size="11" text-anchor="middle" fill="#0066cc">9.9분 · 123k토큰</text>
+
+        <path d="M240,218 L240,238 L360,238" stroke="#7a7a7a" stroke-width="1.5" fill="none"/>
+        <path d="M480,218 L480,238 L360,238" stroke="#7a7a7a" stroke-width="1.5" fill="none"/>
+        <path d="M360,218 L360,262" stroke="#7a7a7a" stroke-width="1.5" marker-end="url(#ar2)" fill="none"/>
+
+        <!-- 3. 검증 -->
+        <rect x="90" y="268" width="540" height="46" rx="11" fill="#fdeeec" stroke="#f3c6bf" stroke-width="1.5"/>
+        <text x="360" y="288" font-size="13.5" font-weight="700" text-anchor="middle" fill="#c0362c">⚠️ 검증 — 세 결과의 숫자를 원본 CSV로 전부 다시 계산</text>
+        <text x="360" y="305" font-size="11.5" text-anchor="middle" fill="#c0362c">지휘 Claude가 직접 스크립트를 짜서 대조</text>
+
+        <path d="M630,291 L672,291 L672,190 L565,190" stroke="#c0362c" stroke-width="1.5" stroke-dasharray="4 3" fill="none" marker-end="url(#ar3)"/>
+        <text x="686" y="240" font-size="10.5" fill="#c0362c" transform="rotate(90 686 240)">어긋나면 되돌림</text>
+
+        <line x1="360" y1="314" x2="360" y2="338" stroke="#7a7a7a" stroke-width="1.5" marker-end="url(#ar2)"/>
+
+        <!-- 4. 취합 -->
+        <rect x="90" y="344" width="540" height="40" rx="11" fill="#f5f5f7" stroke="#e0e0e0"/>
+        <text x="360" y="369" font-size="13" font-weight="700" text-anchor="middle">검증 통과한 수치만으로 보고서 작성</text>
+
+        <line x1="360" y1="384" x2="360" y2="400" stroke="#7a7a7a" stroke-width="1.5" marker-end="url(#ar2)"/>
+        <rect x="230" y="404" width="260" height="22" rx="8" fill="#0066cc"/>
+        <text x="360" y="419" font-size="12" font-weight="700" text-anchor="middle" fill="#fff">최종 HTML 보고서</text>
+      </svg>
+      <figcaption>STEP 3(빨간 상자)이 없으면 이 구조는 <b>헛소리 3배 생산기</b>가 됩니다.</figcaption>
+    </figure>
+
+    <div class="plain">
+      <b class="h">세 에이전트를 동시에 띄우는 법</b>
+      <p>중요한 실무 팁 하나 — <b>한 번의 요청에 세 개를 함께 넣어야</b> 동시에 실행됩니다.
+         하나 띄우고 결과를 기다렸다가 다음을 띄우면 <b>순차 실행이 되어 3배 오래 걸립니다.</b></p>
+    </div>
+  </section>
+
+  <!-- ══════════ 8 ══════════ -->
+  <section class="block" id="s8">
+    <h2 class="section-title"><span class="no">8</span>결과 — 무엇을 찾아냈나</h2>
+    <p class="section-lead">관점을 나눈 효과가 실제로 어떻게 나타났는지 봅니다.</p>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th style="min-width:110px">에이전트</th><th>혼자였다면 놓쳤을 것</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><b>① 통계</b></td>
+            <td>원자료가 <b>보정값(q)을 계산하지 않고 남겨둔 표</b>를 발견하고, 직접 계산해 채웠습니다.
+                그 결과 “썸네일 글자 분량”이 <b>조건부로만 살아남는다</b>는 것을 밝혔습니다 —
+                <b>검정 범위를 6칸으로 보면 살아남고 18칸으로 보면 사라집니다.</b>
+                이런 미묘한 조건은 다른 일을 겸하면 절대 못 잡습니다.</td>
+          </tr>
+          <tr>
+            <td><b>② 구조</b></td>
+            <td><b>이번 분석의 최대 발견</b>을 찾았습니다 —
+                한 채널(「보다 BODA」)이 과학·역사·범죄 <b>3개 장르를 넘나들며 14편 전부 똑같은 템플릿</b>을 썼고,
+                <b>과학 카테고리는 9편 중 8편(89%)</b>이 그 채널이었습니다.
+                즉 “과학 장르의 썸네일 문법”이 실은 <b>한 채널의 습관</b>이었습니다.</td>
+          </tr>
+          <tr>
+            <td><b>③ 실무</b></td>
+            <td>흔한 통념 8개를 데이터와 <b>하나하나 대조</b>했습니다.
+                “밝고 채도 높아야 눈에 띈다” → 실제로는 <b>성공작의 80.4%가 중간보다 어둡고 채도가 낮았습니다.</b></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="good">
+      <b class="h">가장 값진 순간 — 서로 모르는 둘이 같은 곳을 짚었을 때</b>
+      <p>에이전트 <b>2와 3이 서로의 답을 전혀 모르는 상태</b>에서
+         둘 다 <b>“채널 쏠림이 이 분석의 근본 문제”</b>라고 지적했습니다.</p>
+      <p>이건 우연히 겹친 게 아니라 <b>데이터에 실제로 있는 신호</b>라는 강력한 증거입니다.
+         한 명에게 시켰다면 “그 사람의 의견” 하나로 끝났을 것을,
+         <b>독립된 둘의 일치</b>로 확인한 셈입니다. 이것이 관점을 나눈 진짜 이유입니다.</p>
+    </div>
+
+    <details class="fold">
+      <summary>세 에이전트가 발견한 데이터 품질 문제들</summary>
+      <div class="fold-body">
+        <p>원자료가 스스로 밝힌 것 외에 <b>새로 찾아낸 것들</b>입니다. 전부 검증을 통과했습니다.</p>
+        <div class="tw">
+          <table>
+            <thead><tr><th>발견</th><th class="n">건수</th><th>왜 문제인가</th></tr></thead>
+            <tbody>
+              <tr><td>텍스트 유무를 재는 컬럼 2개가 서로 어긋남</td><td class="n">13건</td><td>“텍스트 있음 vs 없음” 비교 자체가 흔들립니다</td></tr>
+              <tr><td>얼굴이 0명인데 표정이 “과장”</td><td class="n">3건</td><td>같은 화면에서 표본 수가 43편/40편으로 어긋나던 원인</td></tr>
+              <tr><td>640×480인데 저해상도 플래그가 N</td><td class="n">5건</td><td>이 컬럼은 사실상 무용지물</td></tr>
+              <tr><td>카테고리 컬럼이 2개이고 값이 다름</td><td class="n">2건</td><td>화면마다 카테고리 편수가 달라 보이던 원인</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin-bottom:0"><b>이런 것은 “분석”을 시켜서 나온 게 아닙니다.</b>
+           “교차 검증하라”, “원본으로 재계산하라”고 <b>명시적으로 시켰기 때문에</b> 나왔습니다.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ══════════ 9 ══════════ -->
+  <section class="block" id="s9">
+    <h2 class="section-title"><span class="no">9</span>⚠️ 가장 중요한 단계: 검증</h2>
+    <p class="section-lead">이 장을 안 읽으면 나머지를 읽은 의미가 없습니다.</p>
+
+    <div class="bad">
+      <b class="h">전제</b>
+      <p><b>서브에이전트의 답을 그대로 믿으면 안 됩니다.</b>
+         프롬프트에 “허위 금지”를 아무리 적어도 <b>틀린 숫자는 나옵니다.</b>
+         에이전트를 셋 띄웠다는 것은 <b>검증할 것이 세 배로 늘었다</b>는 뜻이기도 합니다.</p>
+    </div>
+
+    <h3 class="sub-title">실제로 한 일 — 숫자를 하나씩 다시 계산</h3>
+    <p>세 에이전트가 낸 <b>주요 수치를 골라 원본 CSV 260행에서 직접 다시 계산</b>했습니다.
+       사람이 눈으로 대조한 게 아니라 <b>스크립트를 짜서</b> 대조했습니다.</p>
+
+    <div class="code-wrap">
+      <div class="code-head"><span>검증 스크립트 (일부)</span><span>Node.js</span></div>
+<pre class="code"><span class="cm">// 에이전트가 "밝기 128 미만이 80.4%"라고 했다 → 진짜인지 직접 센다</span>
+console.log('주장: 밝기&lt;128 = 80.4% →',
+  pct(rows.filter(r =&gt; N(r,'평균_밝기') &lt; 128).length));
+
+<span class="cm">// 에이전트가 "보다 BODA 14편, 과학 8·역사 5·범죄 1"이라고 했다</span>
+const boda = rows.filter(r =&gt; S(r,'채널') === '보다 BODA');
+console.log(boda.length + '편 ·', [...bd].map(([c,n]) =&gt; c+' '+n).join(' · '));
+
+<span class="cm">// 에이전트가 새로 계산했다는 q값도 같은 함수로 다시 돌려본다</span>
+const q6 = st.benjaminiHochberg(only.map(c =&gt; c.p));</pre>
+    </div>
+
+    <h3 class="sub-title">검증 결과</h3>
+    <div class="metric">
+      <div><div class="v">30여 개</div><div class="k">대조한 수치</div></div>
+      <div><div class="v" style="color:var(--good-ink)">전부 일치</div><div class="k">에이전트 2 · 3</div></div>
+      <div><div class="v" style="color:var(--bad-ink)">1건 불일치</div><div class="k">에이전트 3</div></div>
+    </div>
+
+    <div class="warn">
+      <b class="h">실제로 잡아낸 오류 — 이 사례가 검증의 필요성을 증명합니다</b>
+      <p>에이전트 3이 <b>“조회수 중앙값 1,375,449회”</b>라고 썼습니다.<br>
+         제가 직접 계산한 값은 <b>1,372,600.5회</b>였습니다.</p>
+      <p><b>원인:</b> 그 숫자는 전체 260편의 중앙값이 아니라
+         <b>“썸네일에 텍스트가 있는 229편”의 중앙값</b>이었습니다.
+         자료 어딘가에 있던 값을 <b>다른 뜻으로 가져다 쓴 것</b>입니다.</p>
+      <p style="margin-bottom:0"><b>이런 오류는 겉보기에 완벽합니다.</b> 출처도 있고, 자릿수도 그럴듯하고,
+         실제로 그 자료에 존재하는 숫자입니다. <b>다시 계산해 보지 않으면 절대 못 잡습니다.</b></p>
+    </div>
+
+    <div class="callout">
+      <b class="h">검증할 때 무엇을 고르나 — 우선순위</b>
+      <ul class="clean" style="margin-bottom:0">
+        <li><b>1순위 — 에이전트가 “새로 계산했다”는 값.</b> 원자료에 없던 숫자가 가장 위험합니다.</li>
+        <li><b>2순위 — 보고서의 결론을 떠받치는 값.</b> 틀리면 결론이 무너지는 숫자.</li>
+        <li><b>3순위 — 유난히 깔끔하거나 극적인 값.</b> “100%”, “정확히 절반” 같은 것.</li>
+      </ul>
+    </div>
+
+    <div class="plain">
+      <b class="h">검증이 불가능한 일이라면?</b>
+      <p><b>서브에이전트를 쓰지 마세요.</b> 검증할 수 없으면 결과를 믿을 근거가 없고,
+         믿을 수 없는 결과를 셋 모으면 <b>혼자 할 때보다 나빠집니다.</b></p>
+    </div>
+  </section>
+
+  <!-- ══════════ 10 ══════════ -->
+  <section class="block" id="s10">
+    <h2 class="section-title"><span class="no">10</span>비용과 시간</h2>
+    <p class="section-lead">서브에이전트는 공짜가 아닙니다. 실제 수치를 공개합니다.</p>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>에이전트</th><th class="n">사용 토큰</th><th class="n">도구 호출</th><th class="n">걸린 시간</th></tr></thead>
+        <tbody>
+          <tr><td>① 통계 검증관</td><td class="n">154,952</td><td class="n">23회</td><td class="n">13분 37초</td></tr>
+          <tr><td>② 구조 분석가</td><td class="n">133,757</td><td class="n">18회</td><td class="n">11분 16초</td></tr>
+          <tr><td>③ 실무 검토자</td><td class="n">122,556</td><td class="n">13회</td><td class="n">9분 53초</td></tr>
+          <tr style="background:var(--parchment)"><td><b>합계</b></td><td class="n"><b>411,265</b></td><td class="n"><b>54회</b></td><td class="n"><b>34분 46초</b></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <figure class="diagram">
+      <svg viewBox="0 0 720 130" role="img" aria-label="순차 실행과 동시 실행 시간 비교">
+        <text x="10" y="24" font-size="13" font-weight="700" fill="#1d1d1f">순서대로 했다면</text>
+        <rect x="150" y="10" width="230" height="20" rx="5" fill="#c9c9ce"/>
+        <rect x="380" y="10" width="190" height="20" rx="5" fill="#b8b8bd"/>
+        <rect x="570" y="10" width="167" height="20" rx="5" fill="#a8a8ad" opacity="0"/>
+        <rect x="570" y="10" width="140" height="20" rx="5" fill="#a8a8ad"/>
+        <text x="716" y="25" font-size="12" fill="#7a7a7a" text-anchor="end" opacity="0"></text>
+        <text x="150" y="48" font-size="12" fill="#7a7a7a">약 34분 46초</text>
+
+        <text x="10" y="90" font-size="13" font-weight="700" fill="#1d1d1f">동시에 했더니</text>
+        <rect x="150" y="76" width="230" height="14" rx="4" fill="#0066cc"/>
+        <rect x="150" y="93" width="190" height="14" rx="4" fill="#3d8ad9"/>
+        <rect x="150" y="110" width="167" height="14" rx="4" fill="#7ab0e8"/>
+        <line x1="380" y1="70" x2="380" y2="128" stroke="#c0362c" stroke-dasharray="4 3"/>
+        <text x="392" y="100" font-size="12" font-weight="700" fill="#c0362c">13분 37초</text>
+        <text x="392" y="118" font-size="11" fill="#7a7a7a">가장 느린 하나만큼</text>
+      </svg>
+      <figcaption>동시에 띄우면 <b>가장 오래 걸리는 하나</b>만큼만 기다립니다 — 약 2.6배 단축.</figcaption>
+    </figure>
+
+    <div class="plain">
+      <b class="h">토큰은 줄지 않습니다</b>
+      <p>동시에 돌려도 <b>토큰 총량은 그대로</b>입니다(41만 토큰). 줄어드는 것은 <b>내가 기다리는 시간</b>뿐입니다.</p>
+      <p style="margin-bottom:0">그래서 판단 기준은 이렇습니다 —
+         <b>“이 일이 41만 토큰을 쓸 만큼 중요한가?”</b> 아니라면 혼자 하는 게 맞습니다.</p>
+    </div>
+  </section>
+
+  <!-- ══════════ 11 ══════════ -->
+  <section class="block" id="s11">
+    <h2 class="section-title"><span class="no">11</span>흔한 실수 5가지</h2>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th style="min-width:150px">실수</th><th>왜 문제인가</th><th style="min-width:150px">대신 이렇게</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><b>“이 자료 분석해줘”라고만 시킴</b></td>
+            <td>에이전트마다 다른 것을 분석해 와서 합칠 수가 없습니다.</td>
+            <td>답할 것을 <b>번호 매겨 5개</b>로 지정</td>
+          </tr>
+          <tr>
+            <td><b>파일 경로를 “아까 그 폴더”라고 씀</b></td>
+            <td>에이전트는 <b>대화 맥락을 모릅니다.</b> 못 찾으면 기억으로 지어냅니다.</td>
+            <td><b>절대 경로 전부</b> 명시</td>
+          </tr>
+          <tr>
+            <td><b>결과를 그대로 붙여넣음</b></td>
+            <td>겉보기 완벽한 오류를 그대로 발행하게 됩니다. 실제로 1건 있었습니다.</td>
+            <td>주요 수치 <b>직접 재계산</b></td>
+          </tr>
+          <tr>
+            <td><b>순서가 있는 일을 나눔</b></td>
+            <td>B가 A의 결과를 기다려야 하면 동시 실행의 이점이 0입니다.</td>
+            <td><b>독립적인 일</b>만 나누기</td>
+          </tr>
+          <tr>
+            <td><b>에이전트를 10개씩 띄움</b></td>
+            <td>토큰이 폭증하고, 검증할 것이 10배가 되어 결국 검증을 포기하게 됩니다.</td>
+            <td><b>2~4개</b>가 현실적인 범위</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════ 12 ══════════ -->
+  <section class="block" id="s12">
+    <h2 class="section-title"><span class="no">12</span>따라 하기 체크리스트</h2>
+    <p class="section-lead">여러분의 작업에 그대로 적용할 수 있는 순서입니다.</p>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th class="n">단계</th><th>할 일</th><th>확인할 것</th></tr></thead>
+        <tbody>
+          <tr><td class="n"><b>1</b></td><td>정말 나눠야 하는 일인지 판단</td>
+              <td>관점이 여러 개인가? 서로 독립인가? <b>결과를 검증할 수 있는가?</b></td></tr>
+          <tr><td class="n"><b>2</b></td><td>나눌 기준을 정한다</td>
+              <td>자료 조각이 아니라 <b>관점</b>으로 나누는 편이 대개 낫습니다</td></tr>
+          <tr><td class="n"><b>3</b></td><td>프롬프트 5블록을 쓴다</td>
+              <td>역할 · <b>절대 경로</b> · <b>절대 규칙</b> · 질문 목록 · 출력 형식</td></tr>
+          <tr><td class="n"><b>4</b></td><td>한 번에 모두 띄운다</td>
+              <td>하나씩 띄우면 순차 실행이 됩니다</td></tr>
+          <tr><td class="n"><b>5</b></td><td><b>결과의 숫자를 직접 재계산</b></td>
+              <td>“새로 계산했다”는 값부터. 스크립트로 대조</td></tr>
+          <tr><td class="n"><b>6</b></td><td>어긋난 것은 <b>내 계산값</b>으로 고친다</td>
+              <td>에이전트 말이 아니라 <b>원본 데이터</b>가 기준</td></tr>
+          <tr><td class="n"><b>7</b></td><td>검증 통과분만으로 결과물 작성</td>
+              <td>확인 못 한 것은 <b>싣지 않습니다</b></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout">
+      <b class="h">한 줄로 요약하면</b>
+      <p style="font-size:18px; font-weight:600; margin-bottom:0">
+        서브에이전트는 <b>일을 나눠주는 도구</b>이지 <b>책임을 나눠주는 도구가 아닙니다.</b><br>
+        <span style="font-weight:400; font-size:16px; color:var(--ink-80)">
+        최종 결과의 정확성은 여전히 100% 지휘하는 쪽의 몫입니다.</span></p>
+    </div>
+  </section>
+
+  <!-- ══════════ 부록 ══════════ -->
+  <section class="block">
+    <h2 class="section-title">부록 · 이 사례의 결과물</h2>
+    <p>이 문서에서 다룬 작업의 실제 산출물입니다.</p>
+    <div class="tw">
+      <table>
+        <thead><tr><th>항목</th><th>내용</th></tr></thead>
+        <tbody>
+          <tr><td>분석 대상</td><td>유튜브 조회수 100만 이상 롱폼 <b>260편</b>(채널 172곳, 2026-05-27 ~ 08-21)</td></tr>
+          <tr><td>최종 산출물</td><td>「100만 조회 롱폼 썸네일 분석 보고서」 HTML 1장 (14개 장 · 표 12개)</td></tr>
+          <tr><td>핵심 결론</td><td>썸네일 요소 11개 전부 <b>통계적으로 유의하지 않음</b>. 대신 <b>장르가 아니라 채널</b>이 썸네일을 결정</td></tr>
+          <tr><td>사용 모델</td><td>Claude (Claude Code 환경, 서브에이전트 3개 병렬)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <p><b>PART 07 · LLM, RAG &amp; AI Agent 개발</b><br>
+       실전 사례 연구 — 서브에이전트 3개로 분석 보고서 만들기</p>
+    <p><a href="../index.html">← 07 LLM_RAG_Agent 카테고리로</a></p>
+  </div>
+  <div class="footer-legal">
+    frontierall note 2608 · 이 문서의 수치는 실제 작업 기록에서 가져온 것입니다.
+  </div>
+</footer>
+
+</body>
+</html>
