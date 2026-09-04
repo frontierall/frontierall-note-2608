@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>서브 에이전트 처음 만들어보기 · 07 LLM_RAG_Agent</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@1.3.9/dist/web/static/pretendard.css">
+<style>
+  :root {
+    --primary: #0066cc; --primary-focus: #0071e3;
+    --canvas: #ffffff; --parchment: #f5f5f7;
+    --black: #000000; --ink: #1d1d1f; --ink-80: #333333; --ink-48: #7a7a7a;
+    --hairline: #e0e0e0;
+    --warn-bg: #fff8e6; --warn-line: #f0dba8;
+    --bad-bg: #fdeeee; --bad-line: #f0c0c0; --bad-ink: #a32d2d;
+    --good-bg: #e9f6ee; --good-line: #b9e0c8; --good-ink: #1c7a4a;
+    --accent: #7c5cff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--canvas); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', 'Apple SD Gothic Neo', 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-size: 17px; line-height: 1.47; letter-spacing: -0.374px;
+  }
+  .global-nav {
+    position: sticky; top: 0; z-index: 20; height: 44px; background: var(--black);
+    display: flex; align-items: center; justify-content: space-between; padding: 0 22px;
+  }
+  .global-nav .brand { color: #fff; font-size: 12px; font-weight: 600; letter-spacing: -0.12px; text-decoration: none; }
+  .global-nav .meta { color: rgba(255,255,255,0.72); font-size: 12px; letter-spacing: -0.12px; }
+  .sub-nav {
+    position: sticky; top: 44px; z-index: 19; min-height: 52px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 22px;
+    background: rgba(245,245,247,0.8);
+    -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+  .sub-nav .category { font-size: 21px; font-weight: 600; letter-spacing: 0.231px; color: var(--ink); text-decoration: none; }
+  .btn-primary {
+    display: inline-block; background: var(--primary); color: #fff; border: none;
+    border-radius: 9999px; padding: 8px 18px; font-size: 14px; font-family: inherit;
+    text-decoration: none; cursor: pointer; transition: transform .15s; white-space: nowrap;
+  }
+  .btn-primary:active { transform: scale(0.95); }
+  .btn-primary:focus-visible { outline: 2px solid var(--primary-focus); outline-offset: 2px; }
+
+  main.content { max-width: 720px; margin: 0 auto; padding: 64px 24px 96px; }
+  .eyebrow { display: block; font-size: 14px; font-weight: 600; letter-spacing: -0.224px; color: var(--ink-48); margin-bottom: 12px; }
+  h1.headline { font-size: 40px; font-weight: 600; line-height: 1.10; letter-spacing: 0; margin: 0 0 14px; }
+  p.tagline { font-size: 28px; font-weight: 400; line-height: 1.14; letter-spacing: 0.196px; margin: 0 0 20px; color: var(--ink-80); }
+  p.byline { font-size: 14px; color: var(--ink-48); letter-spacing: -0.224px; margin: 0; }
+
+  .toc { background: var(--parchment); border-radius: 18px; padding: 20px 24px; margin-top: 32px; }
+  .toc strong { font-size: 15px; }
+  .toc ol { margin: 8px 0 0; padding-left: 22px; }
+  .toc li { margin: 5px 0; font-size: 15px; }
+  .toc a { color: var(--ink); text-decoration: none; }
+  .toc a:hover { color: var(--primary); text-decoration: underline; }
+
+  section.block { margin-top: 60px; scroll-margin-top: 110px; }
+  h2.h { font-size: 28px; font-weight: 600; line-height: 1.2; margin: 0 0 6px; letter-spacing: -0.4px; }
+  h2.h .num { color: var(--ink-48); font-weight: 600; margin-right: 10px; }
+  p.deck { font-size: 17px; color: var(--ink-80); margin: 0 0 24px; }
+  h3.sub { font-size: 19px; font-weight: 600; margin: 34px 0 10px; letter-spacing: -0.3px; }
+  h4.sub2 { font-size: 16px; font-weight: 600; margin: 22px 0 6px; }
+  p { margin: 0 0 16px; }
+
+  .callout { border: 1px solid var(--warn-line); background: var(--warn-bg); border-radius: 12px; padding: 14px 18px; margin: 20px 0; font-size: 15px; }
+  .callout.bad { border-color: var(--bad-line); background: var(--bad-bg); }
+  .callout.good { border-color: var(--good-line); background: var(--good-bg); }
+  .callout .lbl { display: block; font-weight: 600; margin-bottom: 4px; font-size: 14px; }
+  .callout.bad .lbl { color: var(--bad-ink); }
+  .callout.good .lbl { color: var(--good-ink); }
+  .callout p:last-child { margin-bottom: 0; }
+
+  .fig { margin: 28px 0; }
+  .fig svg { width: 100%; height: auto; display: block; }
+  .fig figcaption { font-size: 14px; color: var(--ink-48); letter-spacing: -0.224px; margin-top: 10px; }
+
+  .scroll { overflow-x: auto; margin: 20px 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--hairline); vertical-align: top; }
+  th { font-size: 13px; color: var(--ink-48); font-weight: 600; letter-spacing: -0.1px; border-bottom: 1.5px solid var(--hairline); white-space: nowrap; }
+  tbody tr:last-child td { border-bottom: none; }
+
+  pre { background: #1d1d1f; color: #f5f5f7; border-radius: 12px; padding: 16px 18px; overflow-x: auto;
+        font: 13px/1.6 ui-monospace, SFMono-Regular, Consolas, monospace; margin: 16px 0; letter-spacing: 0; }
+  code { font: 13px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace; background: var(--parchment);
+         padding: 1px 6px; border-radius: 5px; letter-spacing: 0; }
+  pre code { background: none; padding: 0; color: inherit; font-size: 13px; }
+
+  ul.plain { margin: 0 0 16px; padding-left: 22px; }
+  ul.plain li { margin: 7px 0; }
+  ol.steps { margin: 0 0 16px; padding-left: 22px; }
+  ol.steps li { margin: 10px 0; }
+
+  .step {
+    border: 1px solid var(--hairline); border-radius: 16px; padding: 20px 22px; margin: 18px 0;
+    counter-increment: stepnum;
+  }
+  .step .steplbl { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px;
+    border-radius: 50%; background: var(--primary); color: #fff; font-size: 13px; font-weight: 700; margin-right: 10px; }
+  .step h4 { display: inline; font-size: 17px; font-weight: 600; }
+  .step .body { margin-top: 12px; }
+
+  .scene { border: 1px solid var(--hairline); border-radius: 18px; padding: 22px 24px; margin: 22px 0; }
+  .scene .tag { display: inline-block; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; margin-bottom: 10px; }
+  .scene .tag.f { background: var(--bad-bg); color: var(--bad-ink); }
+  .scene .tag.s { background: var(--good-bg); color: var(--good-ink); }
+  .scene h4 { font-size: 19px; font-weight: 600; margin: 0 0 10px; letter-spacing: -0.3px; }
+  .scene .lesson { margin: 14px 0 0; padding-top: 14px; border-top: 1px solid var(--hairline); font-size: 15px; }
+  .scene .lesson b { color: var(--primary); }
+
+  .check { list-style: none; margin: 0; padding: 0; }
+  .check li { border-top: 1px solid var(--hairline); padding: 14px 0 14px 30px; position: relative; font-size: 16px; }
+  .check li:last-child { border-bottom: 1px solid var(--hairline); }
+  .check li::before { position: absolute; left: 0; top: 13px; font-size: 15px; font-weight: 700; }
+  .check.yes li::before { content: "○"; color: var(--good-ink); }
+  .check.no li::before { content: "✕"; color: var(--bad-ink); }
+  .check li b { display: block; margin-bottom: 2px; }
+  .check li span { color: var(--ink-80); font-size: 15px; }
+
+  .related { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin-top: 16px; }
+  a.related-card {
+    display: block; background: var(--canvas); border: 1px solid var(--hairline);
+    border-radius: 16px; padding: 20px; text-decoration: none; color: var(--ink);
+    transition: border-color .15s;
+  }
+  a.related-card:hover { border-color: var(--primary); }
+  a.related-card .name { font-size: 16px; font-weight: 600; letter-spacing: -0.374px; margin-bottom: 6px; }
+  a.related-card .meta { font-size: 13.5px; color: var(--ink-48); letter-spacing: -0.224px; }
+
+  footer.site-footer { background: var(--parchment); color: var(--ink-80); padding: 64px 24px 32px; }
+  .footer-links { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px 32px; }
+  .footer-links a { display: block; font-size: 17px; line-height: 2.41; color: var(--ink-80); text-decoration: none; }
+  .footer-links a:hover { color: var(--ink); }
+  .footer-legal { max-width: 1000px; margin: 32px auto 0; padding-top: 16px; border-top: 1px solid var(--hairline); font-size: 12px; color: var(--ink-48); letter-spacing: -0.12px; }
+
+  @media (max-width: 640px) {
+    main.content { padding: 48px 20px 72px; }
+    h1.headline { font-size: 28px; }
+    p.tagline { font-size: 20px; }
+    h2.h { font-size: 23px; }
+    .sub-nav { padding: 0 16px; }
+    .sub-nav .category { font-size: 17px; }
+    .footer-links { grid-template-columns: repeat(2, 1fr); gap: 4px 20px; }
+  }
+  @media (max-width: 380px) { .global-nav .meta { display: none; } }
+</style>
+</head>
+<body>
+  <nav class="global-nav">
+    <a class="brand" href="../../index.html">프론티어올 러닝 노트</a>
+    <span class="meta">인공지능 심화(160H)</span>
+  </nav>
+  <nav class="sub-nav">
+    <a class="category" href="../index.html">07 LLM_RAG_Agent</a>
+    <a class="btn-primary" href="../index.html">카테고리로</a>
+  </nav>
+
+  <main class="content">
+    <span class="eyebrow">PART 07 · 입문 실습 · 1단계</span>
+    <h1 class="headline">서브 에이전트<br>처음 만들어보기</h1>
+    <p class="tagline">가장 작은 단위 하나 — doc-researcher — 로 시작합니다.</p>
+    <p class="byline">2026-09-05 · 왕초보용 실습 교안 · 사전 지식 필요 없음</p>
+
+    <div class="toc">
+      <strong>이 문서의 순서</strong>
+      <ol>
+        <li><a href="#s1">오늘 만들 것 — 한 문장 소개</a></li>
+        <li><a href="#s2">그냥 채팅으로 물어보면 안 되나요?</a></li>
+        <li><a href="#s3">언제 에이전트로 만드는 게 좋은가</a></li>
+        <li><a href="#s4">준비물</a></li>
+        <li><a href="#s5">직접 만들기 — 8단계</a></li>
+        <li><a href="#s6">써보고 결과 읽는 법</a></li>
+        <li><a href="#s7">여기서 멈추는 이유 — 다음엔 뭐가 필요한가</a></li>
+        <li><a href="#s8">막혔을 때 체크리스트</a></li>
+        <li><a href="#s9">용어 정리 & 다음 단계</a></li>
+      </ol>
+    </div>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s1">
+      <h2 class="h"><span class="num">01</span>오늘 만들 것 — 한 문장 소개</h2>
+      <p class="deck">코드 한 줄 없이, 텍스트 파일 하나로 나만의 "조사 담당"을 만듭니다.</p>
+
+      <p>이 문서를 다 따라 하면, <b>문서 하나를 던져주면 웹을 검색해서 "여기 오래된 정보가 있어요"라고 근거와 함께 알려주는</b> 나만의 AI 하나가 생깁니다. 이름은 <code>doc-researcher</code>라고 짓겠습니다.</p>
+
+      <p>미리 말씀드리면, 이 하나만으로는 아직 "완성된 도구"는 아닙니다. 스스로 판단만 하고 파일을 고치지는 않습니다(일부러 그렇게 만듭니다 — 이유는 아래에서). 문서를 실제로 고치는 기능까지 붙이는 건 다음 교안 <a href="../doc-refresh-agent/index.html">문서 최신화·팩트체크 에이전트 만들기</a>에서 이어집니다. 오늘은 그 첫 조각 하나만, 제대로 이해하면서 만드는 게 목표입니다.</p>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s2">
+      <h2 class="h"><span class="num">02</span>그냥 채팅으로 물어보면 안 되나요?</h2>
+      <p class="deck">됩니다. 그런데 그때그때 다르게 됩니다. 그게 문제입니다.</p>
+
+      <p>지금 Claude Code 채팅창에 그냥 이렇게 쳐도 비슷한 답을 받을 수 있습니다.</p>
+      <p><i>"이 문서 읽고 웹 검색해서 오래된 내용 있으면 알려줘."</i></p>
+
+      <p>그런데 이렇게 매번 물어보면 몇 가지가 자꾸 어긋납니다.</p>
+
+      <div class="scroll">
+        <table>
+          <thead><tr><th></th><th>그냥 채팅에 매번 물어보기</th><th>에이전트로 만들어두기</th></tr></thead>
+          <tbody>
+            <tr><td><b>규칙</b></td><td>매번 설명을 다시 써야 함. 까먹고 안 쓰면 결과가 그때그때 달라짐</td><td>파일 하나에 규칙을 한 번 적어두면 항상 똑같이 지켜짐</td></tr>
+            <tr><td><b>안전</b></td><td>지금 이 대화창은 파일을 고칠 힘도 그대로 가지고 있음</td><td>"이 일만 하는 애"는 아예 파일 수정 도구를 안 쥐어줄 수 있음</td></tr>
+            <tr><td><b>재사용</b></td><td>다른 프로젝트에서는 처음부터 다시 설명</td><td>파일 하나를 복사하거나 연결만 하면 다른 프로젝트에서도 똑같이 동작</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout good">
+        <span class="lbl">한 줄로 요약하면</span>
+        <p>에이전트는 <b>"이 일은 항상 이 규칙으로, 이 도구만 써서 하라"고 미리 적어둔 메모</b>입니다. 특별한 게 아니라, 매번 다시 설명하기 귀찮은 일을 텍스트 파일 하나로 저장해두는 것뿐입니다.</p>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s3">
+      <h2 class="h"><span class="num">03</span>언제 에이전트로 만드는 게 좋은가</h2>
+      <p class="deck">모든 걸 에이전트로 만들 필요는 없습니다. 아래 셋 중 하나라도 해당하면 만들 가치가 있습니다.</p>
+
+      <ul class="check yes">
+        <li><b>같은 요청을 반복하고 있을 때</b><span>"이 문서 최신 정보로 확인해줘"를 이번 주에만 세 번째 치고 있다면, 그건 메모해둘 가치가 있는 규칙입니다.</span></li>
+        <li><b>"이 작업은 절대 파일을 고치면 안 된다"처럼 못박고 싶을 때</b><span>사람이 매번 조심하는 것보다, 애초에 그 힘을 안 주는 게 확실합니다.</span></li>
+        <li><b>다른 프로젝트에서도 똑같이 쓰고 싶을 때</b><span>파일 하나로 저장해두면 복사·연결만으로 재사용됩니다.</span></li>
+      </ul>
+
+      <div class="callout">
+        <span class="lbl">반대로 필요 없을 때</span>
+        <p>딱 한 번, 지금 이 대화에서만 필요한 일이라면 그냥 채팅으로 물어보는 게 더 빠릅니다. 메모(에이전트)를 만드는 것도 품이 드는 일이니, "또 쓸 것 같다" 싶을 때만 만드세요.</p>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s4">
+      <h2 class="h"><span class="num">04</span>준비물</h2>
+      <p class="deck">특별한 프로그램을 새로 설치할 필요는 없습니다.</p>
+      <ul class="plain">
+        <li>Claude Code가 실행되는 프로젝트 폴더 (지금 보고 계신 이 강의 자료 저장소도 좋습니다)</li>
+        <li>텍스트 파일을 만들고 저장할 수 있으면 충분합니다 — Claude Code 안에서 직접 만들어도 됩니다</li>
+      </ul>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s5">
+      <h2 class="h"><span class="num">05</span>직접 만들기 — 8단계</h2>
+      <p class="deck">하나씩 그대로 따라 하면 됩니다. 중간에 이해가 안 가는 단어가 나오면 09장 용어 정리를 먼저 펴보세요.</p>
+
+      <div class="step">
+        <span class="steplbl">1</span><h4>폴더 위치 정하기</h4>
+        <div class="body">
+          <p>지금 열려 있는 프로젝트 폴더(맨 위 루트) 바로 아래에 <code>.claude</code>라는 폴더가 있는지 확인합니다. 없으면 새로 만듭니다. 그 안에 다시 <code>agents</code>라는 폴더를 만듭니다.</p>
+          <p>결과적으로 이런 모양이 됩니다: <code>&lt;프로젝트 폴더&gt;/.claude/agents/</code></p>
+          <p style="margin-bottom:0;">지금 단계에서는 이 프로젝트 안에만 있는 <b>"이 프로젝트 전용"</b> 위치에 만듭니다. 여러 프로젝트에서 같이 쓰는 방법은 다음 교안에서 다룹니다 — 처음부터 그것까지 신경 쓰면 헷갈립니다.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="steplbl">2</span><h4>파일 만들기</h4>
+        <div class="body">
+          <p>방금 만든 <code>agents</code> 폴더 안에 <code>doc-researcher.md</code>라는 이름으로 새 파일을 만듭니다. <code>.md</code>는 "마크다운"이라는, 그냥 글자로만 된 문서 형식입니다. 특별한 프로그램 없이 메모장으로도 열립니다.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="steplbl">3</span><h4>맨 위에 "이 파일에 대한 설명" 적기 (frontmatter)</h4>
+        <div class="body">
+          <p>파일 맨 위에 <code>---</code>로 시작하고 <code>---</code>로 끝나는 부분을 적습니다. 이걸 <b>frontmatter</b>라고 부르는데, "이 에이전트의 이름표"라고 생각하면 됩니다.</p>
+<pre><code>---
+name: doc-researcher
+description: 문서를 읽고 웹 검색으로 최신 정보와 대조해서, 오래되거나
+             틀린 것 같은 부분을 근거와 함께 목록으로 알려주는 조사 담당.
+             "이 문서 최신 정보로 확인해줘" 같은 요청에 사용한다.
+tools: Read, WebSearch, WebFetch
+---</code></pre>
+          <p>세 줄이 전부입니다. 각각 무슨 뜻인지 볼게요.</p>
+          <ul class="plain">
+            <li><b>name</b> — 이 에이전트를 부를 때 쓰는 이름입니다. 파일 이름과 맞춰두면 헷갈리지 않습니다.</li>
+            <li><b>description</b> — "이건 언제 쓰는 애인가"를 적습니다. Claude가 이 설명을 보고 "아, 지금 이 일엔 doc-researcher를 부르면 되겠다"고 판단하기 때문에, 대충 쓰면 필요할 때 안 불려오거나 엉뚱할 때 불려옵니다.</li>
+            <li><b>tools</b> — <b>이 에이전트가 쓸 수 있는 도구 목록입니다. 여기가 가장 중요합니다.</b> <code>Read</code>(파일 읽기), <code>WebSearch</code>·<code>WebFetch</code>(웹 검색/가져오기)만 줬습니다. 파일을 고치는 도구(<code>Write</code>, <code>Edit</code>)는 <b>일부러 넣지 않았습니다.</b> 목록에 없으면 애초에 쓸 수가 없어서, "실수로 파일을 고칠까 봐 조심"할 필요 자체가 없어집니다.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="steplbl">4</span><h4>본문에 규칙 적기</h4>
+        <div class="body">
+          <p>frontmatter 아래(두 번째 <code>---</code> 다음 줄부터)에 이 에이전트가 지킬 규칙을 사람 말로 적습니다. 아래 정도면 충분합니다.</p>
+<pre><code># Doc Researcher
+
+당신은 문서를 읽고, 웹 검색으로 최신 정보와 비교하는 조사 담당입니다.
+
+## 하는 일
+1. 받은 문서를 먼저 전체 읽습니다.
+2. 시간이 지나면 바뀔 수 있는 내용(버전, 가격, 날짜, 정책, 링크 등)을
+   골라서 웹으로 검색해 지금도 맞는지 확인합니다.
+3. 발견한 것마다 이렇게 정리해서 보고합니다:
+   - 위치: 문서의 어느 부분인지
+   - 현재 내용 / 제안 변경
+   - 근거: 확인한 웹페이지 주소
+   - 확신도: 확인됨 / 추정 / 불확실
+
+## 지켜야 할 것
+- 파일을 고치지 않습니다. 목록으로 보고만 합니다.
+- "예전에 배운 걸로 아는" 내용도 반드시 실제 검색으로 다시 확인합니다.
+- 근거(출처)가 없는 내용은 목록에 넣지 않습니다.</code></pre>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="steplbl">5</span><h4>저장하기</h4>
+        <div class="body"><p>파일을 저장합니다. 이게 전부입니다 — 설치할 것도, 실행 버튼을 누를 것도 없습니다.</p></div>
+      </div>
+
+      <div class="step">
+        <span class="steplbl">6</span><h4>Claude Code를 새로 열기(또는 새 세션 시작)</h4>
+        <div class="body"><p>지금 세션이 켜져 있었다면 이 프로젝트를 다시 열거나 새 세션을 시작하세요. 에이전트 목록은 세션이 시작할 때 한 번 읽어오기 때문에, 방금 만든 파일은 <b>다음번에 열 때부터</b> 인식됩니다.</p></div>
+      </div>
+
+      <div class="step">
+        <span class="steplbl">7</span><h4>불러서 써보기</h4>
+        <div class="body">
+          <p>채팅창에 이렇게 요청해보세요.</p>
+          <p><i>"doc-researcher 에이전트로 &lt;점검하고 싶은 문서 경로&gt;를 확인해줘."</i></p>
+          <p>이름을 직접 말하지 않아도, description에 맞는 자연스러운 요청("이 문서 최신 정보로 확인해줘")이면 자동으로 이 에이전트가 불려올 수 있습니다.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <span class="steplbl">8</span><h4>결과 기다리기</h4>
+        <div class="body"><p>doc-researcher가 문서를 읽고 검색해서 목록을 정리해 돌아옵니다. 이 결과를 어떻게 읽어야 하는지는 바로 다음 장에서 다룹니다.</p></div>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s6">
+      <h2 class="h"><span class="num">06</span>써보고 결과 읽는 법</h2>
+      <p class="deck">돌아온 목록을 어떻게 대해야 하는지가 이 실습의 진짜 핵심입니다.</p>
+
+      <div class="scene">
+        <span class="tag s">이렇게 돌아옵니다</span>
+        <h4>예시 결과 (형태만 예시입니다)</h4>
+<pre><code>위치: "설치 방법" 문단, "버전 2.1을 내려받으세요"
+현재 내용: 버전 2.1
+제안 변경: 버전 3.0 (2026년 상반기 출시)
+근거: https://example.com/release-notes (공식 릴리스 노트)
+확신도: 확인됨</code></pre>
+        <p class="lesson"><b>여기서 멈추세요.</b> "확인됨"이라고 나왔어도, <b>이 결과를 그대로 문서에 바로 반영하면 안 됩니다.</b> doc-researcher 혼자 낸 결론이고, 아직 아무도 다시 확인하지 않았습니다.</p>
+      </div>
+
+      <p>지금 단계에서는 이 목록을 <b>사람이 눈으로 직접 원본 링크를 열어보고</b> 맞는지 확인한 뒤, 맞다고 판단되면 사람이 직접 문서를 고치는 것까지가 정상적인 사용법입니다. "검색 → 검증 → 반영"을 전부 자동으로 이어붙이는 건 다음 교안의 몫입니다.</p>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s7">
+      <h2 class="h"><span class="num">07</span>여기서 멈추는 이유 — 다음엔 뭐가 필요한가</h2>
+      <p class="deck">doc-researcher 하나만으로는 두 가지가 부족합니다. 일부러 그렇게 만들었습니다.</p>
+
+      <ul class="plain">
+        <li><b>재검증이 없습니다.</b> doc-researcher가 "확인됨"이라고 적었어도, 검색 결과 하나를 잘못 읽었을 수 있습니다. 다른 눈으로 한 번 더 봐야 합니다.</li>
+        <li><b>자동으로 반영되지 않습니다.</b> 지금은 사람이 매번 목록을 읽고 직접 문서를 고쳐야 합니다. 문서가 많아지면 이게 번거로워집니다.</li>
+      </ul>
+
+      <p>이 두 가지를 채우는 게 다음 교안 <a href="../doc-refresh-agent/index.html"><b>문서 최신화·팩트체크 에이전트 만들기</b></a>입니다. 오늘 만든 doc-researcher는 그대로 재사용하고, 여기에 <b>독립적으로 다시 확인하는 검증 담당</b>과 <b>확인된 것만 골라 초안을 써주는 작성 담당</b>을 추가해서, 셋을 정해진 순서로 불러주는 스킬 하나로 묶습니다.</p>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s8">
+      <h2 class="h"><span class="num">08</span>막혔을 때 체크리스트</h2>
+      <ul class="check no">
+        <li><b>에이전트가 안 불려온다</b><span>새 세션으로 다시 열었는지 확인하세요. 파일 경로가 <code>&lt;프로젝트&gt;/.claude/agents/doc-researcher.md</code>가 맞는지도 확인하세요.</span></li>
+        <li><b>frontmatter 형식이 이상하다는 느낌이 든다</b><span><code>---</code>로 시작하고 <code>---</code>로 끝나는지, 그 사이 들여쓰기가 이상하게 꼬이지 않았는지 확인하세요.</span></li>
+        <li><b>검색을 안 하고 그냥 아는 척 답한다</b><span>description과 본문에 "반드시 웹 검색으로 확인하라"는 문장이 있는지 확인하세요. 애매하게 적으면 건너뛸 수 있습니다.</span></li>
+      </ul>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s9">
+      <h2 class="h"><span class="num">09</span>용어 정리 & 다음 단계</h2>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>용어</th><th>뜻</th></tr></thead>
+          <tbody>
+            <tr><td><b>서브 에이전트</b></td><td>메인 대화와 별도로 특정 일을 맡는 AI. <code>.md</code> 파일 하나로 정의한다.</td></tr>
+            <tr><td><b>.md 파일 (마크다운)</b></td><td>글자로만 이루어진 간단한 문서 형식. 메모장으로도 열린다.</td></tr>
+            <tr><td><b>frontmatter</b></td><td>파일 맨 위, <code>---</code> 사이에 적는 "이 파일에 대한 설명" 부분.</td></tr>
+            <tr><td><b>tools</b></td><td>이 에이전트가 쓸 수 있는 기능 목록. 여기 없는 기능은 아예 쓸 수 없다.</td></tr>
+            <tr><td><b>읽기 전용</b></td><td>파일을 고치는 도구(Write/Edit)를 주지 않아, 조사만 하고 수정은 못 하게 만든 상태.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout good">
+        <span class="lbl">오늘 한 것을 한 문장으로</span>
+        <p>텍스트 파일 하나(frontmatter + 규칙)로 "읽기 전용 조사 담당" AI를 만들고, 실제로 불러서 써봤습니다. 다음 교안에서 이 파일을 그대로 재사용해 검증·작성 담당을 더하고, 자동 파이프라인으로 묶습니다.</p>
+      </div>
+
+      <div class="related">
+        <a class="related-card" href="../subagent-intro/index.html">
+          <div class="name">서브 에이전트란 무엇인가?</div>
+          <div class="meta">지금 만든 것이 왜 이렇게 동작하는지, 배경 개념부터 보고 싶다면</div>
+        </a>
+        <a class="related-card" href="../doc-refresh-agent/index.html">
+          <div class="name">문서 최신화·팩트체크 에이전트 만들기</div>
+          <div class="meta">다음 단계 — 검증·작성 담당을 더해 3단계 파이프라인 완성하기</div>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-links">
+      <a href="../../00_사전학습/index.html">00 사전 학습</a>
+      <a href="../../01_오리엔테이션/index.html">01 오리엔테이션</a>
+      <a href="../../02_바이브코딩/index.html">02 바이브코딩</a>
+      <a href="../../03_UXUI디자인/index.html">03 UXUI디자인</a>
+      <a href="../../04_노코드프로토타이핑/index.html">04 노코드프로토타이핑</a>
+      <a href="../../05_서비스기획/index.html">05 서비스기획</a>
+      <a href="../../06_데이터ML/index.html">06 데이터ML</a>
+      <a href="../../07_LLM_RAG_Agent/index.html">07 LLM_RAG_Agent</a>
+      <a href="../../08_해커톤/index.html">08 해커톤</a>
+    </div>
+    <div class="footer-legal">프론티어올 러닝 노트 · frontierall</div>
+  </footer>
+</body>
+</html>
