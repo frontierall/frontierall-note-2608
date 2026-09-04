@@ -54,14 +54,24 @@
   ul.topics li:last-child { border-bottom: 1px solid var(--hairline); }
 
   .utility-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
+  .utility-grid + .subgroup-label { margin-top: 36px; }
   a.utility-card {
     display: block; background: var(--canvas); border: 1px solid var(--hairline);
     border-radius: 18px; padding: 24px; text-decoration: none; color: var(--ink);
     transition: border-color .15s;
   }
   a.utility-card:hover { border-color: var(--primary); }
-  a.utility-card .name { font-size: 17px; font-weight: 600; letter-spacing: -0.374px; margin-bottom: 6px; }
+  a.utility-card .name { font-size: 17px; font-weight: 600; letter-spacing: -0.374px; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
   a.utility-card .meta { font-size: 14px; color: var(--ink-48); letter-spacing: -0.224px; }
+  a.utility-card .step {
+    flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center;
+    width: 20px; height: 20px; border-radius: 50%; background: var(--primary); color: #fff;
+    font-size: 11px; font-weight: 700; letter-spacing: 0;
+  }
+  .subgroup-label {
+    font-size: 13px; font-weight: 600; letter-spacing: -0.1px; color: var(--ink-48);
+    margin: 0 0 14px; padding-top: 4px;
+  }
   .empty-note { font-size: 14px; color: var(--ink-48); letter-spacing: -0.224px; }
 
   footer.site-footer { background: var(--parchment); color: var(--ink-80); padding: 64px 24px 32px; }
@@ -110,24 +120,26 @@
     </section>
 
     <section class="block">
-      <h3 class="section-label">자료 (10)</h3>
+      <h3 class="section-label">자료</h3>
+
+      <p class="subgroup-label">Claude Code 실전 활용 · 순서대로</p>
       <div class="utility-grid">
         <a class="utility-card" href="claude-code-new-project/index.html">
-          <div class="name">Claude Code에서 새 프로젝트 만들기</div>
+          <div class="name"><span class="step">1</span>Claude Code에서 새 프로젝트 만들기</div>
           <div class="meta">GitHub · Vercel · Supabase 연동 실습</div>
         </a>
         <a class="utility-card" href="claude-code-google-login/index.html">
-          <div class="name">Claude Code로 구글 로그인 구현하기</div>
+          <div class="name"><span class="step">2</span>Claude Code로 구글 로그인 구현하기</div>
           <div class="meta">Google Cloud Console · Supabase Auth 연동 실습</div>
         </a>
-        <a class="utility-card" href="gh-cli-course/index.html">
-          <div class="name">GitHub CLI 설치부터 Clone과 퍼블리시까지</div>
-          <div class="meta">gh 설치·인증, 비공개 저장소 clone, 로컬 프로젝트 퍼블리시 실습</div>
+        <a class="utility-card" href="claude-code-skill-making/index.html">
+          <div class="name"><span class="step">3</span>Claude Code 스킬 만들기</div>
+          <div class="meta">10분 실습으로 첫 스킬 만들기, SKILL.md 작성법, 만든 스킬 불러 쓰기</div>
         </a>
-        <a class="utility-card" href="cloudflare-workers-deploy/index.html">
-          <div class="name">Cloudflare Workers로 정적 사이트 배포하기</div>
-          <div class="meta">GitHub 연동 배포, wrangler.jsonc 설정, private 저장소 대응</div>
-        </a>
+      </div>
+
+      <p class="subgroup-label">배포 서비스 알아보기</p>
+      <div class="utility-grid">
         <a class="utility-card" href="netlify-intro/index.html">
           <div class="name">Netlify가 무엇인가</div>
           <div class="meta">배포 서비스 개념, 드래그 앤 드롭·GitHub 연동 배포, 서비스 비교</div>
@@ -144,13 +156,25 @@
           <div class="name">GitHub Pages가 무엇인가</div>
           <div class="meta">저장소 파일 = 웹사이트, 주소 규칙, Actions 배포, 절대 경로·캐시·.nojekyll 함정</div>
         </a>
+      </div>
+
+      <p class="subgroup-label">배포·저장소 실습</p>
+      <div class="utility-grid">
+        <a class="utility-card" href="gh-cli-course/index.html">
+          <div class="name">GitHub CLI 설치부터 Clone과 퍼블리시까지</div>
+          <div class="meta">gh 설치·인증, 비공개 저장소 clone, 로컬 프로젝트 퍼블리시 실습</div>
+        </a>
+        <a class="utility-card" href="cloudflare-workers-deploy/index.html">
+          <div class="name">Cloudflare Workers로 정적 사이트 배포하기</div>
+          <div class="meta">GitHub 연동 배포, wrangler.jsonc 설정, private 저장소 대응</div>
+        </a>
+      </div>
+
+      <p class="subgroup-label">웹 데이터 저장</p>
+      <div class="utility-grid">
         <a class="utility-card" href="web-storage/index.html">
           <div class="name">웹에 데이터를 저장하는 5가지 방법</div>
           <div class="meta">Cookie · sessionStorage · localStorage · IndexedDB · Cache API 비교와 선택 가이드</div>
-        </a>
-        <a class="utility-card" href="claude-code-skill-making/index.html">
-          <div class="name">Claude Code 스킬 만들기</div>
-          <div class="meta">10분 실습으로 첫 스킬 만들기, SKILL.md 작성법, 만든 스킬 불러 쓰기</div>
         </a>
       </div>
     </section>
