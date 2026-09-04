@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Netlify가 무엇인가 · AI 프로덕트 마스터</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@1.3.9/dist/web/static/pretendard.css">
+<style>
+  :root {
+    --primary: #0066cc; --primary-focus: #0071e3;
+    --canvas: #ffffff; --parchment: #f5f5f7; --pearl: #fafafc;
+    --black: #000000; --ink: #1d1d1f; --ink-80: #333333; --ink-48: #7a7a7a;
+    --hairline: #e0e0e0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--canvas); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', 'Apple SD Gothic Neo', 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-size: 17px; line-height: 1.47; letter-spacing: -0.374px;
+  }
+  .global-nav {
+    position: sticky; top: 0; z-index: 20; height: 44px; background: var(--black);
+    display: flex; align-items: center; justify-content: space-between; padding: 0 22px;
+  }
+  .global-nav .brand { color: #fff; font-size: 12px; font-weight: 600; letter-spacing: -0.12px; text-decoration: none; }
+  .global-nav .meta { color: rgba(255,255,255,0.72); font-size: 12px; letter-spacing: -0.12px; }
+  .sub-nav {
+    position: sticky; top: 44px; z-index: 19; height: 52px;
+    display: flex; align-items: center; justify-content: space-between; padding: 0 22px;
+    background: rgba(245,245,247,0.8);
+    -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+  .sub-nav .category { font-size: 21px; font-weight: 600; letter-spacing: 0.231px; color: var(--ink); text-decoration: none; }
+  .btn-primary {
+    display: inline-block; background: var(--primary); color: #fff; border: none;
+    border-radius: 9999px; padding: 8px 18px; font-size: 14px; font-family: inherit;
+    text-decoration: none; cursor: pointer; transition: transform .15s;
+  }
+  .btn-primary:active { transform: scale(0.95); }
+  .btn-primary:focus-visible { outline: 2px solid var(--primary-focus); outline-offset: 2px; }
+
+  article { max-width: 720px; margin: 0 auto; padding: 64px 24px 96px; }
+
+  .eyebrow { display: block; font-size: 14px; font-weight: 600; letter-spacing: -0.224px; color: var(--ink-48); margin-bottom: 12px; }
+  h1 { font-size: 40px; font-weight: 600; line-height: 1.10; letter-spacing: 0; margin: 0 0 28px; }
+  h2 {
+    font-size: 28px; font-weight: 600; line-height: 1.14; letter-spacing: 0.196px;
+    margin: 56px 0 16px; padding-top: 32px; border-top: 1px solid var(--hairline);
+  }
+  h3 { font-size: 21px; font-weight: 600; line-height: 1.19; letter-spacing: 0.231px; margin: 32px 0 12px; }
+  p { color: var(--ink); font-size: 17px; line-height: 1.47; letter-spacing: -0.374px; }
+  ul, ol { font-size: 17px; line-height: 1.47; letter-spacing: -0.374px; }
+  li { margin-bottom: 6px; }
+  strong { color: var(--ink); }
+
+  code {
+    background: var(--pearl); border: 1px solid var(--hairline);
+    border-radius: 5px; padding: 2px 6px; font-size: 14px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+  }
+  pre {
+    background: var(--pearl); border: 1px solid var(--hairline);
+    border-radius: 8px; padding: 18px 20px; overflow-x: auto;
+  }
+  pre code { background: none; border: none; padding: 0; font-size: 14px; line-height: 1.6; }
+
+  blockquote {
+    margin: 24px 0; padding: 4px 0 4px 20px; border-left: 2px solid var(--hairline);
+  }
+  blockquote p { margin: 0; font-size: 14px; letter-spacing: -0.224px; color: var(--ink-80); }
+
+  img {
+    max-width: 100%; border-radius: 8px; border: 1px solid var(--hairline);
+    display: block; margin: 16px 0 8px;
+  }
+  .caption { font-size: 13px; color: var(--ink-48); letter-spacing: -0.154px; margin: 0 0 24px; }
+
+  table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; border-collapse: collapse; font-size: 14px; margin: 16px 0; }
+  th, td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--hairline); white-space: nowrap; }
+  th { color: var(--ink-48); font-weight: 600; letter-spacing: -0.224px; }
+
+  hr { border: none; height: 1px; background: var(--hairline); margin: 48px 0; }
+
+  @media (max-width: 640px) {
+    article { padding: 48px 20px 72px; }
+    h1 { font-size: 28px; }
+    h2 { font-size: 21px; }
+    .sub-nav { padding: 0 16px; }
+    .sub-nav .category { font-size: 17px; }
+  }
+  @media (max-width: 380px) {
+    .global-nav .meta { display: none; }
+  }
+  .figure { margin: 28px 0 6px; }
+  .figure svg { display: block; width: 100%; height: auto; font-family: inherit; }
+  .fig-caption { font-size: 13px; color: var(--ink-48); letter-spacing: -0.154px; margin: 0 0 28px; text-align: center; }
+</style>
+</head>
+<body>
+  <nav class="global-nav">
+    <a class="brand" href="../../index.html">AI 프로덕트 마스터</a>
+    <span class="meta">인공지능 심화(160H)</span>
+  </nav>
+  <nav class="sub-nav">
+    <a class="category" href="../index.html">02 바이브코딩</a>
+    <a class="btn-primary" href="../../index.html">전체 커리큘럼</a>
+  </nav>
+
+  <article>
+
+
+<span class="eyebrow">PART 02 · 바이브코딩 교안</span>
+<h1>Netlify가 무엇인가</h1>
+<p>바이브 코딩으로 만든 결과물은 결국 <strong>남에게 보여 줘야</strong> 의미가 생깁니다. 내 노트북에서만 열리는 <code>index.html</code>은 아직 "웹사이트"가 아니니까요. <strong>Netlify(넷리파이)</strong>는 그 마지막 한 걸음, 즉 "만든 걸 인터넷 주소가 있는 사이트로 올리는 일"을 가장 쉽게 해 주는 서비스입니다.</p>
+
+<ul>
+<li>Netlify가 정확히 무엇을 대신해 주는 서비스인지</li>
+<li>가장 빠른 배포 두 가지 — 드래그 앤 드롭, GitHub 연동</li>
+<li>알아 두면 좋은 기능(미리보기 배포, 롤백, 폼, 함수)</li>
+<li>GitHub Pages · Vercel · Cloudflare와 무엇이 다른지</li>
+<li>수업에서 실제로 자주 막히는 지점과 해결법</li>
+</ul>
+
+<hr>
+
+<h2>1. 한 줄로 말하면</h2>
+<p><strong>Netlify는 내가 만든 웹사이트 파일을 대신 보관하고, 전 세계 어디서든 빠르게 열리도록 인터넷에 띄워 주는 서비스입니다.</strong> 여기에 "GitHub에 코드를 올리면 알아서 다시 배포까지 해 주는" 자동화가 붙어 있습니다.</p>
+<p>2014년에 시작해 <strong>Jamstack</strong>이라는 말을 만들어 낸 회사이기도 합니다. 지금 우리가 당연하게 쓰는 "Git에 push하면 자동 배포", "PR마다 미리보기 주소" 같은 흐름을 대중화한 원조격 서비스라고 보면 됩니다.</p>
+
+<h3>1-1. 예전에는 이렇게 했습니다</h3>
+<p>Netlify 같은 서비스가 없던 시절에 사이트를 하나 띄우려면 이런 일을 직접 해야 했습니다.</p>
+<ol>
+<li>서버(호스팅)를 돈 주고 빌린다</li>
+<li>FTP 프로그램으로 파일을 하나씩 서버에 올린다</li>
+<li>도메인을 사고 서버 주소와 연결한다</li>
+<li>HTTPS(자물쇠) 인증서를 발급받아 서버에 설치한다</li>
+<li>파일을 고칠 때마다 다시 FTP로 덮어쓴다</li>
+</ol>
+<p>Netlify는 이 다섯 단계를 <strong>폴더 하나 끌어다 놓기</strong> 또는 <strong>GitHub 저장소 연결하기</strong>로 줄여 놓은 서비스입니다. 도메인 연결과 HTTPS도 자동입니다.</p>
+<div class="figure"><svg viewBox="0 0 720 250" role="img" aria-label="예전 배포 방식 5단계와 Netlify 방식 2단계 비교"><defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--ink-48)"/></marker></defs><text x="0" y="16" font-size="13" font-weight="600" fill="var(--ink-48)">예전 방식</text><rect x="0" y="32" width="122" height="64" rx="10" fill="var(--pearl)" stroke="var(--hairline)"/><text x="61.0" y="68.5" text-anchor="middle" font-size="13" fill="var(--ink)">서버 임대</text><line x1="127" y1="64" x2="144" y2="64" stroke="var(--ink-48)" stroke-width="1.5" marker-end="url(#ar)"/><rect x="149" y="32" width="122" height="64" rx="10" fill="var(--pearl)" stroke="var(--hairline)"/><text x="210.0" y="60.0" text-anchor="middle" font-size="13" fill="var(--ink)">FTP로</text><text x="210.0" y="77.0" text-anchor="middle" font-size="13" fill="var(--ink)">파일 업로드</text><line x1="276" y1="64" x2="293" y2="64" stroke="var(--ink-48)" stroke-width="1.5" marker-end="url(#ar)"/><rect x="298" y="32" width="122" height="64" rx="10" fill="var(--pearl)" stroke="var(--hairline)"/><text x="359.0" y="60.0" text-anchor="middle" font-size="13" fill="var(--ink)">도메인</text><text x="359.0" y="77.0" text-anchor="middle" font-size="13" fill="var(--ink)">구입·연결</text><line x1="425" y1="64" x2="442" y2="64" stroke="var(--ink-48)" stroke-width="1.5" marker-end="url(#ar)"/><rect x="447" y="32" width="122" height="64" rx="10" fill="var(--pearl)" stroke="var(--hairline)"/><text x="508.0" y="60.0" text-anchor="middle" font-size="13" fill="var(--ink)">HTTPS</text><text x="508.0" y="77.0" text-anchor="middle" font-size="13" fill="var(--ink)">인증서 설치</text><line x1="574" y1="64" x2="591" y2="64" stroke="var(--ink-48)" stroke-width="1.5" marker-end="url(#ar)"/><rect x="596" y="32" width="122" height="64" rx="10" fill="var(--pearl)" stroke="var(--hairline)"/><text x="657.0" y="60.0" text-anchor="middle" font-size="13" fill="var(--ink)">수정 때마다</text><text x="657.0" y="77.0" text-anchor="middle" font-size="13" fill="var(--ink)">재업로드</text><text x="0" y="152" font-size="13" font-weight="600" fill="var(--primary)">Netlify</text><rect x="0" y="168" width="340" height="64" rx="10" fill="#f0f7ff" stroke="var(--primary)"/><text x="170.0" y="204.9" text-anchor="middle" font-size="14" fill="var(--ink)">폴더를 끌어다 놓거나, GitHub 저장소 연결</text><line x1="348" y1="200" x2="372" y2="200" stroke="var(--ink-48)" stroke-width="1.5" marker-end="url(#ar)"/><rect x="380" y="168" width="340" height="64" rx="10" fill="#f0f7ff" stroke="var(--primary)"/><text x="550.0" y="204.9" text-anchor="middle" font-size="14" fill="var(--ink)">주소 · HTTPS · 자동 재배포까지 완료</text></svg></div><p class="fig-caption">다섯 단계가 두 단계로 줄어듭니다</p>
+
+<blockquote>
+<p><strong>용어 정리 — 배포(deploy):</strong> 내 컴퓨터에 있는 파일을 인터넷에서 누구나 볼 수 있는 곳으로 옮겨 두는 일을 말합니다. "배포한다 = 사이트를 인터넷에 올린다"로 이해하면 충분합니다.</p>
+</blockquote>
+
+<hr>
+
+<h2>2. Netlify가 대신 해 주는 세 가지</h2>
+<div class="figure"><svg viewBox="0 0 720 190" role="img" aria-label="코드 작성부터 사용자 접속까지의 Netlify 배포 파이프라인"><defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--ink-48)"/></marker></defs><rect x="0" y="55" width="112" height="78" rx="10" fill="var(--pearl)" stroke="var(--hairline)"/><text x="56.0" y="90.0" text-anchor="middle" font-size="13" fill="var(--ink)">내 컴퓨터</text><text x="56.0" y="107.0" text-anchor="middle" font-size="13" fill="var(--ink)">코드 작성</text><line x1="118" y1="94" x2="146" y2="94" stroke="var(--ink-48)" stroke-width="1.5" marker-end="url(#ar)"/><rect x="152" y="55" width="112" height="78" rx="10" fill="var(--pearl)" stroke="var(--hairline)"/><text x="208.0" y="90.0" text-anchor="middle" font-size="13" fill="var(--ink)">GitHub</text><text x="208.0" y="107.0" text-anchor="middle" font-size="13" fill="var(--ink)">git push</text><line x1="270" y1="94" x2="298" y2="94" stroke="var(--ink-48)" stroke-width="1.5" marker-end="url(#ar)"/><rect x="304" y="28" width="286" height="132" rx="12" fill="#f0f7ff" stroke="var(--primary)"/><text x="447" y="50" text-anchor="middle" font-size="13" font-weight="600" fill="var(--primary)">Netlify</text><rect x="316" y="62" width="78" height="82" rx="9" fill="#ffffff" stroke="var(--primary)" stroke-opacity="0.35"/><text x="355" y="97" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">빌드</text><text x="355" y="117" text-anchor="middle" font-size="11" fill="var(--ink-48)">코드 → 파일</text><line x1="396" y1="103" x2="404" y2="103" stroke="var(--ink-48)" stroke-width="1.5" marker-end="url(#ar)"/><rect x="406" y="62" width="78" height="82" rx="9" fill="#ffffff" stroke="var(--primary)" stroke-opacity="0.35"/><text x="445" y="97" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">배포</text><text x="445" y="117" text-anchor="middle" font-size="11" fill="var(--ink-48)">새 버전 반영</text><line x1="486" y1="103" x2="494" y2="103" stroke="var(--ink-48)" stroke-width="1.5" marker-end="url(#ar)"/><rect x="496" y="62" width="78" height="82" rx="9" fill="#ffffff" stroke="var(--primary)" stroke-opacity="0.35"/><text x="535" y="97" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">호스팅</text><text x="535" y="117" text-anchor="middle" font-size="11" fill="var(--ink-48)">전 세계 CDN</text><line x1="596" y1="94" x2="624" y2="94" stroke="var(--ink-48)" stroke-width="1.5" marker-end="url(#ar)"/><rect x="630" y="55" width="90" height="78" rx="10" fill="var(--pearl)" stroke="var(--hairline)"/><text x="675.0" y="90.0" text-anchor="middle" font-size="13" fill="var(--ink)">전 세계</text><text x="675.0" y="107.0" text-anchor="middle" font-size="13" fill="var(--ink)">사용자</text></svg></div><p class="fig-caption">push 한 번이면 이 흐름 전체가 자동으로 돕니다</p>
+<table>
+<thead>
+<tr><th>역할</th><th>하는 일</th></tr>
+</thead>
+<tbody>
+<tr><td><strong>빌드(Build)</strong></td><td>React·Next.js처럼 변환이 필요한 코드를 브라우저가 읽을 수 있는 파일로 만들어 줍니다. 순수 HTML이면 이 단계는 건너뜁니다.</td></tr>
+<tr><td><strong>배포(Deploy)</strong></td><td>완성된 파일을 실제 서비스 주소에 반영합니다. 새 버전이 올라가도 이전 버전은 그대로 보관됩니다.</td></tr>
+<tr><td><strong>호스팅(Hosting)</strong></td><td>전 세계에 흩어진 서버(CDN)에 파일을 복사해 두어, 어느 나라에서 접속해도 가까운 곳에서 빠르게 열리게 합니다.</td></tr>
+</tbody>
+</table>
+<p>이 세 가지가 한 세트로 묶여 있고, 무료 플랜에서도 <strong>HTTPS 인증서가 자동으로 발급·갱신</strong>됩니다. 주소창에 자물쇠가 뜨게 하려고 따로 할 일이 없습니다.</p>
+<p>파일을 올리는 방법은 크게 두 가지이고, 어느 쪽을 택하든 결과물은 똑같습니다.</p>
+<div class="figure"><svg viewBox="0 0 720 272" role="img" aria-label="드래그 앤 드롭과 GitHub 연동, 두 가지 배포 방법"><defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--ink-48)"/></marker></defs><rect x="260" y="0" width="200" height="52" rx="10" fill="var(--pearl)" stroke="var(--hairline)"/><text x="360.0" y="30.9" text-anchor="middle" font-size="14" fill="var(--ink)">내가 만든 사이트 파일</text><path d="M360 52 L360 74 L150 74 L150 92" fill="none" stroke="var(--ink-48)" stroke-width="1.5" marker-end="url(#ar)"/><path d="M360 52 L360 74 L570 74 L570 92" fill="none" stroke="var(--ink-48)" stroke-width="1.5" marker-end="url(#ar)"/><rect x="20" y="98" width="260" height="76" rx="10" fill="#ffffff" stroke="var(--hairline)"/><text x="150" y="152" text-anchor="middle" font-size="12" fill="var(--ink-48)">Git 없이 3분, 수정 시 다시 올리기</text><text x="150" y="126" text-anchor="middle" font-size="14" font-weight="600" fill="var(--primary)">① 드래그 앤 드롭</text><rect x="440" y="98" width="260" height="76" rx="10" fill="#ffffff" stroke="var(--hairline)"/><text x="570" y="152" text-anchor="middle" font-size="12" fill="var(--ink-48)">push할 때마다 자동 재배포</text><text x="570" y="126" text-anchor="middle" font-size="14" font-weight="600" fill="var(--primary)">② GitHub 연동</text><path d="M150 174 L150 196 L360 196 L360 214" fill="none" stroke="var(--ink-48)" stroke-width="1.5" marker-end="url(#ar)"/><path d="M570 174 L570 196 L360 196" fill="none" stroke="var(--ink-48)" stroke-width="1.5"/><rect x="230" y="214" width="260" height="48" rx="10" fill="#f0f7ff" stroke="var(--primary)"/><text x="360.0" y="242.9" text-anchor="middle" font-size="14" fill="var(--ink)">내이름.netlify.app</text></svg></div><p class="fig-caption">두 방법 모두 결과는 같은 주소 하나입니다</p>
+
+<hr>
+
+<h2>3. 실습 A — 3분 만에 사이트 띄우기(드래그 앤 드롭)</h2>
+<p>Git을 아직 몰라도 됩니다. 가장 먼저 해 볼 실습입니다.</p>
+<ol>
+<li>바탕화면에 폴더를 하나 만들고 그 안에 <code>index.html</code> 파일을 넣습니다.</li>
+<li><a href="https://app.netlify.com/drop" target="_blank" rel="noopener">app.netlify.com/drop</a>에 접속합니다.</li>
+<li>화면 가운데 점선 영역에 <strong>폴더째로</strong> 끌어다 놓습니다.</li>
+<li>몇 초 뒤 <code>랜덤이름.netlify.app</code> 주소가 생기고, 그 주소로 바로 접속됩니다.</li>
+</ol>
+<pre><code>&lt;!-- index.html — 이 정도만 있어도 배포됩니다 --&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html lang="ko"&gt;
+&lt;head&gt;&lt;meta charset="UTF-8"&gt;&lt;title&gt;내 첫 사이트&lt;/title&gt;&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;안녕하세요 👋&lt;/h1&gt;
+  &lt;p&gt;Netlify로 올린 첫 페이지입니다.&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<p>주소에 붙은 랜덤 이름(<code>festive-tesla-1a2b3c</code> 같은 것)은 <strong>Site configuration → Site details → Change site name</strong>에서 원하는 이름으로 바꿀 수 있습니다.</p>
+
+<blockquote>
+<p><strong>Cloudflare Workers와 다른 점:</strong> 같은 파트의 <a href="../cloudflare-workers-deploy/index.html">Cloudflare Workers 교안</a>에서는 프로젝트 이름을 나중에 바꾸기 어려웠지만, Netlify는 사이트 이름(주소)을 <strong>나중에 자유롭게 변경</strong>할 수 있습니다. 처음 이름을 크게 고민하지 않아도 됩니다.</p>
+</blockquote>
+
+<blockquote>
+<p><strong>주의:</strong> 파일이 아니라 <strong>폴더</strong>를 끌어다 놓아야 합니다. 그리고 폴더 안 최상위에 <code>index.html</code>이 있어야 첫 화면이 뜹니다. 이름이 <code>Index.html</code>이나 <code>home.html</code>이면 "Page not found"가 나옵니다.</p>
+</blockquote>
+
+<hr>
+
+<h2>4. 실습 B — GitHub 연동 자동 배포</h2>
+<p>드래그 앤 드롭은 빠르지만, 수정할 때마다 다시 끌어다 놓아야 합니다. 실제 프로젝트에서는 <strong>GitHub 저장소를 연결</strong>해서 push할 때마다 자동으로 배포되게 합니다.</p>
+<ol>
+<li>Netlify 대시보드에서 <strong>Add new site → Import an existing project</strong>를 선택합니다.</li>
+<li><strong>Deploy with GitHub</strong>를 누르고 GitHub 앱 권한을 승인합니다. (저장소 전체 또는 <strong>선택한 저장소만</strong> 고를 수 있습니다.)</li>
+<li>배포할 저장소를 선택합니다.</li>
+<li>빌드 설정을 확인하고 <strong>Deploy</strong>를 누릅니다.</li>
+</ol>
+
+<h3>4-1. 빌드 설정에서 딱 두 칸만 보면 됩니다</h3>
+<table>
+<thead>
+<tr><th>항목</th><th>순수 HTML 사이트</th><th>React(Vite)</th><th>Next.js</th></tr>
+</thead>
+<tbody>
+<tr><td>Build command</td><td>(비워 둠)</td><td><code>npm run build</code></td><td><code>npm run build</code></td></tr>
+<tr><td>Publish directory</td><td><code>.</code> (또는 <code>public</code>)</td><td><code>dist</code></td><td>자동 감지</td></tr>
+</tbody>
+</table>
+<p><strong>Publish directory</strong>는 "완성된 파일이 들어 있는 폴더"를 뜻합니다. 배포는 성공했는데 사이트가 빈 화면이거나 404라면, 십중팔구 이 칸이 잘못 지정된 것입니다.</p>
+
+<h3>4-2. 설정을 파일로 남겨 두기 (netlify.toml)</h3>
+<p>대시보드에서 클릭으로 설정해도 되지만, 저장소 루트에 <code>netlify.toml</code>을 두면 설정이 코드와 함께 관리되어 훨씬 안전합니다.</p>
+<pre><code># netlify.toml (저장소 루트)
+[build]
+  command = "npm run build"
+  publish = "dist"</code></pre>
+<p>순수 HTML 저장소라면 이 파일 없이도 잘 동작합니다.</p>
+
+<hr>
+
+<h2>5. 알아 두면 좋은 기능</h2>
+
+<h3>5-1. Deploy Preview — PR마다 생기는 미리보기 주소</h3>
+<p>Pull Request를 올리면 Netlify가 <strong>그 PR 내용만 반영된 별도 주소</strong>를 자동으로 만들어 주고, PR 화면에 링크를 댓글로 남깁니다. "말로 설명하지 말고 링크를 보여 주는" 협업이 가능해집니다. 해커톤 팀 작업에서 특히 유용합니다.</p>
+
+<h3>5-2. 즉시 롤백 — 사고 났을 때 30초 복구</h3>
+<p>Netlify는 배포할 때마다 <strong>이전 버전을 지우지 않고 전부 보관</strong>합니다. 잘못 올렸다면 <strong>Deploys</strong> 목록에서 예전 배포를 고르고 <strong>Publish deploy</strong>만 누르면 그 시점으로 즉시 되돌아갑니다. 코드를 되돌리거나 다시 빌드할 필요가 없습니다.</p>
+
+<h3>5-3. 커스텀 도메인 + 무료 HTTPS</h3>
+<p>직접 산 도메인(<code>mysite.com</code>)을 <strong>Domain management</strong>에서 연결할 수 있고, 인증서는 Let's Encrypt로 자동 발급·자동 갱신됩니다.</p>
+
+<h3>5-4. Netlify Forms — 서버 없이 문의 폼 받기</h3>
+<p>HTML 폼 태그에 속성 하나만 추가하면, 제출된 내용이 Netlify 대시보드에 쌓입니다. 백엔드도 DB도 필요 없습니다.</p>
+<pre><code>&lt;form name="contact" method="POST" data-netlify="true"&gt;
+  &lt;input type="text" name="name" placeholder="이름"&gt;
+  &lt;input type="email" name="email" placeholder="이메일"&gt;
+  &lt;textarea name="message"&gt;&lt;/textarea&gt;
+  &lt;button type="submit"&gt;보내기&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+
+<h3>5-5. Netlify Functions — 서버 없이 뒷단 코드 돌리기</h3>
+<p><code>netlify/functions/</code> 폴더에 JS 파일을 두면 그것이 그대로 API 주소(<code>/.netlify/functions/파일명</code>)가 됩니다. API 키처럼 브라우저에 노출되면 안 되는 값을 다뤄야 할 때 사용합니다.</p>
+
+<hr>
+
+<h2>6. 비슷한 서비스와 비교</h2>
+<table>
+<thead>
+<tr><th>서비스</th><th>성격</th><th>이럴 때 고릅니다</th></tr>
+</thead>
+<tbody>
+<tr><td><strong>GitHub Pages</strong></td><td>가장 단순. 저장소 파일을 그대로 서빙</td><td>순수 HTML 문서·포트폴리오. 단, 무료 플랜은 private 저장소 불가</td></tr>
+<tr><td><strong>Netlify</strong></td><td>드래그 앤 드롭·폼·함수까지 골고루</td><td>Git을 아직 안 배웠거나, 폼·미리보기가 필요할 때</td></tr>
+<tr><td><strong>Vercel</strong></td><td>Next.js를 만든 회사</td><td>Next.js 프로젝트, v0로 만든 결과물</td></tr>
+<tr><td><strong>Cloudflare Workers/Pages</strong></td><td>CDN 성능과 관대한 무료 한도</td><td>private 저장소를 쓰면서 트래픽이 많을 때</td></tr>
+</tbody>
+</table>
+<p>기능이 상당 부분 겹치기 때문에, <strong>정답은 없고 상황과 취향의 문제</strong>입니다. 이 수업에서는 이 네 가지를 모두 한 번씩 경험해 보고 본인에게 맞는 것을 고르면 됩니다.</p>
+<div class="figure"><svg viewBox="0 0 720 170" role="img" aria-label="배포 서비스 4종의 단순함과 기능 많음 스펙트럼 비교"><line x1="40" y1="95" x2="680" y2="95" stroke="var(--hairline)" stroke-width="2"/><text x="40" y="128" font-size="12" fill="var(--ink-48)">단순함</text><text x="680" y="128" text-anchor="end" font-size="12" fill="var(--ink-48)">기능 많음</text><circle cx="136.0" cy="95" r="6" fill="var(--ink-48)"/><line x1="136.0" y1="87" x2="136.0" y2="60" stroke="var(--ink-48)" stroke-width="1"/><text x="136.0" y="48" text-anchor="middle" font-size="14" font-weight="600" fill="var(--ink)">GitHub Pages</text><text x="136.0" y="30" text-anchor="middle" font-size="11" fill="var(--ink-48)">문서·포트폴리오</text><circle cx="424.0" cy="95" r="6" fill="var(--ink-48)"/><line x1="424.0" y1="103" x2="424.0" y2="132" stroke="var(--ink-48)" stroke-width="1"/><text x="424.0" y="148" text-anchor="middle" font-size="14" font-weight="600" fill="var(--ink)">Cloudflare</text><text x="424.0" y="164" text-anchor="middle" font-size="11" fill="var(--ink-48)">성능·무료 한도</text><circle cx="456.0" cy="95" r="8" fill="var(--primary)"/><line x1="456.0" y1="87" x2="456.0" y2="60" stroke="var(--primary)" stroke-width="1"/><text x="456.0" y="48" text-anchor="middle" font-size="14" font-weight="600" fill="var(--ink)">Netlify</text><text x="456.0" y="30" text-anchor="middle" font-size="11" fill="var(--ink-48)">쉬움 + 폼·함수</text><circle cx="520.0" cy="95" r="6" fill="var(--ink-48)"/><line x1="520.0" y1="103" x2="520.0" y2="132" stroke="var(--ink-48)" stroke-width="1"/><text x="520.0" y="148" text-anchor="middle" font-size="14" font-weight="600" fill="var(--ink)">Vercel</text><text x="520.0" y="164" text-anchor="middle" font-size="11" fill="var(--ink-48)">Next.js</text></svg></div><p class="fig-caption">네 서비스의 대략적인 위치 — 오른쪽으로 갈수록 기능이 많고 배울 것도 늘어납니다</p>
+
+<blockquote>
+<p><strong>정리 기준:</strong> Git이 아직 낯설다 → Netlify 드래그 앤 드롭. 문서만 올린다 → GitHub Pages. Next.js다 → Vercel. 저장소를 비공개로 두고 싶다 → Netlify 또는 Cloudflare.</p>
+</blockquote>
+
+<hr>
+
+<h2>7. 자주 겪는 문제</h2>
+
+<h3>7-1. 새로고침하면 404가 뜹니다 (React·Vue 등 SPA)</h3>
+<p>첫 화면은 잘 뜨는데 <code>/about</code>에서 새로고침하면 "Page not found"가 나옵니다. 주소에 해당하는 실제 파일이 없기 때문입니다. 배포 폴더에 <code>_redirects</code> 파일을 만들고 아래 한 줄을 넣으면 해결됩니다.</p>
+<pre><code># _redirects (publish 폴더 안, 확장자 없음)
+/*    /index.html   200</code></pre>
+<div class="figure"><svg viewBox="0 0 720 210" role="img" aria-label="_redirects 파일이 없을 때와 있을 때의 요청 흐름 비교"><defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--ink-48)"/></marker></defs><text x="0" y="16" font-size="13" font-weight="600" fill="#c1121f">_redirects 없음</text><rect x="0" y="28" width="190" height="60" rx="10" fill="var(--pearl)" stroke="var(--hairline)"/><text x="95.0" y="62.5" text-anchor="middle" font-size="13" fill="var(--ink)">/about 새로고침</text><line x1="196" y1="58" x2="224" y2="58" stroke="var(--ink-48)" stroke-width="1.5" marker-end="url(#ar)"/><rect x="230" y="28" width="250" height="60" rx="10" fill="var(--pearl)" stroke="var(--hairline)"/><text x="355.0" y="62.5" text-anchor="middle" font-size="13" fill="var(--ink)">about.html 파일을 찾음 → 없음</text><line x1="486" y1="58" x2="514" y2="58" stroke="var(--ink-48)" stroke-width="1.5" marker-end="url(#ar)"/><rect x="520" y="28" width="200" height="60" rx="10" fill="#fff1f2" stroke="#c1121f"/><text x="620.0" y="62.9" text-anchor="middle" font-size="14" fill="#c1121f">404 Page not found</text><text x="0" y="136" font-size="13" font-weight="600" fill="var(--primary)">_redirects 있음</text><rect x="0" y="148" width="190" height="60" rx="10" fill="var(--pearl)" stroke="var(--hairline)"/><text x="95.0" y="182.6" text-anchor="middle" font-size="13" fill="var(--ink)">/about 새로고침</text><line x1="196" y1="178" x2="224" y2="178" stroke="var(--ink-48)" stroke-width="1.5" marker-end="url(#ar)"/><rect x="230" y="148" width="250" height="60" rx="10" fill="#f0f7ff" stroke="var(--primary)"/><text x="355.0" y="182.6" text-anchor="middle" font-size="13" fill="var(--ink)">규칙에 따라 index.html 반환 (200)</text><line x1="486" y1="178" x2="514" y2="178" stroke="var(--ink-48)" stroke-width="1.5" marker-end="url(#ar)"/><rect x="520" y="148" width="200" height="60" rx="10" fill="#f0f7ff" stroke="var(--primary)"/><text x="620.0" y="182.9" text-anchor="middle" font-size="14" fill="var(--ink)">about 화면 정상 표시</text></svg></div><p class="fig-caption">주소는 그대로 두고 index.html을 돌려주면, 화면 전환은 앱이 알아서 처리합니다</p>
+
+<h3>7-2. 로컬에서는 되는데 배포하면 이미지가 안 나옵니다</h3>
+<p>윈도우·맥은 파일 이름의 대소문자를 구분하지 않지만, Netlify의 빌드 서버(리눅스)는 <strong>구분합니다.</strong> <code>Logo.png</code> 파일을 <code>logo.png</code>로 불러오면 로컬에서만 성공하고 배포 후에는 깨집니다. 파일명은 전부 소문자로 통일하는 습관이 안전합니다.</p>
+
+<h3>7-3. 빌드가 실패합니다</h3>
+<p>Deploys 화면에서 실패한 배포를 클릭하면 전체 로그를 볼 수 있습니다. 흔한 원인은 세 가지입니다.</p>
+<ul>
+<li>Publish directory를 잘못 지정 (<code>dist</code>인데 <code>build</code>로 적음)</li>
+<li><code>package-lock.json</code>을 커밋하지 않아 의존성 설치 실패</li>
+<li>로컬에만 있던 <code>.env</code> 값이 서버에는 없음 → <strong>Site configuration → Environment variables</strong>에 직접 등록해야 합니다</li>
+</ul>
+
+<h3>7-4. 무료 플랜 한도</h3>
+<p>개인 학습·포트폴리오 수준에서는 무료 플랜으로 충분합니다. 다만 대역폭과 월 빌드 시간에 한도가 있고, <strong>이 숫자는 정책에 따라 바뀌므로</strong> 실제 값은 <a href="https://www.netlify.com/pricing/" target="_blank" rel="noopener">공식 요금 페이지</a>에서 확인하세요. 한도가 걱정될 만큼 트래픽이 늘었다면 Cloudflare 쪽이 대안이 됩니다.</p>
+
+<hr>
+
+<h2>8. 정리</h2>
+<ul>
+<li>Netlify = <strong>빌드 + 배포 + 호스팅</strong>을 한 번에 해 주는 서비스, HTTPS는 자동</li>
+<li>가장 빠른 시작은 <strong>폴더 드래그 앤 드롭</strong> — Git 없이 3분</li>
+<li>실제 프로젝트는 <strong>GitHub 연동</strong>으로, push할 때마다 자동 배포</li>
+<li>막히는 지점은 대개 <strong>Publish directory</strong>와 <strong>파일명 대소문자</strong> 두 가지</li>
+<li>사이트 이름(주소)은 나중에 바꿀 수 있으니 부담 없이 시작하세요</li>
+</ul>
+<p>용어가 헷갈릴 때는 <a href="../../용어사전/index.html">용어사전</a>의 <strong>Netlify · Vercel · Cloudflare Pages · GitHub Pages</strong> 항목을 함께 보면 서로의 관계가 정리됩니다.</p>
+
+  </article>
+</body>
+</html>
