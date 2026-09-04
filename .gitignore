@@ -2,3 +2,9 @@
 /Personal Access Token/
 /google로그인기능/
 docs/worklog.md
+
+# 로컬 머신의 ~/shared-claude-config를 가리키는 심볼릭 링크 — 다른 클론에서는 끊어지므로 커밋하지 않음
+.claude/agents/doc-researcher.md
+.claude/agents/doc-fact-checker.md
+.claude/agents/doc-writer.md
+.claude/skills/doc-refresh
