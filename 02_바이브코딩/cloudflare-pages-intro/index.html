@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cloudflare Pages가 무엇인가 · AI 프로덕트 마스터</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@1.3.9/dist/web/static/pretendard.css">
+<style>
+  :root {
+    --primary: #0066cc; --primary-focus: #0071e3;
+    --canvas: #ffffff; --parchment: #f5f5f7; --pearl: #fafafc;
+    --black: #000000; --ink: #1d1d1f; --ink-80: #333333; --ink-48: #7a7a7a;
+    --hairline: #e0e0e0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--canvas); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', 'Apple SD Gothic Neo', 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-size: 17px; line-height: 1.47; letter-spacing: -0.374px;
+  }
+  .global-nav {
+    position: sticky; top: 0; z-index: 20; height: 44px; background: var(--black);
+    display: flex; align-items: center; justify-content: space-between; padding: 0 22px;
+  }
+  .global-nav .brand { color: #fff; font-size: 12px; font-weight: 600; letter-spacing: -0.12px; text-decoration: none; }
+  .global-nav .meta { color: rgba(255,255,255,0.72); font-size: 12px; letter-spacing: -0.12px; }
+  .sub-nav {
+    position: sticky; top: 44px; z-index: 19; height: 52px;
+    display: flex; align-items: center; justify-content: space-between; padding: 0 22px;
+    background: rgba(245,245,247,0.8);
+    -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+  .sub-nav .category { font-size: 21px; font-weight: 600; letter-spacing: 0.231px; color: var(--ink); text-decoration: none; }
+  .btn-primary {
+    display: inline-block; background: var(--primary); color: #fff; border: none;
+    border-radius: 9999px; padding: 8px 18px; font-size: 14px; font-family: inherit;
+    text-decoration: none; cursor: pointer; transition: transform .15s;
+  }
+  .btn-primary:active { transform: scale(0.95); }
+  .btn-primary:focus-visible { outline: 2px solid var(--primary-focus); outline-offset: 2px; }
+
+  article { max-width: 720px; margin: 0 auto; padding: 64px 24px 96px; }
+
+  .eyebrow { display: block; font-size: 14px; font-weight: 600; letter-spacing: -0.224px; color: var(--ink-48); margin-bottom: 12px; }
+  h1 { font-size: 40px; font-weight: 600; line-height: 1.10; letter-spacing: 0; margin: 0 0 28px; }
+  h2 {
+    font-size: 28px; font-weight: 600; line-height: 1.14; letter-spacing: 0.196px;
+    margin: 56px 0 16px; padding-top: 32px; border-top: 1px solid var(--hairline);
+  }
+  h3 { font-size: 21px; font-weight: 600; line-height: 1.19; letter-spacing: 0.231px; margin: 32px 0 12px; }
+  p { color: var(--ink); font-size: 17px; line-height: 1.47; letter-spacing: -0.374px; }
+  ul, ol { font-size: 17px; line-height: 1.47; letter-spacing: -0.374px; }
+  li { margin-bottom: 6px; }
+  strong { color: var(--ink); }
+
+  code {
+    background: var(--pearl); border: 1px solid var(--hairline);
+    border-radius: 5px; padding: 2px 6px; font-size: 14px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+  }
+  pre {
+    background: var(--pearl); border: 1px solid var(--hairline);
+    border-radius: 8px; padding: 18px 20px; overflow-x: auto;
+  }
+  pre code { background: none; border: none; padding: 0; font-size: 14px; line-height: 1.6; }
+
+  blockquote {
+    margin: 24px 0; padding: 4px 0 4px 20px; border-left: 2px solid var(--hairline);
+  }
+  blockquote p { margin: 0; font-size: 14px; letter-spacing: -0.224px; color: var(--ink-80); }
+
+  img {
+    max-width: 100%; border-radius: 8px; border: 1px solid var(--hairline);
+    display: block; margin: 16px 0 8px;
+  }
+  .caption { font-size: 13px; color: var(--ink-48); letter-spacing: -0.154px; margin: 0 0 24px; }
+
+  table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; border-collapse: collapse; font-size: 14px; margin: 16px 0; }
+  th, td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--hairline); white-space: nowrap; }
+  th { color: var(--ink-48); font-weight: 600; letter-spacing: -0.224px; }
+
+  hr { border: none; height: 1px; background: var(--hairline); margin: 48px 0; }
+
+  @media (max-width: 640px) {
+    article { padding: 48px 20px 72px; }
+    h1 { font-size: 28px; }
+    h2 { font-size: 21px; }
+    .sub-nav { padding: 0 16px; }
+    .sub-nav .category { font-size: 17px; }
+  }
+  @media (max-width: 380px) {
+    .global-nav .meta { display: none; }
+  }
+  .figure { margin: 28px 0 6px; }
+  .figure svg { display: block; width: 100%; height: auto; font-family: inherit; }
+  .fig-caption { font-size: 13px; color: var(--ink-48); letter-spacing: -0.154px; margin: 0 0 28px; text-align: center; }
+</style>
+</head>
+<body>
+  <nav class="global-nav">
+    <a class="brand" href="../../index.html">AI 프로덕트 마스터</a>
+    <span class="meta">인공지능 심화(160H)</span>
+  </nav>
+  <nav class="sub-nav">
+    <a class="category" href="../index.html">02 바이브코딩</a>
+    <a class="btn-primary" href="../../index.html">전체 커리큘럼</a>
+  </nav>
+
+  <article>
+
+<span class="eyebrow">PART 02 · 바이브코딩 교안</span>
+<h1>Cloudflare Pages가 무엇인가</h1>
+<p><strong>Cloudflare Pages</strong>는 <a href="../netlify-intro/index.html">Netlify</a>·<a href="../vercel-intro/index.html">Vercel</a>과 같은 부류의 <strong>정적 사이트 배포·호스팅 서비스</strong>입니다. GitHub 저장소를 연결하면 push할 때마다 자동으로 빌드해서 주소를 붙여 주죠. 다른 둘과의 결정적 차이는 <strong>만든 회사의 본업</strong>에 있습니다. Cloudflare는 원래 호스팅 회사가 아니라 <strong>전 세계 인터넷 트래픽의 상당 부분이 거쳐 가는 네트워크 회사</strong>이고, Pages는 그 거대한 네트워크 위에 내 사이트를 직접 얹어 두는 서비스입니다. 그래서 빠르고, 무료 플랜이 유난히 관대합니다.</p>
+
+<ul>
+<li>Cloudflare가 어떤 회사이고, Pages가 그 안에서 어떤 위치인지</li>
+<li>이름이 헷갈리는 <strong>Pages</strong>와 <strong>Workers</strong>의 관계</li>
+<li>무료 플랜이 다른 서비스와 어떻게 다른지</li>
+<li>가장 빠른 배포 두 가지 — Git 연동, 폴더 직접 업로드</li>
+<li>알아 두면 좋은 기능(브랜치별 미리보기, Functions, <code>_redirects</code>)</li>
+<li>수업에서 실제로 자주 막히는 지점과 해결법</li>
+</ul>
+
+<blockquote>
+<p><strong>이 교안의 위치:</strong> 같은 파트의 <a href="../cloudflare-workers-deploy/index.html">Cloudflare Workers로 정적 사이트 배포하기</a>가 실제 화면 캡처를 따라가는 <strong>실습 기록</strong>이라면, 이 교안은 그 전에 읽는 <strong>개념 편</strong>입니다. "Pages인지 Workers인지" 헷갈리는 이유도 여기서 풀어 둡니다.</p>
+</blockquote>
+
+<hr>
+
+<h2>1. 한 줄로 말하면</h2>
+<p><strong>Cloudflare Pages는 Cloudflare의 전 세계 서버망(CDN) 위에 내 사이트 파일을 직접 올려 두고, GitHub과 연결해 자동으로 갱신해 주는 무료 호스팅 서비스입니다.</strong> 2020년 말에 나왔고, Netlify·Vercel이 먼저 만들어 둔 "Git 연동 자동 배포" 방식을 그대로 따르되, Cloudflare가 가진 네트워크 규모를 무기로 삼았습니다.</p>
+
+<h3>1-1. Cloudflare는 원래 무엇을 하는 회사인가</h3>
+<p>Cloudflare(2009년 창업)는 웹사이트 <strong>앞에 서서</strong> 세 가지 일을 대신해 주는 회사입니다.</p>
+<table>
+<thead>
+<tr><th>역할</th><th>쉽게 말하면</th></tr>
+</thead>
+<tbody>
+<tr><td><strong>CDN</strong></td><td>사이트 파일을 전 세계 300개 넘는 도시의 서버에 복사해 두고, 접속한 사람과 가장 가까운 곳에서 응답</td></tr>
+<tr><td><strong>DNS</strong></td><td><code>mysite.com</code>이라는 이름을 실제 서버 주소로 바꿔 주는 전화번호부 (1.1.1.1이 이 회사 것)</td></tr>
+<tr><td><strong>보안</strong></td><td>DDoS 공격·봇 트래픽을 사이트에 닿기 전에 걸러 냄</td></tr>
+</tbody>
+</table>
+<p>원래는 "내 서버는 따로 있고, Cloudflare는 그 앞을 지키는 방패"였습니다. Pages는 여기서 한 걸음 더 나가서 <strong>"서버를 아예 두지 말고 파일을 방패 안에 넣어 두자"</strong>는 발상입니다. 원본 서버가 없으니 느려질 곳도, 다운될 곳도 없습니다.</p>
+<div class="figure"><svg viewBox="0 0 720 232" role="img" aria-label="원본 서버 앞을 지키는 일반 구조와, 사이트 파일을 네트워크 안에 두는 Cloudflare Pages 구조 비교"><defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--ink-48)"/></marker></defs><text x="0" y="16" font-size="13" font-weight="600" fill="var(--ink-48)">일반 사이트 — Cloudflare가 앞을 지킴</text><rect x="0" y="30" width="150" height="64" rx="10" fill="var(--pearl)" stroke="var(--hairline)"/><text x="75.0" y="66.9" text-anchor="middle" font-size="14" fill="var(--ink)">전 세계 사용자</text><line x1="156" y1="62" x2="194" y2="62" stroke="var(--ink-48)" stroke-width="1.5" marker-end="url(#ar)"/><rect x="200" y="30" width="250" height="64" rx="10" fill="#fff4e6" stroke="#f38020"/><text x="325.0" y="57.5" text-anchor="middle" font-size="14" font-weight="600" fill="var(--ink)">Cloudflare 네트워크</text><text x="325.0" y="75.5" text-anchor="middle" font-size="11" fill="var(--ink-48)">CDN · DNS · 보안</text><line x1="456" y1="62" x2="494" y2="62" stroke="var(--ink-48)" stroke-width="1.5" marker-end="url(#ar)"/><rect x="500" y="30" width="220" height="64" rx="10" fill="#ffffff" stroke="var(--hairline)"/><text x="610.0" y="57.5" text-anchor="middle" font-size="14" font-weight="600" fill="var(--ink)">내 서버 (원본)</text><text x="610.0" y="75.5" text-anchor="middle" font-size="11" fill="var(--ink-48)">여기가 느리거나 죽으면 끝</text><text x="0" y="146" font-size="13" font-weight="600" fill="#f38020">Cloudflare Pages — 사이트를 네트워크 안에 둠</text><rect x="0" y="160" width="150" height="64" rx="10" fill="var(--pearl)" stroke="var(--hairline)"/><text x="75.0" y="196.9" text-anchor="middle" font-size="14" fill="var(--ink)">전 세계 사용자</text><line x1="156" y1="192" x2="194" y2="192" stroke="var(--ink-48)" stroke-width="1.5" marker-end="url(#ar)"/><rect x="200" y="160" width="250" height="64" rx="10" fill="#fff4e6" stroke="#f38020"/><text x="325.0" y="187.6" text-anchor="middle" font-size="14" font-weight="600" fill="var(--ink)">Cloudflare 네트워크</text><text x="325.0" y="205.6" text-anchor="middle" font-size="11" fill="var(--ink-48)">내 사이트 파일이 여기 있음</text><rect x="500" y="160" width="220" height="64" rx="10" fill="var(--pearl)" stroke="var(--hairline)" stroke-dasharray="6 4"/><text x="610.0" y="196.6" text-anchor="middle" font-size="13" fill="var(--ink-48)">원본 서버 없음</text></svg></div><p class="fig-caption">원본 서버가 없으니 느려질 곳도 다운될 곳도 없습니다</p>
+
+<hr>
+
+<h2>2. Pages와 Workers — 이름이 헷갈리는 이유</h2>
+<p>Cloudflare 대시보드에 들어가면 <strong>"Workers &amp; Pages"</strong>라는 메뉴가 하나로 묶여 있고, 정작 새 프로젝트를 만들려고 하면 Workers 쪽으로 안내합니다. 처음 보면 혼란스러운데, 역사를 알면 간단합니다.</p>
+<table>
+<thead>
+<tr><th></th><th>Workers</th><th>Pages</th></tr>
+</thead>
+<tbody>
+<tr><td>등장</td><td>2017년</td><td>2020년</td></tr>
+<tr><td>원래 용도</td><td>CDN 서버에서 <strong>코드</strong>를 실행 (서버리스 함수)</td><td>CDN 서버에서 <strong>정적 파일</strong>을 서빙 (사이트 호스팅)</td></tr>
+<tr><td>지금</td><td colspan="2">2024년부터 Workers가 정적 파일 서빙도 흡수 (<em>Workers Static Assets</em>). 새 프로젝트는 Workers로 시작하도록 권장하고, 기존 Pages 프로젝트는 계속 지원</td></tr>
+</tbody>
+</table>
+<p>정리하면 <strong>"Pages = 정적 사이트 전용이던 서비스, Workers = 코드 실행 서비스였는데 이제 둘 다 하는 서비스"</strong>입니다. 이 교안에서 설명하는 개념(Git 연동, 브랜치별 미리보기, 무료 한도, <code>_redirects</code>)은 어느 쪽으로 배포하든 거의 그대로 적용됩니다. 인터넷에서 "Cloudflare Pages"로 검색해 나오는 자료도 대부분 여전히 유효합니다.</p>
+<div class="figure"><svg viewBox="0 0 720 160" role="img" aria-label="따로 있던 Workers와 Pages가 Workers 하나로 합쳐지는 관계도"><defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--ink-48)"/></marker></defs><text x="0" y="16" font-size="13" font-weight="600" fill="var(--ink-48)">예전 — 둘이 따로</text><rect x="0" y="30" width="150" height="78" rx="10" fill="#ffffff" stroke="var(--hairline)"/><text x="75.0" y="64.5" text-anchor="middle" font-size="14" font-weight="600" fill="var(--ink)">Workers</text><text x="75.0" y="82.5" text-anchor="middle" font-size="11" fill="var(--ink-48)">2017 · 코드 실행</text><rect x="170" y="30" width="150" height="78" rx="10" fill="#ffffff" stroke="var(--hairline)"/><text x="245.0" y="64.5" text-anchor="middle" font-size="14" font-weight="600" fill="var(--ink)">Pages</text><text x="245.0" y="82.5" text-anchor="middle" font-size="11" fill="var(--ink-48)">2020 · 정적 파일</text><line x1="336" y1="69" x2="394" y2="69" stroke="var(--ink-48)" stroke-width="1.5" marker-end="url(#ar)"/><text x="365" y="60" text-anchor="middle" font-size="11" fill="var(--ink-48)">2024~</text><text x="400" y="16" font-size="13" font-weight="600" fill="#f38020">지금 — Workers 하나로</text><rect x="400" y="30" width="320" height="120" rx="12" fill="#fff4e6" stroke="#f38020"/><text x="560" y="52" text-anchor="middle" font-size="14" font-weight="600" fill="var(--ink)">Workers</text><rect x="414" y="64" width="140" height="70" rx="10" fill="#ffffff" stroke="#f38020"/><text x="484.0" y="94.7" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">코드 실행</text><text x="484.0" y="111.7" text-anchor="middle" font-size="10" fill="var(--ink-48)">함수 · API</text><rect x="566" y="64" width="140" height="70" rx="10" fill="#ffffff" stroke="#f38020"/><text x="636.0" y="94.7" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">정적 파일</text><text x="636.0" y="111.7" text-anchor="middle" font-size="10" fill="var(--ink-48)">Static Assets</text></svg></div><p class="fig-caption">대시보드가 Workers 쪽으로 안내하는 이유 — 정적 사이트도 이제 Workers가 서빙합니다</p>
+
+<blockquote>
+<p><strong>수업에서는:</strong> 실습은 <a href="../cloudflare-workers-deploy/index.html">Workers 배포 교안</a>의 흐름(Workers &amp; Pages → Create → Connect GitHub)을 따릅니다. 이 교안에서 "Pages"라고 부르는 것은 <strong>정적 사이트를 Cloudflare에 올리는 방식 전체</strong>를 가리킨다고 이해하면 됩니다.</p>
+</blockquote>
+
+<hr>
+
+<h2>3. 무료 플랜이 유난히 관대한 이유</h2>
+<p>Netlify·Vercel·GitHub Pages는 무료 플랜에 <strong>월 대역폭 한도</strong>(보통 100GB 안팎)가 있습니다. 사이트가 갑자기 유명해지면 한도를 넘겨 유료로 넘어가야 하죠. Cloudflare는 애초에 전 세계 트래픽을 처리하는 게 본업이라, 정적 파일 대역폭에 <strong>한도를 두지 않습니다.</strong></p>
+<table>
+<thead>
+<tr><th>항목</th><th>Cloudflare 무료 플랜</th></tr>
+</thead>
+<tbody>
+<tr><td>정적 파일 대역폭·요청 수</td><td><strong>무제한</strong></td></tr>
+<tr><td>private 저장소 연결</td><td>가능</td></tr>
+<tr><td>상업적 사용</td><td>가능 (Vercel Hobby는 불가)</td></tr>
+<tr><td>사이트 수</td><td>무제한</td></tr>
+<tr><td>파일 1개 최대 크기 / 사이트당 파일 수</td><td>25 MiB / 20,000개</td></tr>
+<tr><td>월 빌드 횟수·시간</td><td>한도 있음 (개인 학습 수준에서는 넉넉함)</td></tr>
+</tbody>
+</table>
+<p>구체적인 숫자는 정책에 따라 바뀌므로 <a href="https://developers.cloudflare.com/workers/platform/limits/" target="_blank" rel="noopener">공식 한도 문서</a>에서 확인하세요. 요점은 <strong>"트래픽 걱정 없이, 비공개 저장소로, 상업 사이트도 무료"</strong>라는 조합이 이 넷 중 Cloudflare에만 있다는 것입니다.</p>
+
+<hr>
+
+<h2>4. 실습 A — GitHub 연동 자동 배포</h2>
+<p>가장 표준적인 방법이고, 한 번 연결하면 push만으로 자동 배포됩니다. 실제 화면은 <a href="../cloudflare-workers-deploy/index.html">Workers 배포 교안</a>에 캡처가 있으니, 여기서는 개념적 흐름만 짚습니다.</p>
+<ol>
+<li><a href="https://dash.cloudflare.com" target="_blank" rel="noopener">dash.cloudflare.com</a> 가입 후 <strong>이메일 인증</strong>을 먼저 마칩니다. (인증 전에는 프로젝트 생성이 막힙니다.)</li>
+<li><strong>Workers &amp; Pages → Create → Connect GitHub</strong>에서 Cloudflare 앱 권한을 승인하고 저장소를 고릅니다.</li>
+<li>빌드 설정에서 <strong>Framework preset</strong>(자동 인식), <strong>Build command</strong>, <strong>Build output directory</strong>를 확인합니다.</li>
+<li><strong>Deploy</strong>를 누르면 Initializing → Cloning → Installing → Deploying 순서로 진행되고, 끝나면 <code>프로젝트.pages.dev</code>(Workers 흐름이면 <code>프로젝트.계정.workers.dev</code>) 주소가 나옵니다.</li>
+</ol>
+
+<h3>4-1. 빌드 설정에서 볼 것은 두 칸</h3>
+<table>
+<thead>
+<tr><th>항목</th><th>순수 HTML</th><th>React(Vite)</th><th>Next.js</th></tr>
+</thead>
+<tbody>
+<tr><td>Build command</td><td>(비워 둠)</td><td><code>npm run build</code></td><td><code>npx @cloudflare/next-on-pages</code> 또는 OpenNext 어댑터</td></tr>
+<tr><td>Build output directory</td><td><code>/</code> (또는 <code>public</code>)</td><td><code>dist</code></td><td>어댑터가 지정</td></tr>
+</tbody>
+</table>
+
+<blockquote>
+<p><strong>Next.js는 주의:</strong> Vercel과 달리 Cloudflare에서 Next.js를 돌리려면 <strong>어댑터</strong>가 필요하고, 일부 기능은 제한됩니다. Next.js 프로젝트는 Vercel이 훨씬 편합니다. Cloudflare는 순수 HTML, Vite·Astro·SvelteKit 같은 정적 결과물이 나오는 프로젝트에서 가장 빛납니다.</p>
+</blockquote>
+
+<hr>
+
+<h2>5. 실습 B — 폴더 직접 업로드 (Git 없이)</h2>
+<p>Netlify의 드래그 앤 드롭처럼, Cloudflare도 Git 없이 <strong>완성된 폴더를 직접 올리는</strong> 방법이 있습니다. 두 가지입니다.</p>
+
+<h3>5-1. 대시보드에서 업로드</h3>
+<p><strong>Workers &amp; Pages → Create → Upload assets</strong>(또는 Pages → Direct Upload)를 선택하고 프로젝트 이름을 정한 뒤, 폴더를 끌어다 놓거나 zip 파일을 올립니다. 몇 초 뒤 주소가 생깁니다.</p>
+
+<h3>5-2. 터미널에서 wrangler CLI로 업로드</h3>
+<pre><code># 1) Cloudflare 로그인 (브라우저가 열림)
+npx wrangler login
+
+# 2) 완성된 폴더를 Pages 프로젝트로 배포
+npx wrangler pages deploy ./dist --project-name=my-site
+
+# (Workers 방식이면) 저장소 루트에 wrangler.jsonc를 두고
+npx wrangler deploy</code></pre>
+<p><code>wrangler</code>는 Cloudflare의 공식 명령줄 도구입니다. Claude Code 같은 AI 코딩 도구에게 "Cloudflare에 배포해 줘"라고 하면 대개 이 명령을 씁니다.</p>
+
+<blockquote>
+<p><strong>실전 트러블슈팅 — 이름은 처음에 정한다:</strong> 프로젝트 이름이 곧 주소(<code>이름.pages.dev</code>)가 되고, <strong>나중에 바꾸기 어렵습니다.</strong> Netlify처럼 자유롭게 바꿀 수 없으니, 짧고 최종적인 이름으로 시작하세요. 자세한 사정은 <a href="../cloudflare-workers-deploy/index.html">Workers 배포 교안</a> 5-3절에 있습니다.</p>
+</blockquote>
+
+<hr>
+
+<h2>6. 알아 두면 좋은 기능</h2>
+
+<h3>6-1. 브랜치별 미리보기 주소</h3>
+<p>Git 연동 프로젝트는 <strong>main이 아닌 브랜치</strong>에 push하면 그 브랜치 전용 주소(<code>브랜치.프로젝트.pages.dev</code>)가 자동으로 생기고, 배포 하나하나에도 고유 주소(<code>해시.프로젝트.pages.dev</code>)가 붙습니다. Vercel의 Preview와 같은 개념이며, PR 화면에 링크가 댓글로 달립니다.</p>
+<div class="figure"><svg viewBox="0 0 720 260" role="img" aria-label="main 브랜치, 다른 브랜치, 개별 배포마다 다른 주소가 생기는 구조"><defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--ink-48)"/></marker></defs><text x="0" y="16" font-size="13" font-weight="600" fill="var(--ink-48)">내가 하는 일</text><text x="420" y="16" font-size="13" font-weight="600" fill="var(--ink-48)">생기는 주소</text><rect x="0" y="32" width="280" height="64" rx="10" fill="var(--pearl)" stroke="var(--hairline)"/><text x="140.0" y="68.9" text-anchor="middle" font-size="14" fill="var(--ink)">main 브랜치에 push</text><line x1="288" y1="64" x2="412" y2="64" stroke="var(--ink-48)" stroke-width="1.5" marker-end="url(#ar)"/><rect x="420" y="32" width="300" height="64" rx="10" fill="#fff4e6" stroke="#f38020"/><text x="570.0" y="59.5" text-anchor="middle" font-size="14" font-weight="600" fill="var(--ink)">프로젝트.pages.dev</text><text x="570.0" y="77.5" text-anchor="middle" font-size="11" fill="var(--ink-48)">실제 사용자용 (Production)</text><rect x="0" y="112" width="280" height="64" rx="10" fill="var(--pearl)" stroke="var(--hairline)"/><text x="140.0" y="148.9" text-anchor="middle" font-size="14" fill="var(--ink)">feature 브랜치에 push</text><line x1="288" y1="144" x2="412" y2="144" stroke="var(--ink-48)" stroke-width="1.5" marker-end="url(#ar)"/><rect x="420" y="112" width="300" height="64" rx="10" fill="#ffffff" stroke="var(--hairline)"/><text x="570.0" y="139.6" text-anchor="middle" font-size="14" font-weight="600" fill="var(--ink)">feature.프로젝트.pages.dev</text><text x="570.0" y="157.6" text-anchor="middle" font-size="11" fill="var(--ink-48)">브랜치별 미리보기</text><rect x="0" y="192" width="280" height="64" rx="10" fill="var(--pearl)" stroke="var(--hairline)"/><text x="140.0" y="228.9" text-anchor="middle" font-size="14" fill="var(--ink)">배포 하나하나마다</text><line x1="288" y1="224" x2="412" y2="224" stroke="var(--ink-48)" stroke-width="1.5" marker-end="url(#ar)"/><rect x="420" y="192" width="300" height="64" rx="10" fill="var(--pearl)" stroke="var(--hairline)"/><text x="570.0" y="219.6" text-anchor="middle" font-size="14" font-weight="600" fill="var(--ink)">a1b2c3d4.프로젝트.pages.dev</text><text x="570.0" y="237.6" text-anchor="middle" font-size="11" fill="var(--ink-48)">그 배포만의 고정 주소 · 롤백에 사용</text></svg></div><p class="fig-caption">브랜치 이름이 주소 앞에 붙습니다 — 합치기 전에 눌러 볼 수 있습니다</p>
+
+<h3>6-2. Functions — 폴더 구조가 곧 API 주소</h3>
+<p>저장소에 <code>functions/</code> 폴더를 만들면, 그 안의 파일 경로가 그대로 API 주소가 됩니다. 별도 설정이 없습니다.</p>
+<pre><code>// functions/api/hello.js  →  https://내사이트/api/hello
+export function onRequest(context) {
+  return Response.json({ message: "안녕하세요" });
+}</code></pre>
+<div class="figure"><svg viewBox="0 0 720 200" role="img" aria-label="functions 폴더 안의 파일 경로가 그대로 API 주소가 되는 매핑"><defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--ink-48)"/></marker></defs><rect x="0" y="0" width="300" height="200" rx="10" fill="var(--pearl)" stroke="var(--hairline)"/><text x="16" y="26" font-size="12" font-weight="600" fill="var(--ink-48)">저장소</text><text x="16" y="52" font-size="13" font-family="SF Mono, Menlo, Consolas, monospace" fill="var(--ink-48)">functions/</text><text x="36" y="78" font-size="13" font-family="SF Mono, Menlo, Consolas, monospace" fill="var(--ink-48)">api/</text><text x="56" y="104" font-size="13" font-family="SF Mono, Menlo, Consolas, monospace" fill="var(--ink)">hello.js</text><text x="56" y="130" font-size="13" font-family="SF Mono, Menlo, Consolas, monospace" fill="var(--ink-48)">users/</text><text x="76" y="156" font-size="13" font-family="SF Mono, Menlo, Consolas, monospace" fill="var(--ink)">[id].js</text><text x="16" y="182" font-size="13" font-family="SF Mono, Menlo, Consolas, monospace" fill="var(--ink)">index.html</text><line x1="310" y1="100" x2="358" y2="100" stroke="var(--ink-48)" stroke-width="1.5" marker-end="url(#ar)"/><rect x="364" y="76" width="356" height="48" rx="10" fill="#fff4e6" stroke="#f38020"/><text x="542.0" y="104.9" text-anchor="middle" font-size="14" fill="var(--ink)">/api/hello</text><line x1="310" y1="152" x2="358" y2="152" stroke="var(--ink-48)" stroke-width="1.5" marker-end="url(#ar)"/><rect x="364" y="128" width="356" height="48" rx="10" fill="#fff4e6" stroke="#f38020"/><text x="542.0" y="156.6" text-anchor="middle" font-size="13" fill="var(--ink)">/api/users/:id  (예: /api/users/42)</text><line x1="160" y1="104" x2="300" y2="104" stroke="var(--hairline)" stroke-dasharray="3 3"/><line x1="160" y1="156" x2="300" y2="156" stroke="var(--hairline)" stroke-dasharray="3 3"/><text x="542" y="40" text-anchor="middle" font-size="12" fill="var(--ink-48)">파일 경로가 그대로 API 주소</text></svg></div><p class="fig-caption">대괄호 파일명([id].js)은 주소의 그 자리에 무엇이 와도 받아 줍니다</p>
+<p>이 함수는 Workers 위에서 돌아가므로, 접속한 사람과 가장 가까운 Cloudflare 서버에서 실행됩니다. KV(키-값 저장소), D1(SQLite DB), R2(파일 저장소) 같은 Cloudflare의 다른 서비스를 여기에 붙일 수도 있는데, 이건 PART 07에서 필요해질 때 다시 다룹니다.</p>
+
+<h3>6-3. <code>_redirects</code>와 <code>_headers</code></h3>
+<p>Netlify와 같은 형식의 두 파일을 배포 폴더에 두면 리다이렉트와 HTTP 헤더를 설정할 수 있습니다.</p>
+<pre><code># _redirects
+/old-page   /new-page   301
+/blog/*     /posts/:splat   301
+
+# _headers
+/*
+  X-Frame-Options: DENY</code></pre>
+
+<h3>6-4. 커스텀 도메인 · 롤백 · 통계</h3>
+<ul>
+<li><strong>도메인</strong> — 도메인의 DNS를 이미 Cloudflare에서 관리하고 있다면 클릭 두 번이면 연결됩니다. 다른 곳에서 산 도메인도 CNAME으로 연결 가능하며 HTTPS는 자동입니다.</li>
+<li><strong>롤백</strong> — Deployments 목록에서 이전 배포의 <strong>Rollback to this deployment</strong>를 누르면 즉시 되돌아갑니다.</li>
+<li><strong>Web Analytics</strong> — 쿠키 없는 방문자 통계가 무료로 포함됩니다.</li>
+</ul>
+
+<hr>
+
+<h2>7. 네 가지 배포 서비스, 무료 플랜으로 비교</h2>
+<table>
+<thead>
+<tr><th>항목</th><th>GitHub Pages</th><th>Netlify</th><th>Vercel</th><th>Cloudflare</th></tr>
+</thead>
+<tbody>
+<tr><td>무료 대역폭</td><td>월 100GB 권장</td><td>월 100GB</td><td>월 100GB</td><td><strong>무제한</strong></td></tr>
+<tr><td>private 저장소</td><td>불가</td><td>가능</td><td>가능</td><td>가능</td></tr>
+<tr><td>상업적 사용</td><td>제한적</td><td>가능</td><td>불가</td><td>가능</td></tr>
+<tr><td>드래그 앤 드롭</td><td>없음</td><td>있음</td><td>없음</td><td>있음</td></tr>
+<tr><td>특화 프레임워크</td><td>—</td><td>—</td><td>Next.js</td><td>—</td></tr>
+<tr><td>대시보드 난이도</td><td>쉬움</td><td>쉬움</td><td>쉬움</td><td><strong>다소 복잡</strong> (메뉴가 많음)</td></tr>
+</tbody>
+</table>
+<div class="figure"><svg viewBox="0 0 720 246" role="img" aria-label="GitHub Pages, Netlify, Vercel, Cloudflare 무료 플랜의 대역폭·private 저장소·상업적 사용·드래그 앤 드롭 비교"><defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--ink-48)"/></marker></defs><text x="221" y="24" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink-48)">GitHub Pages</text><text x="363" y="24" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink-48)">Netlify</text><text x="505" y="24" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink-48)">Vercel</text><text x="647" y="24" text-anchor="middle" font-size="13" font-weight="600" fill="#f38020">Cloudflare</text><line x1="0" y1="36" x2="720" y2="36" stroke="var(--hairline)"/><text x="0" y="66" font-size="13" fill="var(--ink)">무료 대역폭</text><rect x="158" y="44" width="126" height="34" rx="8" fill="var(--pearl)" stroke="var(--hairline)"/><text x="221" y="66" text-anchor="middle" font-size="13" font-weight="400" fill="var(--ink-48)">100GB</text><rect x="300" y="44" width="126" height="34" rx="8" fill="var(--pearl)" stroke="var(--hairline)"/><text x="363" y="66" text-anchor="middle" font-size="13" font-weight="400" fill="var(--ink-48)">100GB</text><rect x="442" y="44" width="126" height="34" rx="8" fill="var(--pearl)" stroke="var(--hairline)"/><text x="505" y="66" text-anchor="middle" font-size="13" font-weight="400" fill="var(--ink-48)">100GB</text><rect x="584" y="44" width="126" height="34" rx="8" fill="#fff4e6" stroke="#f38020"/><text x="647" y="66" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">무제한</text><line x1="0" y1="86" x2="720" y2="86" stroke="var(--hairline)"/><text x="0" y="116" font-size="13" fill="var(--ink)">private 저장소</text><rect x="158" y="94" width="126" height="34" rx="8" fill="#fff1f2" stroke="#f3b4bb"/><text x="221" y="116" text-anchor="middle" font-size="13" font-weight="600" fill="#c1121f">불가</text><rect x="300" y="94" width="126" height="34" rx="8" fill="#f0f7ff" stroke="var(--primary)"/><text x="363" y="116" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">가능</text><rect x="442" y="94" width="126" height="34" rx="8" fill="#f0f7ff" stroke="var(--primary)"/><text x="505" y="116" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">가능</text><rect x="584" y="94" width="126" height="34" rx="8" fill="#fff4e6" stroke="#f38020"/><text x="647" y="116" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">가능</text><line x1="0" y1="136" x2="720" y2="136" stroke="var(--hairline)"/><text x="0" y="166" font-size="13" fill="var(--ink)">상업적 사용</text><rect x="158" y="144" width="126" height="34" rx="8" fill="var(--pearl)" stroke="var(--hairline)"/><text x="221" y="166" text-anchor="middle" font-size="13" font-weight="400" fill="var(--ink-48)">제한</text><rect x="300" y="144" width="126" height="34" rx="8" fill="#f0f7ff" stroke="var(--primary)"/><text x="363" y="166" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">가능</text><rect x="442" y="144" width="126" height="34" rx="8" fill="#fff1f2" stroke="#f3b4bb"/><text x="505" y="166" text-anchor="middle" font-size="13" font-weight="600" fill="#c1121f">불가</text><rect x="584" y="144" width="126" height="34" rx="8" fill="#fff4e6" stroke="#f38020"/><text x="647" y="166" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">가능</text><line x1="0" y1="186" x2="720" y2="186" stroke="var(--hairline)"/><text x="0" y="216" font-size="13" fill="var(--ink)">드래그 앤 드롭</text><rect x="158" y="194" width="126" height="34" rx="8" fill="#fff1f2" stroke="#f3b4bb"/><text x="221" y="216" text-anchor="middle" font-size="13" font-weight="600" fill="#c1121f">불가</text><rect x="300" y="194" width="126" height="34" rx="8" fill="#f0f7ff" stroke="var(--primary)"/><text x="363" y="216" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">가능</text><rect x="442" y="194" width="126" height="34" rx="8" fill="#fff1f2" stroke="#f3b4bb"/><text x="505" y="216" text-anchor="middle" font-size="13" font-weight="600" fill="#c1121f">불가</text><rect x="584" y="194" width="126" height="34" rx="8" fill="#fff4e6" stroke="#f38020"/><text x="647" y="216" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">가능</text><line x1="0" y1="236" x2="720" y2="236" stroke="var(--hairline)"/></svg></div><p class="fig-caption">네 칸이 전부 열려 있는 곳은 Cloudflare뿐입니다 (숫자는 바뀔 수 있으니 공식 페이지 확인)</p>
+<p>Cloudflare의 약점은 딱 하나, <strong>대시보드가 복잡하다</strong>는 점입니다. CDN·DNS·보안·Workers·R2 등 수십 가지 서비스가 한 화면에 있어서, 처음에는 "정적 사이트 하나 올리는 메뉴"를 찾는 것부터 헤맵니다. Workers 배포 교안에서 검색창(⌘K)에 <code>worker</code>를 치라고 안내하는 이유가 그것입니다.</p>
+
+<blockquote>
+<p><strong>정리 기준:</strong> 트래픽 걱정 없이 무료로, 비공개 저장소로, 상업 사이트까지 → Cloudflare. Next.js → Vercel. Git이 낯설거나 폼이 필요 → Netlify. 순수 문서 → GitHub Pages.</p>
+</blockquote>
+
+<hr>
+
+<h2>8. 자주 겪는 문제</h2>
+
+<h3>8-1. 배포는 성공했는데 화면이 비어 있음 / 404</h3>
+<p><strong>Build output directory</strong>가 잘못된 경우가 대부분입니다. Vite는 <code>dist</code>, Create React App은 <code>build</code>, 순수 HTML은 <code>/</code>입니다. 배포 로그 끝부분에 "Found N files"가 0에 가깝다면 폴더를 잘못 가리킨 것입니다.</p>
+
+<h3>8-2. SPA(React·Vue)에서 새로고침하면 404</h3>
+<p>Pages는 배포 폴더에 <code>404.html</code>이 <strong>없으면</strong> 자동으로 SPA로 판단해 모든 경로에 <code>index.html</code>을 돌려줍니다. 즉 대부분은 아무것도 안 해도 됩니다. Workers 방식(<code>wrangler.jsonc</code>)이라면 아래 한 줄을 추가합니다.</p>
+<pre><code>// wrangler.jsonc
+{
+  "name": "my-site",
+  "compatibility_date": "2026-09-01",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"
+  }
+}</code></pre>
+
+<h3>8-3. 빌드 중 Node 버전 오류</h3>
+<p>Cloudflare 빌드 서버의 기본 Node 버전이 프로젝트와 안 맞을 때 생깁니다. <strong>Settings → Environment variables</strong>에 <code>NODE_VERSION</code>을 <code>20</code>처럼 넣거나, 저장소 루트에 <code>.nvmrc</code> 파일을 두면 그 버전으로 빌드합니다.</p>
+
+<h3>8-4. 로컬에서는 되는데 배포하면 이미지가 안 보임</h3>
+<p>다른 서비스와 같은 원인입니다. 빌드 서버(리눅스)는 파일명 <strong>대소문자를 구분</strong>합니다. <code>Logo.png</code>를 <code>logo.png</code>로 부르면 배포 후에만 깨집니다.</p>
+
+<h3>8-5. 이메일 인증 전에는 아무것도 못 만듦</h3>
+<p>가입만 하고 인증 메일 링크를 안 누르면 "Create application"이 막힙니다. 스팸함까지 확인하세요.</p>
+
+<hr>
+
+<h2>9. 정리</h2>
+<ul>
+<li>Cloudflare Pages = <strong>세계 최대급 CDN 위에 사이트를 직접 올려 두는</strong> 무료 호스팅</li>
+<li><strong>Pages와 Workers</strong>는 지금 하나로 합쳐지는 중 — 개념은 같고, 새 프로젝트는 Workers 흐름으로</li>
+<li>무료 플랜의 강점: <strong>대역폭 무제한 · private 저장소 · 상업 사용 가능</strong></li>
+<li>시작은 <strong>GitHub 연동</strong> 또는 <strong>폴더 직접 업로드</strong>(<code>wrangler pages deploy</code>)</li>
+<li>막히는 지점은 <strong>Build output directory</strong>, <strong>프로젝트 이름(못 바꿈)</strong>, <strong>복잡한 대시보드</strong> 세 가지</li>
+</ul>
+<p>함께 보면 좋은 자료: <a href="../cloudflare-workers-deploy/index.html">Cloudflare Workers로 정적 사이트 배포하기</a>(실제 화면 캡처) · <a href="../netlify-intro/index.html">Netlify가 무엇인가</a> · <a href="../vercel-intro/index.html">Vercel이 무엇인가</a> · <a href="../../용어사전/index.html">용어사전</a>의 <strong>Cloudflare Pages</strong> 항목</p>
+
+  </article>
+</body>
+</html>
