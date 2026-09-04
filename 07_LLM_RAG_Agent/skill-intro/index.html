@@ -154,8 +154,9 @@
         <li><a href="#s3">어떻게 동작하는가 — 호출되는 두 가지 방식</a></li>
         <li><a href="#s4">스킬이 아닌 것</a></li>
         <li><a href="#s5">이 저장소의 실제 예 — doc-refresh 스킬</a></li>
-        <li><a href="#s6">언제 스킬로 만드나</a></li>
-        <li><a href="#s7">용어 정리 & 다음 단계</a></li>
+        <li><a href="#s6">내가 만든 스킬 확인하기</a></li>
+        <li><a href="#s7">언제 스킬로 만드나</a></li>
+        <li><a href="#s8">용어 정리 & 다음 단계</a></li>
       </ol>
     </div>
 
@@ -262,7 +263,37 @@ description: 문서/스크립트를 웹 리서치로 최신화하고, 모든 제
 
     <!-- ================================================================= -->
     <section class="block" id="s6">
-      <h2 class="h"><span class="num">06</span>언제 스킬로 만드나</h2>
+      <h2 class="h"><span class="num">06</span>내가 만든 스킬 확인하기</h2>
+      <p class="deck">만들었는데 안 불려온다면, 세 가지를 순서대로 확인하세요.</p>
+
+      <h3 class="sub">① 파일이 제자리에 있는지 확인</h3>
+      <p>커스텀 스킬은 항상 이 둘 중 한 곳에 <code>스킬이름/SKILL.md</code> 형태로 있어야 합니다.</p>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>위치</th><th>적용 범위</th></tr></thead>
+          <tbody>
+            <tr><td><code>&lt;프로젝트&gt;/.claude/skills/</code></td><td>그 프로젝트만</td></tr>
+            <tr><td><code>~/.claude/skills/</code></td><td>이 컴퓨터의 모든 프로젝트</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 class="sub">② 직접 호출해서 테스트</h3>
+      <p><code>/스킬이름</code>을 쳐보세요. <code>SKILL.md</code> 본문이 그대로 화면에 로드되면 인식된 것입니다.</p>
+
+      <h3 class="sub">③ 재시작이 필요한지 — 대부분 필요 없습니다</h3>
+      <p>Claude Code는 <code>.claude/skills</code> 폴더를 실시간으로 감시합니다. 이미 있는 스킬 폴더 안에서 파일을 추가·수정하면, <b>세션을 새로 시작하지 않아도 몇 초 안에 바로 인식</b>됩니다.</p>
+      <div class="callout">
+        <span class="lbl">재시작이 필요한 유일한 경우</span>
+        <p><code>.claude/skills</code>라는 <b>최상위 폴더 자체가 세션을 시작한 시점에는 없다가</b> 그 뒤에 새로 생긴 경우뿐입니다. 이미 존재하는 폴더 안에서 파일만 바꾸는 거라면 재시작이 필요 없습니다.</p>
+      </div>
+
+      <p>정리하면 안 불려오는 대부분의 이유는 재시작 문제가 아니라, <b>파일 위치가 틀렸거나</b> <b>description이 지금 요청과 안 맞아서</b>입니다. ①②를 먼저 확인하세요.</p>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s7">
+      <h2 class="h"><span class="num">07</span>언제 스킬로 만드나</h2>
       <p class="deck">간단한 기준 몇 가지만 기억하면 됩니다. 서브 에이전트와의 자세한 구분은 다음 문서에서 다룹니다.</p>
 
       <ul class="check yes">
@@ -278,8 +309,8 @@ description: 문서/스크립트를 웹 리서치로 최신화하고, 모든 제
     </section>
 
     <!-- ================================================================= -->
-    <section class="block" id="s7">
-      <h2 class="h"><span class="num">07</span>용어 정리 & 다음 단계</h2>
+    <section class="block" id="s8">
+      <h2 class="h"><span class="num">08</span>용어 정리 & 다음 단계</h2>
       <div class="scroll">
         <table>
           <thead><tr><th>용어</th><th>뜻</th></tr></thead>
