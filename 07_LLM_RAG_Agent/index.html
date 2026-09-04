@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>07 LLM_RAG_Agent · AI 프로덕트 마스터</title>
+<title>07 LLM_RAG_Agent · 프론티어올 러닝 노트</title>
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@1.3.9/dist/web/static/pretendard.css">
 <style>
   :root {
@@ -54,14 +54,24 @@
   ul.topics li:last-child { border-bottom: 1px solid var(--hairline); }
 
   .utility-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
+  .utility-grid + .subgroup-label { margin-top: 36px; }
   a.utility-card {
     display: block; background: var(--canvas); border: 1px solid var(--hairline);
     border-radius: 18px; padding: 24px; text-decoration: none; color: var(--ink);
     transition: border-color .15s;
   }
   a.utility-card:hover { border-color: var(--primary); }
-  a.utility-card .name { font-size: 17px; font-weight: 600; letter-spacing: -0.374px; margin-bottom: 6px; }
+  a.utility-card .name { font-size: 17px; font-weight: 600; letter-spacing: -0.374px; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
   a.utility-card .meta { font-size: 14px; color: var(--ink-48); letter-spacing: -0.224px; }
+  a.utility-card .step {
+    flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center;
+    width: 20px; height: 20px; border-radius: 50%; background: var(--primary); color: #fff;
+    font-size: 11px; font-weight: 700; letter-spacing: 0;
+  }
+  .subgroup-label {
+    font-size: 13px; font-weight: 600; letter-spacing: -0.1px; color: var(--ink-48);
+    margin: 0 0 14px; padding-top: 4px;
+  }
   .empty-note { font-size: 14px; color: var(--ink-48); letter-spacing: -0.224px; }
 
   footer.site-footer { background: var(--parchment); color: var(--ink-80); padding: 64px 24px 32px; }
@@ -85,7 +95,7 @@
 </head>
 <body>
   <nav class="global-nav">
-    <a class="brand" href="../index.html">AI 프로덕트 마스터</a>
+    <a class="brand" href="../index.html">프론티어올 러닝 노트</a>
     <span class="meta">인공지능 심화(160H)</span>
   </nav>
   <nav class="sub-nav">
@@ -111,26 +121,36 @@
 
     <section class="block">
       <h3 class="section-label">자료</h3>
+
+      <p class="subgroup-label">서브 에이전트 배우기 · 순서대로</p>
       <div class="utility-grid">
         <a class="utility-card" href="subagent-intro/index.html">
-          <div class="name">서브 에이전트란 무엇인가?</div>
+          <div class="name"><span class="step">1</span>서브 에이전트란 무엇인가?</div>
           <div class="meta">개념 정리 · 메인/서브 관계 · 컨텍스트 격리 · 언제 쓰고 쓰지 말아야 하나</div>
         </a>
-        <a class="utility-card" href="doc-refresh-agent/index.html">
-          <div class="name">문서 최신화·팩트체크 에이전트 만들기</div>
-          <div class="meta">리서치·독립검증·작성 3단계 설계 · 서브 에이전트/스킬 실습 · 승인 게이트</div>
+        <a class="utility-card" href="subagent-hands-on/index.html">
+          <div class="name"><span class="step">2</span>서브 에이전트 처음 만들어보기</div>
+          <div class="meta">왕초보용 · doc-researcher 하나만 직접 만들고 써보기</div>
         </a>
+        <a class="utility-card" href="doc-refresh-agent/index.html">
+          <div class="name"><span class="step">3</span>문서 최신화·팩트체크 에이전트 만들기</div>
+          <div class="meta">리서치·독립검증·작성 3단계 파이프라인 완성 · 승인 게이트</div>
+        </a>
+      </div>
+
+      <p class="subgroup-label">사례 연구 & 다른 실습</p>
+      <div class="utility-grid">
         <a class="utility-card" href="multi-agent-case-study/index.html">
           <div class="name">서브에이전트 3개 실전 사례</div>
           <div class="meta">에이전트 3개로 분석 보고서 만들기 · 프롬프트 전문 · 결과 검증법</div>
         </a>
-        <a class="utility-card" href="openai-api-practice/index.html">
-          <div class="name">OpenAI API 실습</div>
-          <div class="meta">Colab에서 API 키 넣기 · 첫 호출 · 실습 과제 6-1~6-5</div>
-        </a>
         <a class="utility-card" href="subagent-orchestration-case/index.html">
           <div class="name">서브에이전트 11개 사례 연구</div>
           <div class="meta">Multi-Agent를 실제 프로젝트에 쓴 기록 · 실패 3장면과 체크리스트</div>
+        </a>
+        <a class="utility-card" href="openai-api-practice/index.html">
+          <div class="name">OpenAI API 실습</div>
+          <div class="meta">Colab에서 API 키 넣기 · 첫 호출 · 실습 과제 6-1~6-5</div>
         </a>
       </div>
     </section>
@@ -148,7 +168,7 @@
       <a href="../07_LLM_RAG_Agent/index.html">07 LLM_RAG_Agent</a>
       <a href="../08_해커톤/index.html">08 해커톤</a>
     </div>
-    <div class="footer-legal">AI 프로덕트 마스터 · frontierall</div>
+    <div class="footer-legal">프론티어올 러닝 노트 · frontierall</div>
   </footer>
 </body>
 </html>
