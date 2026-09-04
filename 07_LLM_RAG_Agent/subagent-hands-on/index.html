@@ -187,7 +187,7 @@
 
       <p>이 문서를 다 따라 하면, <b>문서 하나를 던져주면 웹을 검색해서 "여기 오래된 정보가 있어요"라고 근거와 함께 알려주는</b> 나만의 AI 하나가 생깁니다. 이름은 <code>doc-researcher</code>라고 짓겠습니다.</p>
 
-      <p>미리 말씀드리면, 이 하나만으로는 아직 "완성된 도구"는 아닙니다. 스스로 판단만 하고 파일을 고치지는 않습니다(일부러 그렇게 만듭니다 — 이유는 아래에서). 문서를 실제로 고치는 기능까지 붙이는 건 다음 교안 <a href="../doc-refresh-agent/index.html">문서 최신화·팩트체크 에이전트 만들기</a>에서 이어집니다. 오늘은 그 첫 조각 하나만, 제대로 이해하면서 만드는 게 목표입니다.</p>
+      <p>미리 말씀드리면, 이 하나만으로는 아직 "완성된 도구"는 아닙니다. 스스로 판단만 하고 파일을 고치지는 않습니다(일부러 그렇게 만듭니다 — 이유는 아래에서). 이 doc-researcher를 검증하는 두 번째 에이전트는 다음 교안 <a href="../fact-checker-hands-on/index.html">doc-fact-checker 만들기</a>에서, 문서를 실제로 고치는 기능까지는 그다음 <a href="../doc-refresh-agent/index.html">문서 최신화·팩트체크 에이전트 만들기</a>에서 이어집니다. 오늘은 그 첫 조각 하나만, 제대로 이해하면서 만드는 게 목표입니다.</p>
     </section>
 
     <!-- ================================================================= -->
@@ -364,7 +364,7 @@ tools: Read, WebSearch, WebFetch
         <li><b>자동으로 반영되지 않습니다.</b> 지금은 사람이 매번 목록을 읽고 직접 문서를 고쳐야 합니다. 문서가 많아지면 이게 번거로워집니다.</li>
       </ul>
 
-      <p>이 두 가지를 채우는 게 다음 교안 <a href="../doc-refresh-agent/index.html"><b>문서 최신화·팩트체크 에이전트 만들기</b></a>입니다. 오늘 만든 doc-researcher는 그대로 재사용하고, 여기에 <b>독립적으로 다시 확인하는 검증 담당</b>과 <b>확인된 것만 골라 초안을 써주는 작성 담당</b>을 추가해서, 셋을 정해진 순서로 불러주는 스킬 하나로 묶습니다.</p>
+      <p>첫 번째를 채우는 게 바로 다음 교안 <a href="../fact-checker-hands-on/index.html"><b>doc-fact-checker 만들기</b></a>입니다. 오늘 만든 doc-researcher는 그대로 재사용하고, <b>독립적으로 다시 확인하는 검증 담당</b>을 하나 더 만들어 손으로 이어서 써봅니다. 두 번째(자동 반영)까지 채우는 건 그다음 <a href="../doc-refresh-agent/index.html"><b>문서 최신화·팩트체크 에이전트 만들기</b></a>에서, 작성 담당과 오케스트레이션 스킬을 더해 마무리합니다.</p>
     </section>
 
     <!-- ================================================================= -->
@@ -395,7 +395,7 @@ tools: Read, WebSearch, WebFetch
 
       <div class="callout good">
         <span class="lbl">오늘 한 것을 한 문장으로</span>
-        <p>텍스트 파일 하나(frontmatter + 규칙)로 "읽기 전용 조사 담당" AI를 만들고, 실제로 불러서 써봤습니다. 다음 교안에서 이 파일을 그대로 재사용해 검증·작성 담당을 더하고, 자동 파이프라인으로 묶습니다.</p>
+        <p>텍스트 파일 하나(frontmatter + 규칙)로 "읽기 전용 조사 담당" AI를 만들고, 실제로 불러서 써봤습니다. 다음 교안에서 이 파일을 그대로 재사용해 검증 담당을 더합니다.</p>
       </div>
 
       <div class="related">
@@ -403,9 +403,9 @@ tools: Read, WebSearch, WebFetch
           <div class="name">서브 에이전트란 무엇인가?</div>
           <div class="meta">지금 만든 것이 왜 이렇게 동작하는지, 배경 개념부터 보고 싶다면</div>
         </a>
-        <a class="related-card" href="../doc-refresh-agent/index.html">
-          <div class="name">문서 최신화·팩트체크 에이전트 만들기</div>
-          <div class="meta">다음 단계 — 검증·작성 담당을 더해 3단계 파이프라인 완성하기</div>
+        <a class="related-card" href="../fact-checker-hands-on/index.html">
+          <div class="name">doc-fact-checker 만들기</div>
+          <div class="meta">다음 단계 — 두 번째 에이전트로 독립 검증 더하기</div>
         </a>
       </div>
     </section>
