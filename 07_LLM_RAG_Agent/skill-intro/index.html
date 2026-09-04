@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>스킬이란 무엇인가? · 07 LLM_RAG_Agent</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@1.3.9/dist/web/static/pretendard.css">
+<style>
+  :root {
+    --primary: #0066cc; --primary-focus: #0071e3;
+    --canvas: #ffffff; --parchment: #f5f5f7;
+    --black: #000000; --ink: #1d1d1f; --ink-80: #333333; --ink-48: #7a7a7a;
+    --hairline: #e0e0e0;
+    --warn-bg: #fff8e6; --warn-line: #f0dba8;
+    --bad-bg: #fdeeee; --bad-line: #f0c0c0; --bad-ink: #a32d2d;
+    --good-bg: #e9f6ee; --good-line: #b9e0c8; --good-ink: #1c7a4a;
+    --accent: #7c5cff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--canvas); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', 'Apple SD Gothic Neo', 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-size: 17px; line-height: 1.47; letter-spacing: -0.374px;
+  }
+  .global-nav {
+    position: sticky; top: 0; z-index: 20; height: 44px; background: var(--black);
+    display: flex; align-items: center; justify-content: space-between; padding: 0 22px;
+  }
+  .global-nav .brand { color: #fff; font-size: 12px; font-weight: 600; letter-spacing: -0.12px; text-decoration: none; }
+  .global-nav .meta { color: rgba(255,255,255,0.72); font-size: 12px; letter-spacing: -0.12px; }
+  .sub-nav {
+    position: sticky; top: 44px; z-index: 19; min-height: 52px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 22px;
+    background: rgba(245,245,247,0.8);
+    -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+  .sub-nav .category { font-size: 21px; font-weight: 600; letter-spacing: 0.231px; color: var(--ink); text-decoration: none; }
+  .btn-primary {
+    display: inline-block; background: var(--primary); color: #fff; border: none;
+    border-radius: 9999px; padding: 8px 18px; font-size: 14px; font-family: inherit;
+    text-decoration: none; cursor: pointer; transition: transform .15s; white-space: nowrap;
+  }
+  .btn-primary:active { transform: scale(0.95); }
+  .btn-primary:focus-visible { outline: 2px solid var(--primary-focus); outline-offset: 2px; }
+
+  main.content { max-width: 720px; margin: 0 auto; padding: 64px 24px 96px; }
+  .eyebrow { display: block; font-size: 14px; font-weight: 600; letter-spacing: -0.224px; color: var(--ink-48); margin-bottom: 12px; }
+  h1.headline { font-size: 40px; font-weight: 600; line-height: 1.10; letter-spacing: 0; margin: 0 0 14px; }
+  p.tagline { font-size: 28px; font-weight: 400; line-height: 1.14; letter-spacing: 0.196px; margin: 0 0 20px; color: var(--ink-80); }
+  p.byline { font-size: 14px; color: var(--ink-48); letter-spacing: -0.224px; margin: 0; }
+
+  .toc { background: var(--parchment); border-radius: 18px; padding: 20px 24px; margin-top: 32px; }
+  .toc strong { font-size: 15px; }
+  .toc ol { margin: 8px 0 0; padding-left: 22px; }
+  .toc li { margin: 5px 0; font-size: 15px; }
+  .toc a { color: var(--ink); text-decoration: none; }
+  .toc a:hover { color: var(--primary); text-decoration: underline; }
+
+  section.block { margin-top: 60px; scroll-margin-top: 110px; }
+  h2.h { font-size: 28px; font-weight: 600; line-height: 1.2; margin: 0 0 6px; letter-spacing: -0.4px; }
+  h2.h .num { color: var(--ink-48); font-weight: 600; margin-right: 10px; }
+  p.deck { font-size: 17px; color: var(--ink-80); margin: 0 0 24px; }
+  h3.sub { font-size: 19px; font-weight: 600; margin: 34px 0 10px; letter-spacing: -0.3px; }
+  h4.sub2 { font-size: 16px; font-weight: 600; margin: 22px 0 6px; }
+  p { margin: 0 0 16px; }
+
+  .callout { border: 1px solid var(--warn-line); background: var(--warn-bg); border-radius: 12px; padding: 14px 18px; margin: 20px 0; font-size: 15px; }
+  .callout.bad { border-color: var(--bad-line); background: var(--bad-bg); }
+  .callout.good { border-color: var(--good-line); background: var(--good-bg); }
+  .callout .lbl { display: block; font-weight: 600; margin-bottom: 4px; font-size: 14px; }
+  .callout.bad .lbl { color: var(--bad-ink); }
+  .callout.good .lbl { color: var(--good-ink); }
+  .callout p:last-child { margin-bottom: 0; }
+
+  .fig { margin: 28px 0; }
+  .fig svg { width: 100%; height: auto; display: block; }
+  .fig figcaption { font-size: 14px; color: var(--ink-48); letter-spacing: -0.224px; margin-top: 10px; }
+
+  .scroll { overflow-x: auto; margin: 20px 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--hairline); vertical-align: top; }
+  th { font-size: 13px; color: var(--ink-48); font-weight: 600; letter-spacing: -0.1px; border-bottom: 1.5px solid var(--hairline); white-space: nowrap; }
+  tbody tr:last-child td { border-bottom: none; }
+
+  pre { background: #1d1d1f; color: #f5f5f7; border-radius: 12px; padding: 16px 18px; overflow-x: auto;
+        font: 13px/1.6 ui-monospace, SFMono-Regular, Consolas, monospace; margin: 16px 0; letter-spacing: 0; }
+  code { font: 13px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace; background: var(--parchment);
+         padding: 1px 6px; border-radius: 5px; letter-spacing: 0; }
+  pre code { background: none; padding: 0; color: inherit; font-size: 13px; }
+
+  ul.plain { margin: 0 0 16px; padding-left: 22px; }
+  ul.plain li { margin: 7px 0; }
+
+  .check { list-style: none; margin: 0; padding: 0; }
+  .check li { border-top: 1px solid var(--hairline); padding: 14px 0 14px 30px; position: relative; font-size: 16px; }
+  .check li:last-child { border-bottom: 1px solid var(--hairline); }
+  .check li::before { position: absolute; left: 0; top: 13px; font-size: 15px; font-weight: 700; }
+  .check.yes li::before { content: "○"; color: var(--good-ink); }
+  .check.no li::before { content: "✕"; color: var(--bad-ink); }
+  .check li b { display: block; margin-bottom: 2px; }
+  .check li span { color: var(--ink-80); font-size: 15px; }
+
+  .related { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin-top: 16px; }
+  a.related-card {
+    display: block; background: var(--canvas); border: 1px solid var(--hairline);
+    border-radius: 16px; padding: 20px; text-decoration: none; color: var(--ink);
+    transition: border-color .15s;
+  }
+  a.related-card:hover { border-color: var(--primary); }
+  a.related-card .name { font-size: 16px; font-weight: 600; letter-spacing: -0.374px; margin-bottom: 6px; }
+  a.related-card .meta { font-size: 13.5px; color: var(--ink-48); letter-spacing: -0.224px; }
+
+  footer.site-footer { background: var(--parchment); color: var(--ink-80); padding: 64px 24px 32px; }
+  .footer-links { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px 32px; }
+  .footer-links a { display: block; font-size: 17px; line-height: 2.41; color: var(--ink-80); text-decoration: none; }
+  .footer-links a:hover { color: var(--ink); }
+  .footer-legal { max-width: 1000px; margin: 32px auto 0; padding-top: 16px; border-top: 1px solid var(--hairline); font-size: 12px; color: var(--ink-48); letter-spacing: -0.12px; }
+
+  @media (max-width: 640px) {
+    main.content { padding: 48px 20px 72px; }
+    h1.headline { font-size: 28px; }
+    p.tagline { font-size: 20px; }
+    h2.h { font-size: 23px; }
+    .sub-nav { padding: 0 16px; }
+    .sub-nav .category { font-size: 17px; }
+    .footer-links { grid-template-columns: repeat(2, 1fr); gap: 4px 20px; }
+  }
+  @media (max-width: 380px) { .global-nav .meta { display: none; } }
+</style>
+</head>
+<body>
+  <nav class="global-nav">
+    <a class="brand" href="../../index.html">프론티어올 러닝 노트</a>
+    <span class="meta">인공지능 심화(160H)</span>
+  </nav>
+  <nav class="sub-nav">
+    <a class="category" href="../index.html">07 LLM_RAG_Agent</a>
+    <a class="btn-primary" href="../index.html">카테고리로</a>
+  </nav>
+
+  <main class="content">
+    <span class="eyebrow">PART 07 · 개념 정리</span>
+    <h1 class="headline">스킬이란<br>무엇인가?</h1>
+    <p class="tagline">별도의 AI를 부르지 않고, 지금 이 AI에게 절차를 읽혀서 따르게 하는 방법.</p>
+    <p class="byline">2026-09-05 · 입문용 개념 정리 · 대상: 서브 에이전트 개념을 먼저 본 분</p>
+
+    <div class="toc">
+      <strong>이 문서의 순서</strong>
+      <ol>
+        <li><a href="#s1">한 줄 정의와 비유</a></li>
+        <li><a href="#s2">어떻게 생긴 파일인가</a></li>
+        <li><a href="#s3">어떻게 동작하는가 — 호출되는 두 가지 방식</a></li>
+        <li><a href="#s4">스킬이 아닌 것</a></li>
+        <li><a href="#s5">이 저장소의 실제 예 — doc-refresh 스킬</a></li>
+        <li><a href="#s6">언제 스킬로 만드나</a></li>
+        <li><a href="#s7">용어 정리 & 다음 단계</a></li>
+      </ol>
+    </div>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s1">
+      <h2 class="h"><span class="num">01</span>한 줄 정의와 비유</h2>
+      <p class="deck">서브 에이전트가 "다른 사람에게 맡기기"였다면, 스킬은 "나 자신을 위한 매뉴얼"입니다.</p>
+
+      <div class="callout good">
+        <span class="lbl">한 줄 정의</span>
+        <p><b>스킬</b>은 특정 작업을 어떤 절차로 처리할지 미리 적어둔 <b>지침 파일(레시피)</b>입니다. 조건이 맞으면 지금 대화하고 있는 AI가 그 절차를 읽고 그대로 따릅니다.</p>
+      </div>
+
+      <p>신입 직원에게 "이 업무는 이렇게 처리하세요"라고 적어둔 <b>업무 매뉴얼</b>을 떠올려 보세요. 매뉴얼 자체는 사람이 아닙니다. 누군가 그 매뉴얼을 <b>펼쳐서 읽고, 적힌 순서대로 직접</b> 일을 합니다. 다음에 같은 상황이 오면 다시 매뉴얼을 펼치면 되니, 매번 처음부터 설명할 필요가 없습니다.</p>
+
+      <p>스킬이 정확히 이겁니다. <code>SKILL.md</code>라는 파일 하나에 "이런 요청이 오면 이런 순서로 처리하라"는 절차를 적어둡니다. 조건이 맞으면 <b>지금 대화 중인 AI 자신이</b> 그 파일을 읽고 그 절차를 그대로 실행합니다. <b>다른 AI를 새로 부르는 게 아닙니다</b> — 이 점이 서브 에이전트와 가장 크게 다른 부분이고, 03장에서 자세히 다룹니다.</p>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s2">
+      <h2 class="h"><span class="num">02</span>어떻게 생긴 파일인가</h2>
+      <p class="deck">코드가 아니라, 사람이 읽는 글로 된 절차서입니다.</p>
+
+      <p>스킬은 보통 <code>스킬이름/SKILL.md</code> 경로의 파일 하나입니다. 맨 위에 "이름표"(frontmatter)가 있고, 그 아래에 절차가 이어집니다.</p>
+
+<pre><code>---
+name: doc-refresh
+description: 문서/스크립트를 웹 리서치로 최신화하고, 모든 제안을
+             원출처에서 독립적으로 재검증한 뒤 초안을 작성한다.
+             "이 문서 최신화해줘", "팩트체크 해줘" 같은 요청에 사용.
+---
+
+## 절차
+1. 대상 문서와 점검 범위를 확인한다.
+2. ...(이어지는 단계들)</code></pre>
+
+      <ul class="plain">
+        <li><b>name</b> — 이 스킬을 부를 때 쓰는 이름. <code>/이름</code>처럼 슬래시 명령으로도 직접 부를 수 있습니다.</li>
+        <li><b>description</b> — "이건 언제 쓰는 절차인가"를 적습니다. 지금 대화 중인 AI가 사용자의 요청과 이 설명을 비교해서, 맞으면 자동으로 이 절차를 펼쳐 봅니다.</li>
+        <li><b>본문</b> — 실제 절차입니다. "이럴 땐 이 도구를 써라", "이 순서로 진행해라", "이런 경우엔 사용자에게 먼저 물어봐라" 같은 지침을 자연어로 적습니다.</li>
+      </ul>
+
+      <div class="callout">
+        <span class="lbl">서브 에이전트 정의 파일과 헷갈리지 않기</span>
+        <p>서브 에이전트(<code>.claude/agents/이름.md</code>)도 frontmatter가 있는 <code>.md</code> 파일이라 생김새가 비슷합니다. 가장 큰 차이는 서브 에이전트에는 <code>tools</code> 항목으로 "이 별도 인스턴스가 쓸 수 있는 도구"를 제한한다는 점입니다. 스킬에는 그런 항목이 없습니다 — 스킬은 별도 인스턴스가 아니라 <b>지금 이 대화가 이미 가진 도구를 그대로</b> 쓰기 때문입니다.</p>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s3">
+      <h2 class="h"><span class="num">03</span>어떻게 동작하는가 — 호출되는 두 가지 방식</h2>
+      <p class="deck">사람이 직접 부르거나, AI가 알아서 판단해서 부릅니다.</p>
+
+      <h3 class="sub">① 이름으로 직접 부르기</h3>
+      <p>채팅창에 <code>/doc-refresh</code>처럼 스킬 이름을 슬래시와 함께 치면, 그 절차가 그대로 로드됩니다. 정확히 이걸 쓰고 싶을 때 씁니다.</p>
+
+      <h3 class="sub">② 자연어 요청과 description이 맞아떨어질 때 자동으로</h3>
+      <p>"이 문서 최신화해줘" 같은 자연스러운 요청을 하면, 지금 대화 중인 AI가 사용 가능한 스킬들의 <code>description</code>을 훑어보고 맞는 게 있으면 스스로 그 절차를 불러옵니다. <b>그래서 description을 얼마나 구체적으로 쓰느냐가 스킬의 품질을 좌우합니다.</b> 애매하게 쓰면 필요할 때 안 불려오거나, 엉뚱한 상황에 불려옵니다.</p>
+
+      <div class="callout good">
+        <span class="lbl">핵심 — "별도 인스턴스가 아니다"</span>
+        <p>스킬이 실행되는 동안에도 <b>대화는 하나 그대로</b>입니다. 새 AI가 뜨는 게 아니라, 지금까지의 대화 맥락을 그대로 가진 채로 그 절차만 추가로 읽어서 따르는 것입니다. 그래서 서브 에이전트의 핵심 이점이었던 <b>컨텍스트 격리(읽은 내용이 메인의 기억 공간에 안 쌓이는 것)</b>가 스킬에는 없습니다 — 스킬이 하는 일은 전부 지금 이 대화의 기억 공간을 그대로 씁니다.</p>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s4">
+      <h2 class="h"><span class="num">04</span>스킬이 아닌 것</h2>
+      <p class="deck">비슷해 보이는 것들과 구분해두면 헷갈리지 않습니다.</p>
+
+      <div class="scroll">
+        <table>
+          <thead><tr><th>비교 대상</th><th>차이</th></tr></thead>
+          <tbody>
+            <tr><td><b>서브 에이전트</b></td><td>서브 에이전트는 별도의 AI 인스턴스로, 자기만의 기억 공간에서 일하고 요약만 돌려줍니다(컨텍스트 격리 있음). 스킬은 지금 대화 중인 AI 자신이 절차를 따르는 것뿐이라, 격리가 없습니다. 자세한 비교는 다음 문서에서 다룹니다.</td></tr>
+            <tr><td><b>단순 프롬프트 템플릿</b></td><td>템플릿은 문장을 채워 넣는 틀입니다. 스킬은 조건 분기("이런 경우엔 A, 저런 경우엔 B"), 여러 단계, 도구 사용, 심지어 서브 에이전트 호출까지 포함할 수 있는 <b>절차</b>입니다.</td></tr>
+            <tr><td><b>MCP 서버</b></td><td>MCP 서버는 외부 프로그램과 연결해 새로운 도구 자체를 추가합니다. 스킬은 새 도구를 만드는 게 아니라, <b>이미 있는 도구들을 어떤 순서로 쓸지</b>에 대한 지침일 뿐입니다.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s5">
+      <h2 class="h"><span class="num">05</span>이 저장소의 실제 예 — doc-refresh 스킬</h2>
+      <p class="deck">개념만으로는 감이 안 올 수 있어서, 실제로 만들어 쓰고 있는 예를 봅니다.</p>
+
+      <p><a href="../doc-refresh-agent/index.html">문서 최신화·팩트체크 에이전트 만들기</a> 교안에서 만든 <code>doc-refresh</code> 스킬이 정확히 이 구조입니다. 이 스킬의 본문은 이런 절차를 담고 있습니다.</p>
+
+      <ol class="plain" style="list-style: decimal;">
+        <li>대상 문서와 점검 범위를 확인한다.</li>
+        <li><b>doc-researcher 서브 에이전트를 부른다</b> — 웹 검색으로 제안 목록을 받는다.</li>
+        <li><b>doc-fact-checker 서브 에이전트를 부른다</b> — 그 제안을 독립적으로 재검증한다.</li>
+        <li><b>doc-writer 서브 에이전트를 부른다</b> — 확인된 것만 초안으로 작성한다.</li>
+        <li>사람에게 승인을 받는다.</li>
+        <li>승인 후 지금 대화(스킬을 실행 중인 바로 이 AI)가 직접 파일을 고친다.</li>
+      </ol>
+
+      <div class="callout">
+        <span class="lbl">여기서 스킬과 서브 에이전트가 함께 쓰인 이유</span>
+        <p>절차 자체(몇 단계로, 어떤 순서로 진행할지)는 스킬이 기억합니다. 그런데 <b>조사·검증 작업 자체</b>는 컨텍스트를 많이 먹는 일이라, 그 부분만 따로 서브 에이전트에게 맡겨 격리시켰습니다. <b>"무엇을, 어떤 순서로 할지"는 스킬이, "그중 컨텍스트가 많이 드는 특정 작업"은 서브 에이전트가</b> — 이렇게 역할이 나뉩니다.</p>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s6">
+      <h2 class="h"><span class="num">06</span>언제 스킬로 만드나</h2>
+      <p class="deck">간단한 기준 몇 가지만 기억하면 됩니다. 서브 에이전트와의 자세한 구분은 다음 문서에서 다룹니다.</p>
+
+      <ul class="check yes">
+        <li><b>여러 단계로 이뤄진 절차를 반복할 때</b><span>"이럴 땐 이렇게, 저럴 땐 저렇게" 같은 분기가 있는 다단계 작업.</span></li>
+        <li><b>정해진 순서로 여러 도구(또는 서브 에이전트)를 써야 할 때</b><span>순서를 매번 다시 설명하는 대신 한 번 적어두고 재사용.</span></li>
+        <li><b>"이 상황엔 항상 이 규칙을 지키라"고 못박고 싶을 때</b><span>승인 게이트, 안전 규칙처럼 매번 빠뜨리면 안 되는 절차.</span></li>
+      </ul>
+
+      <ul class="check no">
+        <li><b>한 번의 대화 흐름을 끊지 않고 그냥 이어가면 되는 일</b><span>별도로 절차화할 만큼 반복되지 않는 일회성 요청.</span></li>
+        <li><b>컨텍스트를 많이 먹는 조사·분석 자체가 필요할 때</b><span>이건 스킬이 아니라 서브 에이전트가 담당할 부분입니다 — 다음 문서에서 이어집니다.</span></li>
+      </ul>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s7">
+      <h2 class="h"><span class="num">07</span>용어 정리 & 다음 단계</h2>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>용어</th><th>뜻</th></tr></thead>
+          <tbody>
+            <tr><td><b>스킬</b></td><td>특정 작업을 처리하는 절차를 적어둔 지침 파일. 조건이 맞으면 지금 대화 중인 AI가 직접 그 절차를 따른다.</td></tr>
+            <tr><td><b>SKILL.md</b></td><td>스킬을 정의하는 파일. name/description frontmatter + 절차 본문으로 구성.</td></tr>
+            <tr><td><b>슬래시 명령</b></td><td><code>/스킬이름</code>처럼 스킬을 이름으로 직접 부르는 방법.</td></tr>
+            <tr><td><b>오케스트레이션</b></td><td>여러 서브 에이전트를 어떤 순서·조건으로 부를지 정하는 것. 스킬이 흔히 맡는 역할.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout good">
+        <span class="lbl">한 문장으로 요약하면</span>
+        <p>스킬은 <b>지금 이 AI를 위한 절차서</b>입니다. 별도의 AI를 부르는 게 아니라서 컨텍스트 격리는 없지만, 그만큼 "어떤 순서로 무엇을 할지"를 한 번 적어두고 계속 재사용할 수 있습니다.</p>
+      </div>
+
+      <div class="related">
+        <a class="related-card" href="../skill-vs-subagent/index.html">
+          <div class="name">스킬 vs 서브 에이전트, 언제 무엇을 쓰나</div>
+          <div class="meta">다음 단계 — 두 개념의 차이를 결정 기준으로 정리하기</div>
+        </a>
+        <a class="related-card" href="../subagent-intro/index.html">
+          <div class="name">서브 에이전트란 무엇인가?</div>
+          <div class="meta">이 문서와 짝을 이루는 개념 — 컨텍스트 격리가 있는 쪽</div>
+        </a>
+        <a class="related-card" href="../doc-refresh-agent/index.html">
+          <div class="name">문서 최신화·팩트체크 에이전트 만들기</div>
+          <div class="meta">스킬과 서브 에이전트를 실제로 함께 쓴 사례</div>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-links">
+      <a href="../../00_사전학습/index.html">00 사전 학습</a>
+      <a href="../../01_오리엔테이션/index.html">01 오리엔테이션</a>
+      <a href="../../02_바이브코딩/index.html">02 바이브코딩</a>
+      <a href="../../03_UXUI디자인/index.html">03 UXUI디자인</a>
+      <a href="../../04_노코드프로토타이핑/index.html">04 노코드프로토타이핑</a>
+      <a href="../../05_서비스기획/index.html">05 서비스기획</a>
+      <a href="../../06_데이터ML/index.html">06 데이터ML</a>
+      <a href="../../07_LLM_RAG_Agent/index.html">07 LLM_RAG_Agent</a>
+      <a href="../../08_해커톤/index.html">08 해커톤</a>
+    </div>
+    <div class="footer-legal">프론티어올 러닝 노트 · frontierall</div>
+  </footer>
+</body>
+</html>

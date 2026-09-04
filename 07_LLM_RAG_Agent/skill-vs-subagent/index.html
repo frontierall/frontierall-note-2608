@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>스킬 vs 서브 에이전트, 언제 무엇을 쓰나 · 07 LLM_RAG_Agent</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@1.3.9/dist/web/static/pretendard.css">
+<style>
+  :root {
+    --primary: #0066cc; --primary-focus: #0071e3;
+    --canvas: #ffffff; --parchment: #f5f5f7;
+    --black: #000000; --ink: #1d1d1f; --ink-80: #333333; --ink-48: #7a7a7a;
+    --hairline: #e0e0e0;
+    --warn-bg: #fff8e6; --warn-line: #f0dba8;
+    --bad-bg: #fdeeee; --bad-line: #f0c0c0; --bad-ink: #a32d2d;
+    --good-bg: #e9f6ee; --good-line: #b9e0c8; --good-ink: #1c7a4a;
+    --accent: #7c5cff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--canvas); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', 'Apple SD Gothic Neo', 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-size: 17px; line-height: 1.47; letter-spacing: -0.374px;
+  }
+  .global-nav {
+    position: sticky; top: 0; z-index: 20; height: 44px; background: var(--black);
+    display: flex; align-items: center; justify-content: space-between; padding: 0 22px;
+  }
+  .global-nav .brand { color: #fff; font-size: 12px; font-weight: 600; letter-spacing: -0.12px; text-decoration: none; }
+  .global-nav .meta { color: rgba(255,255,255,0.72); font-size: 12px; letter-spacing: -0.12px; }
+  .sub-nav {
+    position: sticky; top: 44px; z-index: 19; min-height: 52px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 22px;
+    background: rgba(245,245,247,0.8);
+    -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+  .sub-nav .category { font-size: 21px; font-weight: 600; letter-spacing: 0.231px; color: var(--ink); text-decoration: none; }
+  .btn-primary {
+    display: inline-block; background: var(--primary); color: #fff; border: none;
+    border-radius: 9999px; padding: 8px 18px; font-size: 14px; font-family: inherit;
+    text-decoration: none; cursor: pointer; transition: transform .15s; white-space: nowrap;
+  }
+  .btn-primary:active { transform: scale(0.95); }
+  .btn-primary:focus-visible { outline: 2px solid var(--primary-focus); outline-offset: 2px; }
+
+  main.content { max-width: 720px; margin: 0 auto; padding: 64px 24px 96px; }
+  .eyebrow { display: block; font-size: 14px; font-weight: 600; letter-spacing: -0.224px; color: var(--ink-48); margin-bottom: 12px; }
+  h1.headline { font-size: 40px; font-weight: 600; line-height: 1.10; letter-spacing: 0; margin: 0 0 14px; }
+  p.tagline { font-size: 28px; font-weight: 400; line-height: 1.14; letter-spacing: 0.196px; margin: 0 0 20px; color: var(--ink-80); }
+  p.byline { font-size: 14px; color: var(--ink-48); letter-spacing: -0.224px; margin: 0; }
+
+  .toc { background: var(--parchment); border-radius: 18px; padding: 20px 24px; margin-top: 32px; }
+  .toc strong { font-size: 15px; }
+  .toc ol { margin: 8px 0 0; padding-left: 22px; }
+  .toc li { margin: 5px 0; font-size: 15px; }
+  .toc a { color: var(--ink); text-decoration: none; }
+  .toc a:hover { color: var(--primary); text-decoration: underline; }
+
+  section.block { margin-top: 60px; scroll-margin-top: 110px; }
+  h2.h { font-size: 28px; font-weight: 600; line-height: 1.2; margin: 0 0 6px; letter-spacing: -0.4px; }
+  h2.h .num { color: var(--ink-48); font-weight: 600; margin-right: 10px; }
+  p.deck { font-size: 17px; color: var(--ink-80); margin: 0 0 24px; }
+  h3.sub { font-size: 19px; font-weight: 600; margin: 34px 0 10px; letter-spacing: -0.3px; }
+  h4.sub2 { font-size: 16px; font-weight: 600; margin: 22px 0 6px; }
+  p { margin: 0 0 16px; }
+
+  .callout { border: 1px solid var(--warn-line); background: var(--warn-bg); border-radius: 12px; padding: 14px 18px; margin: 20px 0; font-size: 15px; }
+  .callout.bad { border-color: var(--bad-line); background: var(--bad-bg); }
+  .callout.good { border-color: var(--good-line); background: var(--good-bg); }
+  .callout .lbl { display: block; font-weight: 600; margin-bottom: 4px; font-size: 14px; }
+  .callout.bad .lbl { color: var(--bad-ink); }
+  .callout.good .lbl { color: var(--good-ink); }
+  .callout p:last-child { margin-bottom: 0; }
+
+  .fig { margin: 28px 0; }
+  .fig svg { width: 100%; height: auto; display: block; }
+  .fig figcaption { font-size: 14px; color: var(--ink-48); letter-spacing: -0.224px; margin-top: 10px; }
+
+  .scroll { overflow-x: auto; margin: 20px 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--hairline); vertical-align: top; }
+  th { font-size: 13px; color: var(--ink-48); font-weight: 600; letter-spacing: -0.1px; border-bottom: 1.5px solid var(--hairline); white-space: nowrap; }
+  tbody tr:last-child td { border-bottom: none; }
+
+  pre { background: #1d1d1f; color: #f5f5f7; border-radius: 12px; padding: 16px 18px; overflow-x: auto;
+        font: 13px/1.6 ui-monospace, SFMono-Regular, Consolas, monospace; margin: 16px 0; letter-spacing: 0; }
+  code { font: 13px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace; background: var(--parchment);
+         padding: 1px 6px; border-radius: 5px; letter-spacing: 0; }
+  pre code { background: none; padding: 0; color: inherit; font-size: 13px; }
+
+  ul.plain { margin: 0 0 16px; padding-left: 22px; }
+  ul.plain li { margin: 7px 0; }
+
+  .scene { border: 1px solid var(--hairline); border-radius: 18px; padding: 22px 24px; margin: 22px 0; }
+  .scene .tag { display: inline-block; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; margin-bottom: 10px; }
+  .scene .tag.f { background: var(--bad-bg); color: var(--bad-ink); }
+  .scene .tag.s { background: var(--good-bg); color: var(--good-ink); }
+  .scene h4 { font-size: 19px; font-weight: 600; margin: 0 0 10px; letter-spacing: -0.3px; }
+  .scene .lesson { margin: 14px 0 0; padding-top: 14px; border-top: 1px solid var(--hairline); font-size: 15px; }
+  .scene .lesson b { color: var(--primary); }
+
+  .check { list-style: none; margin: 0; padding: 0; }
+  .check li { border-top: 1px solid var(--hairline); padding: 14px 0 14px 30px; position: relative; font-size: 16px; }
+  .check li:last-child { border-bottom: 1px solid var(--hairline); }
+  .check li::before { position: absolute; left: 0; top: 13px; font-size: 15px; font-weight: 700; }
+  .check.yes li::before { content: "○"; color: var(--good-ink); }
+  .check.no li::before { content: "✕"; color: var(--bad-ink); }
+  .check li b { display: block; margin-bottom: 2px; }
+  .check li span { color: var(--ink-80); font-size: 15px; }
+
+  .related { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin-top: 16px; }
+  a.related-card {
+    display: block; background: var(--canvas); border: 1px solid var(--hairline);
+    border-radius: 16px; padding: 20px; text-decoration: none; color: var(--ink);
+    transition: border-color .15s;
+  }
+  a.related-card:hover { border-color: var(--primary); }
+  a.related-card .name { font-size: 16px; font-weight: 600; letter-spacing: -0.374px; margin-bottom: 6px; }
+  a.related-card .meta { font-size: 13.5px; color: var(--ink-48); letter-spacing: -0.224px; }
+
+  footer.site-footer { background: var(--parchment); color: var(--ink-80); padding: 64px 24px 32px; }
+  .footer-links { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px 32px; }
+  .footer-links a { display: block; font-size: 17px; line-height: 2.41; color: var(--ink-80); text-decoration: none; }
+  .footer-links a:hover { color: var(--ink); }
+  .footer-legal { max-width: 1000px; margin: 32px auto 0; padding-top: 16px; border-top: 1px solid var(--hairline); font-size: 12px; color: var(--ink-48); letter-spacing: -0.12px; }
+
+  @media (max-width: 640px) {
+    main.content { padding: 48px 20px 72px; }
+    h1.headline { font-size: 28px; }
+    p.tagline { font-size: 20px; }
+    h2.h { font-size: 23px; }
+    .sub-nav { padding: 0 16px; }
+    .sub-nav .category { font-size: 17px; }
+    .footer-links { grid-template-columns: repeat(2, 1fr); gap: 4px 20px; }
+  }
+  @media (max-width: 380px) { .global-nav .meta { display: none; } }
+</style>
+</head>
+<body>
+  <nav class="global-nav">
+    <a class="brand" href="../../index.html">프론티어올 러닝 노트</a>
+    <span class="meta">인공지능 심화(160H)</span>
+  </nav>
+  <nav class="sub-nav">
+    <a class="category" href="../index.html">07 LLM_RAG_Agent</a>
+    <a class="btn-primary" href="../index.html">카테고리로</a>
+  </nav>
+
+  <main class="content">
+    <span class="eyebrow">PART 07 · 개념 정리</span>
+    <h1 class="headline">스킬 vs 서브 에이전트,<br>언제 무엇을 쓰나</h1>
+    <p class="tagline">둘 다 "반복 작업을 저장해두는 방법"입니다. 저장하는 위치가 다를 뿐입니다.</p>
+    <p class="byline">2026-09-05 · 개념 정리 · 대상: 스킬과 서브 에이전트를 각각 본 분</p>
+
+    <div class="toc">
+      <strong>이 문서의 순서</strong>
+      <ol>
+        <li><a href="#s1">헷갈리는 이유 — 둘 다 .md 파일이라서</a></li>
+        <li><a href="#s2">결정적 차이 한 가지 — 컨텍스트가 어디에 쌓이는가</a></li>
+        <li><a href="#s3">비교표</a></li>
+        <li><a href="#s4">결정 트리 — 세 가지 질문</a></li>
+        <li><a href="#s5">잘못 골랐을 때 생기는 일</a></li>
+        <li><a href="#s6">실전 조합 — 스킬이 서브 에이전트를 부르는 구조</a></li>
+        <li><a href="#s7">체크리스트</a></li>
+        <li><a href="#s8">용어 정리 & 다음 단계</a></li>
+      </ol>
+    </div>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s1">
+      <h2 class="h"><span class="num">01</span>헷갈리는 이유 — 둘 다 .md 파일이라서</h2>
+      <p class="deck">겉모습이 비슷해서 처음엔 뭐가 다른지 감이 잘 안 옵니다.</p>
+
+      <p>둘 다 frontmatter가 있는 마크다운 파일이고, 둘 다 "이런 요청이 오면 이렇게 처리하라"는 규칙을 적어둡니다. <code>name</code>과 <code>description</code>을 쓴다는 것도 같습니다. 그래서 "그냥 아무거나 쓰면 되는 거 아니야?"라는 생각이 들기 쉬운데, <b>실제로 실행되는 방식이 완전히 다릅니다.</b></p>
+
+      <p>이 문서를 읽기 전에 <a href="../skill-intro/index.html">스킬이란 무엇인가?</a>와 <a href="../subagent-intro/index.html">서브 에이전트란 무엇인가?</a>를 먼저 보고 오면 이해가 훨씬 빠릅니다. 여기서는 둘을 나란히 놓고 "그래서 실제로 뭘 골라야 하는지"만 다룹니다.</p>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s2">
+      <h2 class="h"><span class="num">02</span>결정적 차이 한 가지 — 컨텍스트가 어디에 쌓이는가</h2>
+      <p class="deck">다른 차이는 전부 이 하나에서 파생됩니다.</p>
+
+      <div class="callout good">
+        <span class="lbl">이것만 기억하면 됩니다</span>
+        <p><b>스킬</b>은 <b>지금 이 대화 자신</b>이 절차를 읽고 실행합니다 — 그 과정에서 읽은 파일, 검색 결과가 <b>전부 지금 대화의 기억 공간에 그대로 쌓입니다.</b><br><br>
+        <b>서브 에이전트</b>는 <b>별도의 AI 인스턴스</b>가 자기만의 기억 공간에서 일하고, <b>결과 요약만</b> 지금 대화로 돌아옵니다. 읽은 원본은 돌아오지 않습니다.</p>
+      </div>
+
+      <figure class="fig">
+        <svg viewBox="0 0 660 220" role="img" aria-labelledby="fig1t">
+          <title id="fig1t">스킬은 메인 대화 안에서 그대로 실행되고, 서브 에이전트는 별도 공간에서 일한 뒤 요약만 돌아오는 것을 비교하는 다이어그램</title>
+          <text x="165" y="24" text-anchor="middle" font-size="13" font-weight="600" fill="#0066cc">스킬을 쓸 때</text>
+          <rect x="30" y="36" width="270" height="110" rx="14" fill="#eaf3fc" stroke="#bcd9f2"/>
+          <text x="165" y="66" text-anchor="middle" font-size="12.5" font-weight="600" fill="#1d1d1f">메인 대화</text>
+          <text x="165" y="88" text-anchor="middle" font-size="11.5" fill="#333">SKILL.md 절차를 그대로 읽고</text>
+          <text x="165" y="104" text-anchor="middle" font-size="11.5" fill="#333">직접 파일 읽기·검색·수정 수행</text>
+          <rect x="55" y="114" width="220" height="24" rx="6" fill="#bcd9f2"/>
+          <text x="165" y="130" text-anchor="middle" font-size="11" font-weight="600" fill="#0b3d68">전부 이 기억 공간에 쌓임</text>
+
+          <text x="495" y="24" text-anchor="middle" font-size="13" font-weight="600" fill="#1c7a4a">서브 에이전트를 쓸 때</text>
+          <rect x="360" y="36" width="270" height="110" rx="14" fill="#fff" stroke="#0066cc" stroke-width="1.3"/>
+          <text x="495" y="58" text-anchor="middle" font-size="12" font-weight="600" fill="#1d1d1f">메인 대화</text>
+          <path d="M495 68 L495 88" stroke="#7a7a7a" stroke-width="1.3" marker-end="url(#a1)"/>
+          <defs><marker id="a1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#7a7a7a"/></marker></defs>
+          <rect x="410" y="90" width="170" height="40" rx="10" fill="#e9f6ee" stroke="#b9e0c8"/>
+          <text x="495" y="106" text-anchor="middle" font-size="11" font-weight="600" fill="#1d1d1f">별도 인스턴스</text>
+          <text x="495" y="120" text-anchor="middle" font-size="10.5" fill="#7a7a7a">자기만의 기억 공간</text>
+          <path d="M495 130 L495 146" stroke="#1c7a4a" stroke-width="1.3" stroke-dasharray="3 3" marker-end="url(#a2)"/>
+          <defs><marker id="a2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#1c7a4a"/></marker></defs>
+          <text x="495" y="160" text-anchor="middle" font-size="10.5" fill="#1c7a4a">요약만 메인으로 복귀</text>
+        </svg>
+        <figcaption>그림 1. 스킬은 메인의 기억 공간을 그대로 쓰고, 서브 에이전트는 자기 공간에서 일한 뒤 요약만 돌려준다.</figcaption>
+      </figure>
+
+      <p>이 차이 하나에서 나머지 특징들이 전부 갈라집니다 — 얼마나 많은 걸 처리할 수 있는지, 안전 장치를 어떻게 거는지, 병렬로 여러 개를 돌릴 수 있는지까지 전부요.</p>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s3">
+      <h2 class="h"><span class="num">03</span>비교표</h2>
+
+      <div class="scroll">
+        <table>
+          <thead><tr><th></th><th>스킬</th><th>서브 에이전트</th></tr></thead>
+          <tbody>
+            <tr><td><b>실행 주체</b></td><td>지금 대화 중인 AI 자신</td><td>별도로 새로 뜨는 AI 인스턴스</td></tr>
+            <tr><td><b>기억 공간</b></td><td>메인 대화와 공유 (격리 없음)</td><td>독립적 (컨텍스트 격리)</td></tr>
+            <tr><td><b>많은 자료를 읽어야 할 때</b></td><td>메인의 그릇이 그대로 참 — 대화가 길어지면 부담</td><td>원본은 서브 에이전트 안에서 소비, 메인은 요약만 받음</td></tr>
+            <tr><td><b>도구 제한</b></td><td>제한 항목 없음 — 메인이 가진 도구를 그대로 씀</td><td><code>tools</code> 목록으로 명시적 제한 가능 (예: 읽기 전용)</td></tr>
+            <tr><td><b>병렬 실행</b></td><td>스킬 자체는 하나의 절차를 순차 진행</td><td>여러 개를 동시에 띄워 병렬 처리 가능</td></tr>
+            <tr><td><b>호출 방식</b></td><td><code>/이름</code> 직접 호출, 또는 요청과 description이 맞으면 자동</td><td>메인(또는 스킬)이 필요할 때 명시적으로 호출</td></tr>
+            <tr><td><b>적합한 일</b></td><td>순서·규칙을 저장해두고 싶은 절차</td><td>컨텍스트를 많이 먹는 조사·분석·검증 작업</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s4">
+      <h2 class="h"><span class="num">04</span>결정 트리 — 세 가지 질문</h2>
+      <p class="deck">순서대로 물어보면 대부분 답이 나옵니다.</p>
+
+      <ol class="plain" style="list-style: decimal;">
+        <li><b>이 일이 파일을 많이 읽거나, 웹을 많이 검색하거나, 결과가 길게 나올 것 같은가?</b><br>그렇다 → 서브 에이전트로. 메인의 기억 공간을 지키기 위해서입니다.<br>아니다 → 다음 질문으로.</li>
+        <li><b>"이 작업은 특정 도구만 쓰게 하고 싶다" 같은 제한이 필요한가?</b> (예: 절대 파일을 고치면 안 된다)<br>그렇다 → 서브 에이전트로. <code>tools</code> 목록으로 못박을 수 있습니다.<br>아니다 → 다음 질문으로.</li>
+        <li><b>여러 단계·조건 분기가 있는 절차를 반복해서 쓰고 싶은가?</b><br>그렇다 → 스킬로. 순서와 규칙을 한 번 적어두고 재사용합니다.<br>아니다 → 굳이 둘 다 필요 없을 수 있습니다. 그냥 한 번 물어보는 게 더 빠를 수 있습니다.</li>
+      </ol>
+
+      <div class="callout">
+        <span class="lbl">참고 — 둘 다 필요하다면</span>
+        <p>1번과 2번은 "예", 3번도 "예"라면 — 즉 <b>여러 단계 절차인데, 그중 특정 단계가 컨텍스트를 많이 먹거나 도구 제한이 필요하다면</b> — 08장에서 다루는 것처럼 <b>스킬이 서브 에이전트를 호출하는 조합</b>을 씁니다. 흔한 패턴입니다.</p>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s5">
+      <h2 class="h"><span class="num">05</span>잘못 골랐을 때 생기는 일</h2>
+      <p class="deck">두 가상 시나리오로 감을 잡아보겠습니다.</p>
+
+      <div class="scene">
+        <span class="tag f">스킬로만 처리했을 때 (컨텍스트를 많이 쓰는 일)</span>
+        <h4>"프로젝트 전체 코드를 스킬 하나로 훑어서 요약하기"</h4>
+        <p>스킬은 메인 대화 자신이 실행하므로, 파일 수십 개를 읽는 동안 그 내용이 <b>전부 메인의 기억 공간에 쌓입니다.</b> 대화가 길어질수록 그릇이 꽉 차서, 정작 이후 대화에서 앞부분을 잊어버리는 일이 생길 수 있습니다.</p>
+        <p class="lesson"><b>이럴 땐</b> 서브 에이전트가 맞습니다. 원본은 서브 에이전트 안에서 소비되고, 메인은 요약만 받으면 됩니다.</p>
+      </div>
+
+      <div class="scene">
+        <span class="tag f">서브 에이전트로만 처리했을 때 (간단한 반복 규칙)</span>
+        <h4>"커밋 메시지 형식을 매번 서브 에이전트에게 맡기기"</h4>
+        <p>커밋 메시지 형식을 맞추는 건 파일을 많이 읽을 필요도, 격리할 이유도 없는 간단한 규칙입니다. 그런데도 매번 별도 인스턴스를 띄우면, <b>결과가 요약으로만 돌아와서 오히려 세부 조정이 번거로워지고</b>, 호출하는 시간만 더 듭니다.</p>
+        <p class="lesson"><b>이럴 땐</b> 스킬이 맞습니다. 규칙을 한 번 적어두면 메인이 직접, 빠르게 처리합니다.</p>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s6">
+      <h2 class="h"><span class="num">06</span>실전 조합 — 스킬이 서브 에이전트를 부르는 구조</h2>
+      <p class="deck">둘은 경쟁 관계가 아니라, 자주 함께 쓰입니다.</p>
+
+      <p><a href="../doc-refresh-agent/index.html">문서 최신화·팩트체크 에이전트 만들기</a>에서 만든 <code>doc-refresh</code> 스킬이 이 조합의 실제 예입니다.</p>
+
+      <ul class="plain">
+        <li><b>스킬(doc-refresh)이 맡는 것</b> — "몇 단계로, 어떤 순서로 진행할지", "사람 승인을 반드시 거칠 것" 같은 <b>절차와 규칙</b>. 이건 반복해서 재사용할 규칙이라 스킬이 맞습니다.</li>
+        <li><b>서브 에이전트(doc-researcher/doc-fact-checker/doc-writer)가 맡는 것</b> — 웹 검색·재검증처럼 <b>컨텍스트를 많이 먹는 실제 조사·분석 작업</b>. 그리고 "이 단계는 절대 파일을 고치면 안 된다"는 제한을 <code>tools</code>로 강제할 수 있어야 하는 작업.</li>
+      </ul>
+
+      <p>정리하면, <b>"무엇을 언제 할지"는 스킬이 기억하고, "그중 무거운 작업 하나하나"는 서브 에이전트가 처리</b>합니다. 스킬 혼자서는 컨텍스트가 넘치고, 서브 에이전트만 여럿 있어도 누가 언제 부를지 정하는 사람이 없으면 무용지물입니다.</p>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s7">
+      <h2 class="h"><span class="num">07</span>체크리스트</h2>
+
+      <ul class="check yes">
+        <li><b>절차·규칙을 재사용하고 싶다 → 스킬</b><span>"이 요청이 오면 이 순서로" 같은 반복 패턴.</span></li>
+        <li><b>컨텍스트를 많이 먹는 조사·분석이 필요하다 → 서브 에이전트</b><span>메인의 기억 공간을 지키기 위해 격리.</span></li>
+        <li><b>도구를 명시적으로 제한하고 싶다 → 서브 에이전트</b><span><code>tools</code> 목록이 곧 안전장치.</span></li>
+        <li><b>여러 단계 절차 안에 무거운 작업이 섞여 있다 → 스킬 + 서브 에이전트 조합</b><span>doc-refresh가 이 패턴의 예.</span></li>
+      </ul>
+
+      <ul class="check no">
+        <li><b>딱 한 번뿐인 요청</b><span>스킬도 서브 에이전트도 필요 없습니다. 그냥 채팅으로 물어보세요.</span></li>
+      </ul>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s8">
+      <h2 class="h"><span class="num">08</span>용어 정리 & 다음 단계</h2>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>용어</th><th>뜻</th></tr></thead>
+          <tbody>
+            <tr><td><b>컨텍스트 격리</b></td><td>서브 에이전트가 읽은 내용이 메인의 기억 공간에 들어오지 않는 것. 스킬에는 없는 특성.</td></tr>
+            <tr><td><b>오케스트레이터-워커 패턴</b></td><td>스킬(또는 메인)이 절차를 정하고, 서브 에이전트들이 각자 맡은 일을 처리하는 조합 구조.</td></tr>
+            <tr><td><b>tools 제한</b></td><td>서브 에이전트 정의 파일의 <code>tools</code> 항목으로 쓸 수 있는 도구를 명시적으로 좁히는 것. 스킬에는 대응 개념이 없음.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout good">
+        <span class="lbl">한 문장으로 요약하면</span>
+        <p><b>순서와 규칙은 스킬에, 컨텍스트가 많이 드는 실제 작업은 서브 에이전트에.</b> 둘 다 필요 없다면 그냥 채팅으로 물어보는 게 가장 빠릅니다.</p>
+      </div>
+
+      <div class="related">
+        <a class="related-card" href="../subagent-hands-on/index.html">
+          <div class="name">서브 에이전트 처음 만들어보기</div>
+          <div class="meta">개념을 다졌다면 다음은 실습 — doc-researcher 하나 직접 만들기</div>
+        </a>
+        <a class="related-card" href="../doc-refresh-agent/index.html">
+          <div class="name">문서 최신화·팩트체크 에이전트 만들기</div>
+          <div class="meta">스킬 + 서브 에이전트 조합을 실제로 완성하는 교안</div>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-links">
+      <a href="../../00_사전학습/index.html">00 사전 학습</a>
+      <a href="../../01_오리엔테이션/index.html">01 오리엔테이션</a>
+      <a href="../../02_바이브코딩/index.html">02 바이브코딩</a>
+      <a href="../../03_UXUI디자인/index.html">03 UXUI디자인</a>
+      <a href="../../04_노코드프로토타이핑/index.html">04 노코드프로토타이핑</a>
+      <a href="../../05_서비스기획/index.html">05 서비스기획</a>
+      <a href="../../06_데이터ML/index.html">06 데이터ML</a>
+      <a href="../../07_LLM_RAG_Agent/index.html">07 LLM_RAG_Agent</a>
+      <a href="../../08_해커톤/index.html">08 해커톤</a>
+    </div>
+    <div class="footer-legal">프론티어올 러닝 노트 · frontierall</div>
+  </footer>
+</body>
+</html>
