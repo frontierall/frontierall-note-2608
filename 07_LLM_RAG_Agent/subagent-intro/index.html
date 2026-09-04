@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>서브 에이전트란 무엇인가? · 07 LLM_RAG_Agent</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@1.3.9/dist/web/static/pretendard.css">
+<style>
+  :root {
+    --primary: #0066cc; --primary-focus: #0071e3;
+    --canvas: #ffffff; --parchment: #f5f5f7;
+    --black: #000000; --ink: #1d1d1f; --ink-80: #333333; --ink-48: #7a7a7a;
+    --hairline: #e0e0e0;
+    --warn-bg: #fff8e6; --warn-line: #f0dba8;
+    --bad-bg: #fdeeee; --bad-line: #f0c0c0; --bad-ink: #a32d2d;
+    --good-bg: #e9f6ee; --good-line: #b9e0c8; --good-ink: #1c7a4a;
+    --accent: #7c5cff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--canvas); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', 'Apple SD Gothic Neo', 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-size: 17px; line-height: 1.47; letter-spacing: -0.374px;
+  }
+  .global-nav {
+    position: sticky; top: 0; z-index: 20; height: 44px; background: var(--black);
+    display: flex; align-items: center; justify-content: space-between; padding: 0 22px;
+  }
+  .global-nav .brand { color: #fff; font-size: 12px; font-weight: 600; letter-spacing: -0.12px; text-decoration: none; }
+  .global-nav .meta { color: rgba(255,255,255,0.72); font-size: 12px; letter-spacing: -0.12px; }
+  .sub-nav {
+    position: sticky; top: 44px; z-index: 19; min-height: 52px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 22px;
+    background: rgba(245,245,247,0.8);
+    -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+  .sub-nav .category { font-size: 21px; font-weight: 600; letter-spacing: 0.231px; color: var(--ink); text-decoration: none; }
+  .btn-primary {
+    display: inline-block; background: var(--primary); color: #fff; border: none;
+    border-radius: 9999px; padding: 8px 18px; font-size: 14px; font-family: inherit;
+    text-decoration: none; cursor: pointer; transition: transform .15s; white-space: nowrap;
+  }
+  .btn-primary:active { transform: scale(0.95); }
+  .btn-primary:focus-visible { outline: 2px solid var(--primary-focus); outline-offset: 2px; }
+
+  main.content { max-width: 720px; margin: 0 auto; padding: 64px 24px 96px; }
+  .eyebrow { display: block; font-size: 14px; font-weight: 600; letter-spacing: -0.224px; color: var(--ink-48); margin-bottom: 12px; }
+  h1.headline { font-size: 40px; font-weight: 600; line-height: 1.10; letter-spacing: 0; margin: 0 0 14px; }
+  p.tagline { font-size: 28px; font-weight: 400; line-height: 1.14; letter-spacing: 0.196px; margin: 0 0 20px; color: var(--ink-80); }
+  p.byline { font-size: 14px; color: var(--ink-48); letter-spacing: -0.224px; margin: 0; }
+
+  .toc { background: var(--parchment); border-radius: 18px; padding: 20px 24px; margin-top: 32px; }
+  .toc strong { font-size: 15px; }
+  .toc ol { margin: 8px 0 0; padding-left: 22px; }
+  .toc li { margin: 5px 0; font-size: 15px; }
+  .toc a { color: var(--ink); text-decoration: none; }
+  .toc a:hover { color: var(--primary); text-decoration: underline; }
+
+  section.block { margin-top: 60px; scroll-margin-top: 110px; }
+  h2.h { font-size: 28px; font-weight: 600; line-height: 1.2; margin: 0 0 6px; letter-spacing: -0.4px; }
+  h2.h .num { color: var(--ink-48); font-weight: 600; margin-right: 10px; }
+  p.deck { font-size: 17px; color: var(--ink-80); margin: 0 0 24px; }
+  h3.sub { font-size: 19px; font-weight: 600; margin: 34px 0 10px; letter-spacing: -0.3px; }
+  h4.sub2 { font-size: 16px; font-weight: 600; margin: 22px 0 6px; }
+  p { margin: 0 0 16px; }
+
+  .callout { border: 1px solid var(--warn-line); background: var(--warn-bg); border-radius: 12px; padding: 14px 18px; margin: 20px 0; font-size: 15px; }
+  .callout.bad { border-color: var(--bad-line); background: var(--bad-bg); }
+  .callout.good { border-color: var(--good-line); background: var(--good-bg); }
+  .callout .lbl { display: block; font-weight: 600; margin-bottom: 4px; font-size: 14px; }
+  .callout.bad .lbl { color: var(--bad-ink); }
+  .callout.good .lbl { color: var(--good-ink); }
+  .callout p:last-child { margin-bottom: 0; }
+
+  .fig { margin: 28px 0; }
+  .fig svg { width: 100%; height: auto; display: block; }
+  .fig figcaption { font-size: 14px; color: var(--ink-48); letter-spacing: -0.224px; margin-top: 10px; }
+
+  .scroll { overflow-x: auto; margin: 20px 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--hairline); vertical-align: top; }
+  th { font-size: 13px; color: var(--ink-48); font-weight: 600; letter-spacing: -0.1px; border-bottom: 1.5px solid var(--hairline); white-space: nowrap; }
+  tbody tr:last-child td { border-bottom: none; }
+
+  pre { background: #1d1d1f; color: #f5f5f7; border-radius: 12px; padding: 16px 18px; overflow-x: auto;
+        font: 13px/1.6 ui-monospace, SFMono-Regular, Consolas, monospace; margin: 16px 0; letter-spacing: 0; }
+  code { font: 13px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace; background: var(--parchment);
+         padding: 1px 6px; border-radius: 5px; letter-spacing: 0; }
+  pre code { background: none; padding: 0; color: inherit; font-size: 13px; }
+
+  ul.plain { margin: 0 0 16px; padding-left: 22px; }
+  ul.plain li { margin: 7px 0; }
+
+  .scene { border: 1px solid var(--hairline); border-radius: 18px; padding: 22px 24px; margin: 22px 0; }
+  .scene .tag { display: inline-block; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; margin-bottom: 10px; }
+  .scene .tag.f { background: var(--bad-bg); color: var(--bad-ink); }
+  .scene .tag.s { background: var(--good-bg); color: var(--good-ink); }
+  .scene h4 { font-size: 19px; font-weight: 600; margin: 0 0 10px; letter-spacing: -0.3px; }
+  .scene .lesson { margin: 14px 0 0; padding-top: 14px; border-top: 1px solid var(--hairline); font-size: 15px; }
+  .scene .lesson b { color: var(--primary); }
+
+  .check { list-style: none; margin: 0; padding: 0; }
+  .check li { border-top: 1px solid var(--hairline); padding: 14px 0 14px 30px; position: relative; font-size: 16px; }
+  .check li:last-child { border-bottom: 1px solid var(--hairline); }
+  .check li::before { position: absolute; left: 0; top: 13px; font-size: 15px; font-weight: 700; }
+  .check.yes li::before { content: "○"; color: var(--good-ink); }
+  .check.no li::before { content: "✕"; color: var(--bad-ink); }
+  .check li b { display: block; margin-bottom: 2px; }
+  .check li span { color: var(--ink-80); font-size: 15px; }
+
+  .kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; margin: 22px 0; }
+  .kpi div { border: 1px solid var(--hairline); border-radius: 14px; padding: 16px 18px; }
+  .kpi .v { font-size: 26px; font-weight: 600; letter-spacing: -0.5px; display: block; }
+  .kpi .k { font-size: 13px; color: var(--ink-48); }
+
+  .related { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin-top: 16px; }
+  a.related-card {
+    display: block; background: var(--canvas); border: 1px solid var(--hairline);
+    border-radius: 16px; padding: 20px; text-decoration: none; color: var(--ink);
+    transition: border-color .15s;
+  }
+  a.related-card:hover { border-color: var(--primary); }
+  a.related-card .name { font-size: 16px; font-weight: 600; letter-spacing: -0.374px; margin-bottom: 6px; }
+  a.related-card .meta { font-size: 13.5px; color: var(--ink-48); letter-spacing: -0.224px; }
+
+  footer.site-footer { background: var(--parchment); color: var(--ink-80); padding: 64px 24px 32px; }
+  .footer-links { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px 32px; }
+  .footer-links a { display: block; font-size: 17px; line-height: 2.41; color: var(--ink-80); text-decoration: none; }
+  .footer-links a:hover { color: var(--ink); }
+  .footer-legal { max-width: 1000px; margin: 32px auto 0; padding-top: 16px; border-top: 1px solid var(--hairline); font-size: 12px; color: var(--ink-48); letter-spacing: -0.12px; }
+
+  @media (max-width: 640px) {
+    main.content { padding: 48px 20px 72px; }
+    h1.headline { font-size: 28px; }
+    p.tagline { font-size: 20px; }
+    h2.h { font-size: 23px; }
+    .sub-nav { padding: 0 16px; }
+    .sub-nav .category { font-size: 17px; }
+    .footer-links { grid-template-columns: repeat(2, 1fr); gap: 4px 20px; }
+  }
+  @media (max-width: 380px) { .global-nav .meta { display: none; } }
+</style>
+</head>
+<body>
+  <nav class="global-nav">
+    <a class="brand" href="../../index.html">AI 프로덕트 마스터</a>
+    <span class="meta">인공지능 심화(160H)</span>
+  </nav>
+  <nav class="sub-nav">
+    <a class="category" href="../index.html">07 LLM_RAG_Agent</a>
+    <a class="btn-primary" href="../index.html">카테고리로</a>
+  </nav>
+
+  <main class="content">
+    <span class="eyebrow">PART 07 · 개념 정리</span>
+    <h1 class="headline">서브 에이전트란<br>무엇인가?</h1>
+    <p class="tagline">일을 나눠 맡기는 AI. 왜 필요하고, 어떻게 굴러가는가.</p>
+    <p class="byline">2026-09-05 · 입문용 개념 정리 · 대상: Multi-Agent가 처음인 분</p>
+
+    <div class="toc">
+      <strong>이 문서의 순서</strong>
+      <ol>
+        <li><a href="#s1">한 줄 정의와 비유</a></li>
+        <li><a href="#s2">메인 에이전트와 서브 에이전트의 관계</a></li>
+        <li><a href="#s3">왜 필요한가 — 컨텍스트 윈도우 문제</a></li>
+        <li><a href="#s4">서브 에이전트가 실제로 하는 일 3가지 패턴</a></li>
+        <li><a href="#s5">서브 에이전트가 아닌 것</a></li>
+        <li><a href="#s6">언제 쓰고 언제 쓰지 말아야 하나</a></li>
+        <li><a href="#s7">용어 정리</a></li>
+        <li><a href="#s8">더 읽어보기</a></li>
+      </ol>
+    </div>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s1">
+      <h2 class="h"><span class="num">01</span>한 줄 정의와 비유</h2>
+      <p class="deck">어려운 개념이 아닙니다. 회사 조직에 빗대면 바로 이해됩니다.</p>
+
+      <div class="callout good">
+        <span class="lbl">한 줄 정의</span>
+        <p><b>서브 에이전트</b>는 메인 AI(오케스트레이터)가 특정 작업을 맡기는, <b>독립된 작업 공간과 독립된 기억 공간을 가진 별도의 AI 인스턴스</b>입니다.</p>
+      </div>
+
+      <p>팀장과 팀원을 떠올려 보세요. 팀장이 조사할 게 산더미인데 혼자 다 읽으면 감당이 안 됩니다. 그래서 팀원 몇 명에게 부분씩 나눠 맡기고, <b>각자 자기 자리에서 조사한 뒤 요약 보고서만</b> 팀장 책상에 올립니다. 팀원이 읽은 자료 수백 페이지는 팀장 책상에 쌓이지 않습니다. <b>결론만</b> 옵니다.</p>
+
+      <p>서브 에이전트가 정확히 이 구조입니다. 메인 에이전트(팀장)가 지시문(브리프)을 써서 서브 에이전트(팀원)에게 넘기면, 서브 에이전트는 <b>자기만의 작업 공간에서</b> 파일을 읽고, 코드를 돌리고, 웹을 검색하고, 계산을 마친 뒤 <b>요약 결과만</b> 메인에게 돌려줍니다.</p>
+
+      <figure class="fig">
+        <svg viewBox="0 0 660 220" role="img" aria-labelledby="fig0t">
+          <title id="fig0t">메인 에이전트가 서브 에이전트 셋에게 각각 브리프를 보내고 요약을 돌려받는 구조도</title>
+          <rect x="260" y="20" width="140" height="56" rx="12" fill="#fff" stroke="#0066cc" stroke-width="1.5"/>
+          <text x="330" y="44" text-anchor="middle" font-size="13" font-weight="600" fill="#1d1d1f">메인 에이전트</text>
+          <text x="330" y="62" text-anchor="middle" font-size="11.5" fill="#7a7a7a">(오케스트레이터)</text>
+
+          <g font-size="12">
+            <path d="M290 78 L110 130" stroke="#0066cc" stroke-width="1.3" marker-end="url(#a1)"/>
+            <path d="M330 78 L330 130" stroke="#0066cc" stroke-width="1.3" marker-end="url(#a1)"/>
+            <path d="M370 78 L550 130" stroke="#0066cc" stroke-width="1.3" marker-end="url(#a1)"/>
+          </g>
+          <defs><marker id="a1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#0066cc"/></marker></defs>
+          <text x="205" y="100" text-anchor="middle" font-size="11" fill="#0066cc">브리프 ①</text>
+          <text x="330" y="100" text-anchor="middle" font-size="11" fill="#0066cc">브리프 ②</text>
+          <text x="455" y="100" text-anchor="middle" font-size="11" fill="#0066cc">브리프 ③</text>
+
+          <g>
+            <rect x="40" y="132" width="140" height="60" rx="12" fill="#f5f5f7" stroke="#e0e0e0"/>
+            <text x="110" y="156" text-anchor="middle" font-size="12.5" font-weight="600" fill="#1d1d1f">서브 에이전트 A</text>
+            <text x="110" y="176" text-anchor="middle" font-size="11" fill="#7a7a7a">자기만의 작업 공간</text>
+
+            <rect x="260" y="132" width="140" height="60" rx="12" fill="#f5f5f7" stroke="#e0e0e0"/>
+            <text x="330" y="156" text-anchor="middle" font-size="12.5" font-weight="600" fill="#1d1d1f">서브 에이전트 B</text>
+            <text x="330" y="176" text-anchor="middle" font-size="11" fill="#7a7a7a">자기만의 작업 공간</text>
+
+            <rect x="480" y="132" width="140" height="60" rx="12" fill="#f5f5f7" stroke="#e0e0e0"/>
+            <text x="550" y="156" text-anchor="middle" font-size="12.5" font-weight="600" fill="#1d1d1f">서브 에이전트 C</text>
+            <text x="550" y="176" text-anchor="middle" font-size="11" fill="#7a7a7a">자기만의 작업 공간</text>
+          </g>
+
+          <g font-size="11" fill="#1c7a4a">
+            <path d="M110 132 L295 82" stroke="#1c7a4a" stroke-width="1.3" stroke-dasharray="3 3" marker-end="url(#a2)"/>
+            <path d="M330 132 L330 82" stroke="#1c7a4a" stroke-width="1.3" stroke-dasharray="3 3" marker-end="url(#a2)"/>
+            <path d="M550 132 L365 82" stroke="#1c7a4a" stroke-width="1.3" stroke-dasharray="3 3" marker-end="url(#a2)"/>
+          </g>
+          <defs><marker id="a2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#1c7a4a"/></marker></defs>
+          <text x="330" y="212" text-anchor="middle" font-size="12" fill="#1c7a4a">점선 = 요약만 돌아온다 (읽은 원본은 안 돌아온다)</text>
+        </svg>
+        <figcaption>그림 1. 메인 에이전트가 일을 나눠 보내고, 각 서브 에이전트는 결론만 돌려준다.</figcaption>
+      </figure>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s2">
+      <h2 class="h"><span class="num">02</span>메인 에이전트와 서브 에이전트의 관계</h2>
+      <p class="deck">서브 에이전트는 혼자 존재하지 않습니다. 항상 누군가 부르고, 누군가 결과를 받습니다.</p>
+
+      <ul class="plain">
+        <li><b>메인 에이전트(오케스트레이터)</b> — 사용자와 직접 대화하는 쪽입니다. 무엇을 나눠야 할지 판단하고, 서브 에이전트에게 지시문(브리프)을 써서 보내고, 돌아온 요약들을 종합해 최종 답을 만듭니다.</li>
+        <li><b>서브 에이전트</b> — 메인이 시킨 범위 안에서만 일합니다. 자기 작업 공간과 자기 기억 공간을 따로 갖고 있어서, 메인의 대화 내용을 함부로 침범하지 않습니다.</li>
+      </ul>
+
+      <p>중요한 건 <b>서브 에이전트는 사용자와 직접 대화하지 않는다</b>는 점입니다. 결과는 항상 메인을 거쳐 사용자에게 전달됩니다. 그래서 서브 에이전트가 무엇을 하고 있는지는 보통 사용자에게 실시간으로 보이지 않고, <b>끝난 뒤 요약 보고로만</b> 드러납니다.</p>
+
+      <div class="callout">
+        <span class="lbl">호칭이 여러 개인 이유</span>
+        <p>도구마다 부르는 이름이 다를 뿐 구조는 같습니다. "서브 에이전트", "Task", "팀원 에이전트", "워커 에이전트" 모두 <b>메인이 위임하고 요약만 받는다</b>는 같은 패턴을 가리킵니다.</p>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s3">
+      <h2 class="h"><span class="num">03</span>왜 필요한가 — 컨텍스트 윈도우 문제</h2>
+      <p class="deck">서브 에이전트를 쓰는 가장 큰 이유는 "빨라서"가 아닙니다.</p>
+
+      <p>AI가 한 번의 대화에서 기억할 수 있는 분량을 <b>컨텍스트 윈도우</b>라고 부릅니다. 그릇이라고 생각하면 됩니다. 파일을 읽고, 검색 결과를 받고, 대화를 주고받을 때마다 그릇에 내용이 찹니다. 그릇이 넘치면 앞의 내용을 잊어버리거나, 새 내용을 담을 자리가 없어집니다.</p>
+
+      <p>읽어야 할 파일이 수십 개, 검색해야 할 자료가 방대할 때 메인 에이전트가 그걸 전부 직접 읽으면 그릇이 금방 넘칩니다. 이때 서브 에이전트에게 나눠 맡기면, <b>각 서브 에이전트가 읽은 원본 내용은 메인의 그릇에 들어오지 않고</b> 결론 요약만 들어옵니다. 이걸 <b>컨텍스트 격리</b>라고 부릅니다.</p>
+
+      <div class="callout good">
+        <span class="lbl">핵심 한 줄</span>
+        <p>서브 에이전트의 가장 큰 값은 <b>"메인의 기억 공간을 쓰지 않고 일을 끝내주는 것"</b>입니다. 그래서 대화가 길어져도 메인의 그릇에는 여유가 남습니다.</p>
+      </div>
+
+      <p>이 구조가 실제로 어떻게 작동했는지 궁금하다면, 아래 <a href="../subagent-orchestration-case/index.html">서브에이전트 11개 사례 연구</a>에 113만 토큰이 요약 2만 자로 줄어드는 실제 수치가 나옵니다.</p>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s4">
+      <h2 class="h"><span class="num">04</span>서브 에이전트가 실제로 하는 일 3가지 패턴</h2>
+      <p class="deck">이름은 하나지만 쓰임새는 세 갈래로 나뉩니다.</p>
+
+      <h3 class="sub">① 병렬 조사 — 넓게 나눠서 동시에</h3>
+      <p>서로 독립적인 여러 조사를 동시에 돌립니다. 예: 파일 묶음별로 셋에게 나눠 코드베이스를 훑게 하기. 결과를 기다리는 시간이 겹치지 않아 전체 소요 시간이 줄어듭니다.</p>
+
+      <h3 class="sub">② 심화 분석 — 한 주제를 깊게</h3>
+      <p>주제를 축(관점)별로 쪼개 각자 한 축만 깊게 파고들게 합니다. 한 명이 다섯 개 축을 다 보면 축당 예산이 1/5로 줄어 표면만 훑게 되지만, 다섯 명이 축 하나씩 맡으면 각자 깊이 들어갈 수 있습니다.</p>
+
+      <h3 class="sub">③ 교차 검증 — 같은 결과물을 다른 질문으로</h3>
+      <p>이미 나온 결론을 서로 다른 기준(예: 데이터 관점 / 구현 관점 / 사용자 관점)으로 다시 점검하게 합니다. <b>같은 자료라도 질문이 다르면</b> 독립적인 검증이 됩니다.</p>
+
+      <div class="callout bad">
+        <span class="lbl">흔한 오해</span>
+        <p>"여러 서브 에이전트에게 <b>같은 질문</b>을 던져서 같은 답이 나오면 검증된 것이다" — 이건 틀렸습니다. 같은 브리프를 받으면 같은 편향을 그대로 복제해서 돌려줄 뿐입니다. 교차 검증이 되려면 <b>질문 자체가 달라야</b> 합니다. 실제 실패 사례는 <a href="../subagent-orchestration-case/index.html#s5">서브에이전트 11개 사례 연구 · 실패 3장면</a>에서 확인할 수 있습니다.</p>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s5">
+      <h2 class="h"><span class="num">05</span>서브 에이전트가 아닌 것</h2>
+      <p class="deck">비슷해 보이지만 다른 개념들과 구분해 두면 헷갈리지 않습니다.</p>
+
+      <div class="scroll">
+        <table>
+          <thead><tr><th>비교 대상</th><th>차이</th></tr></thead>
+          <tbody>
+            <tr><td><b>단순 함수 호출 / Tool Calling</b></td><td>도구 호출은 정해진 입출력 형식으로 즉시 값을 돌려주는 단발성 호출입니다. 서브 에이전트는 스스로 판단하며 여러 단계를 거쳐 <b>일을 수행하는 또 다른 AI</b>라는 점이 다릅니다.</td></tr>
+            <tr><td><b>RAG의 검색 단계</b></td><td>RAG는 문서를 찾아 컨텍스트에 넣는 검색 과정입니다. 서브 에이전트는 검색을 포함해 <b>더 넓은 임의의 작업</b>(코드 실행, 계산, 브라우저 조작 등)을 맡을 수 있습니다.</td></tr>
+            <tr><td><b>멀티 에이전트 시스템</b></td><td>여러 에이전트가 협업하는 큰 틀을 말합니다. 서브 에이전트 위임은 그 안에서 <b>메인이 중심을 잡는 한 가지 구현 방식</b>(오케스트레이터-워커 패턴)입니다.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s6">
+      <h2 class="h"><span class="num">06</span>언제 쓰고 언제 쓰지 말아야 하나</h2>
+      <p class="deck">가장 실전적인 판단 기준만 추립니다. 자세한 체크리스트와 브리프 작성 규칙은 사례 연구 문서에 있습니다.</p>
+
+      <h3 class="sub">이럴 때 쓰세요</h3>
+      <ul class="check yes">
+        <li><b>읽을 자료가 많고 결론만 필요할 때</b><span>원본 내용이 아니라 판단 결과만 있으면 되는 경우.</span></li>
+        <li><b>독립적인 작업을 동시에 여러 개 처리할 때</b><span>서로 결과를 기다리지 않아도 되는 작업들.</span></li>
+        <li><b>결과물을 여러 각도로 검증할 때</b><span>단, 질문을 반드시 다르게 줘야 진짜 검증이 됩니다.</span></li>
+      </ul>
+
+      <h3 class="sub">이럴 땐 쓰지 마세요</h3>
+      <ul class="check no">
+        <li><b>어디를 고칠지 이미 아는 작은 수정</b><span>지시하고 보고받는 시간이 직접 하는 것보다 더 듭니다.</span></li>
+        <li><b>사실 확인 한 건</b><span>파일 하나 확인하면 끝나는 일에 별도 인스턴스를 부르는 건 낭비입니다.</span></li>
+        <li><b>결과를 실시간으로 지켜봐야 할 때</b><span>서브 에이전트는 끝나야 요약을 돌려줍니다. 중간 과정을 계속 확인해야 하는 일에는 맞지 않습니다.</span></li>
+      </ul>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s7">
+      <h2 class="h"><span class="num">07</span>용어 정리</h2>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>용어</th><th>뜻</th></tr></thead>
+          <tbody>
+            <tr><td><b>서브 에이전트</b></td><td>메인 에이전트가 일을 맡기는 별도의 AI 인스턴스. 자기 작업 공간에서 일하고 요약만 돌려준다.</td></tr>
+            <tr><td><b>메인 에이전트 / 오케스트레이터</b></td><td>사용자와 직접 대화하며 무엇을 나눌지 판단하고, 서브 에이전트들의 결과를 종합하는 쪽.</td></tr>
+            <tr><td><b>브리프</b></td><td>서브 에이전트에게 주는 지시문. 범위·규칙·보고 형식을 담는다.</td></tr>
+            <tr><td><b>컨텍스트 윈도우</b></td><td>AI가 한 번에 기억할 수 있는 분량. 그릇의 크기.</td></tr>
+            <tr><td><b>컨텍스트 격리</b></td><td>서브 에이전트가 읽은 원본 내용이 메인의 그릇에 들어오지 않는 것. 서브 에이전트의 핵심 이점.</td></tr>
+            <tr><td><b>병렬 실행</b></td><td>여러 서브 에이전트를 동시에 돌려 서로의 결과를 기다리지 않게 하는 방식.</td></tr>
+            <tr><td><b>편향 복제</b></td><td>같은 브리프를 받은 서브 에이전트들이 같은 실수를 그대로 반복하는 현상. 다수결이 검증이 되지 않는 이유.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout">
+        <span class="lbl">한 문장으로 요약하면</span>
+        <p>서브 에이전트는 <b>메인 에이전트의 기억 공간을 아끼면서 일을 나눠 처리하게 해주는 AI 인스턴스</b>입니다. 도구 호출보다 넓은 일을 맡을 수 있고, 대신 결과는 요약으로만 돌아오기 때문에 중요한 판단은 메인이 직접 다시 확인해야 합니다.</p>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s8">
+      <h2 class="h"><span class="num">08</span>더 읽어보기</h2>
+      <p class="deck">개념을 익혔다면 실제 사례와 실전 팁으로 넘어가세요.</p>
+
+      <div class="related">
+        <a class="related-card" href="../subagent-orchestration-case/index.html">
+          <div class="name">서브에이전트 11개 사례 연구</div>
+          <div class="meta">Multi-Agent를 실제 프로젝트에 쓴 기록 · 실패 3장면과 체크리스트</div>
+        </a>
+        <a class="related-card" href="../multi-agent-case-study/index.html">
+          <div class="name">서브에이전트 3개 실전 사례</div>
+          <div class="meta">에이전트 3개로 분석 보고서 만들기 · 프롬프트 전문 · 결과 검증법</div>
+        </a>
+        <a class="related-card" href="../../팁/subagent-task/index.html">
+          <div class="name">서브에이전트(Task) 활용 팁</div>
+          <div class="meta">시스템 가드 회피 · 병렬 실행과 결과 확인 요령</div>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-links">
+      <a href="../../00_사전학습/index.html">00 사전 학습</a>
+      <a href="../../01_오리엔테이션/index.html">01 오리엔테이션</a>
+      <a href="../../02_바이브코딩/index.html">02 바이브코딩</a>
+      <a href="../../03_UXUI디자인/index.html">03 UXUI디자인</a>
+      <a href="../../04_노코드프로토타이핑/index.html">04 노코드프로토타이핑</a>
+      <a href="../../05_서비스기획/index.html">05 서비스기획</a>
+      <a href="../../06_데이터ML/index.html">06 데이터ML</a>
+      <a href="../../07_LLM_RAG_Agent/index.html">07 LLM_RAG_Agent</a>
+      <a href="../../08_해커톤/index.html">08 해커톤</a>
+    </div>
+    <div class="footer-legal">AI 프로덕트 마스터 · frontierall</div>
+  </footer>
+</body>
+</html>
