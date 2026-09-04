@@ -366,7 +366,7 @@ CONFIRMED 판정을 받은 항목만. UNCERTAIN/INCORRECT는 애초에 넘어오
       <h2 class="h"><span class="num">05</span>2단계 — 오케스트레이션 스킬 만들기</h2>
       <p class="deck">스킬은 "이 셋을 어떤 순서로, 무엇을 주고받으며 부를지"를 정하는 대본입니다.</p>
 
-      <p>스킬 파일은 <code>스킬이름/SKILL.md</code> 경로에 둡니다. frontmatter는 <code>name</code>과 <code>description</code>만 있으면 됩니다 — 나머지 본문이 곧 실행 절차입니다.</p>
+      <p>스킬 파일은 <code>스킬이름/SKILL.md</code> 경로에 둡니다. frontmatter 필드는 전부 선택사항이지만, <code>description</code>만은 채워 넣기를 권장합니다 — 이게 있어야 Claude가 언제 이 스킬을 써야 할지 판단할 수 있습니다. (<code>name</code>을 생략하면 디렉터리 이름을, <code>description</code>을 생략하면 본문 첫 문단을 대신 씁니다.) 나머지 본문이 곧 실행 절차입니다.</p>
 
 <pre><code>---
 name: doc-refresh
@@ -424,14 +424,19 @@ ln -sf "$SRC/skills/doc-refresh" ".claude/skills/doc-refresh"</code></pre>
     <!-- ================================================================= -->
     <section class="block" id="s7">
       <h2 class="h"><span class="num">07</span>실제로 써보기</h2>
-      <p class="deck">파일 4개(에이전트 3개 + 스킬 1개)를 두었다면, 다음 세션부터 바로 잡힙니다.</p>
+      <p class="deck">파일 4개(에이전트 3개 + 스킬 1개)를 두었다면, 세션을 재시작하지 않아도 바로 인식됩니다.</p>
 
       <ol class="plain" style="list-style: decimal;">
-        <li>연결한 프로젝트를 새로 열거나 새 세션을 시작합니다. (이미 켜져 있던 세션은 시작할 때 스킬 목록을 이미 불러온 상태라 인식하지 못할 수 있습니다.)</li>
+        <li>이미 열려 있는 세션이라도 그대로 쓰면 됩니다. Claude Code가 <code>.claude/skills/</code> 폴더(프로젝트 로컬, <code>~/.claude/skills/</code>, <code>--add-dir</code>로 추가한 디렉터리 포함)를 계속 감시하고 있어서, 방금 만든 스킬 파일도 재시작 없이 같은 세션 안에서 바로 인식됩니다.</li>
         <li><code>/doc-refresh &lt;점검할 문서 경로&gt;</code> 처럼 스킬 이름을 직접 부르거나, "이 문서 최신 정보로 갱신해줘" 처럼 자연어로 요청합니다. 스킬의 <code>description</code>이 이런 요청과 맞아떨어지면 자동으로 호출됩니다.</li>
         <li>진행되는 동안 리서처 → 팩트체커 → 라이터 순으로 결과가 쌓입니다. 중간에 UNCERTAIN이나 INCORRECT로 판정된 항목도 함께 보고되니 눈여겨보세요 — 이것도 값진 결과입니다.</li>
         <li>마지막에 위치/기존/변경/근거가 정리된 초안을 받습니다. <b>여기서 검토하고 승인해야</b> 실제 파일이 바뀝니다.</li>
       </ol>
+
+      <div class="callout">
+        <span class="lbl">예외: 세션 재시작이 필요한 경우</span>
+        <p>위 실시간 감지는 이미 있는 <code>.claude/skills/</code> 폴더 안에서 파일을 추가·수정·삭제할 때 적용됩니다. 세션을 시작한 시점에 <code>.claude/skills/</code> 폴더 자체가 아예 없다가 그 뒤에 새로 생겼다면 — 예를 들어 6장의 <code>install.sh</code>를 세션 도중 처음 실행해 <code>mkdir -p</code>로 최상위 폴더를 새로 만든 경우 — Claude Code가 그 폴더를 새로 감시 대상에 넣도록 세션을 재시작해야 합니다.</p>
+      </div>
 
       <div class="callout">
         <span class="lbl">처음 써볼 때 좋은 대상</span>
