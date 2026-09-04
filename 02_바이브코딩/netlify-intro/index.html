@@ -259,14 +259,14 @@
 <tr><td><strong>GitHub Pages</strong></td><td>가장 단순. 저장소 파일을 그대로 서빙</td><td>순수 HTML 문서·포트폴리오. 단, 무료 플랜은 private 저장소 불가</td></tr>
 <tr><td><strong>Netlify</strong></td><td>드래그 앤 드롭·폼·함수까지 골고루</td><td>Git을 아직 안 배웠거나, 폼·미리보기가 필요할 때</td></tr>
 <tr><td><strong>Vercel</strong></td><td>Next.js를 만든 회사</td><td>Next.js 프로젝트, v0로 만든 결과물</td></tr>
-<tr><td><strong>Cloudflare Workers/Pages</strong></td><td>CDN 성능과 관대한 무료 한도</td><td>private 저장소를 쓰면서 트래픽이 많을 때</td></tr>
+<tr><td><strong>Cloudflare Workers/Pages</strong></td><td>CDN 성능과 관대한 무료 한도</td><td>트래픽이 많고 대역폭 비용이 걱정될 때</td></tr>
 </tbody>
 </table>
 <p>기능이 상당 부분 겹치기 때문에, <strong>정답은 없고 상황과 취향의 문제</strong>입니다. 이 수업에서는 이 네 가지를 모두 한 번씩 경험해 보고 본인에게 맞는 것을 고르면 됩니다.</p>
 <div class="figure"><svg viewBox="0 0 720 170" role="img" aria-label="배포 서비스 4종의 단순함과 기능 많음 스펙트럼 비교"><line x1="40" y1="95" x2="680" y2="95" stroke="var(--hairline)" stroke-width="2"/><text x="40" y="128" font-size="12" fill="var(--ink-48)">단순함</text><text x="680" y="128" text-anchor="end" font-size="12" fill="var(--ink-48)">기능 많음</text><circle cx="136.0" cy="95" r="6" fill="var(--ink-48)"/><line x1="136.0" y1="87" x2="136.0" y2="60" stroke="var(--ink-48)" stroke-width="1"/><text x="136.0" y="48" text-anchor="middle" font-size="14" font-weight="600" fill="var(--ink)">GitHub Pages</text><text x="136.0" y="30" text-anchor="middle" font-size="11" fill="var(--ink-48)">문서·포트폴리오</text><circle cx="424.0" cy="95" r="6" fill="var(--ink-48)"/><line x1="424.0" y1="103" x2="424.0" y2="132" stroke="var(--ink-48)" stroke-width="1"/><text x="424.0" y="148" text-anchor="middle" font-size="14" font-weight="600" fill="var(--ink)">Cloudflare</text><text x="424.0" y="164" text-anchor="middle" font-size="11" fill="var(--ink-48)">성능·무료 한도</text><circle cx="456.0" cy="95" r="8" fill="var(--primary)"/><line x1="456.0" y1="87" x2="456.0" y2="60" stroke="var(--primary)" stroke-width="1"/><text x="456.0" y="48" text-anchor="middle" font-size="14" font-weight="600" fill="var(--ink)">Netlify</text><text x="456.0" y="30" text-anchor="middle" font-size="11" fill="var(--ink-48)">쉬움 + 폼·함수</text><circle cx="520.0" cy="95" r="6" fill="var(--ink-48)"/><line x1="520.0" y1="103" x2="520.0" y2="132" stroke="var(--ink-48)" stroke-width="1"/><text x="520.0" y="148" text-anchor="middle" font-size="14" font-weight="600" fill="var(--ink)">Vercel</text><text x="520.0" y="164" text-anchor="middle" font-size="11" fill="var(--ink-48)">Next.js</text></svg></div><p class="fig-caption">네 서비스의 대략적인 위치 — 오른쪽으로 갈수록 기능이 많고 배울 것도 늘어납니다</p>
 
 <blockquote>
-<p><strong>정리 기준:</strong> Git이 아직 낯설다 → Netlify 드래그 앤 드롭. 문서만 올린다 → GitHub Pages. Next.js다 → Vercel. 저장소를 비공개로 두고 싶다 → Netlify 또는 Cloudflare.</p>
+<p><strong>정리 기준:</strong> Git이 아직 낯설다 → Netlify 드래그 앤 드롭. 문서만 올린다 → GitHub Pages. Next.js다 → Vercel. 저장소를 비공개로 두고 싶다 → GitHub Pages만 빼면 어디든 가능, 트래픽까지 많으면 Cloudflare.</p>
 </blockquote>
 
 <hr>
@@ -291,7 +291,7 @@
 </ul>
 
 <h3>7-4. 무료 플랜 한도</h3>
-<p>개인 학습·포트폴리오 수준에서는 무료 플랜으로 충분합니다. 다만 대역폭과 월 빌드 시간에 한도가 있고, <strong>이 숫자는 정책에 따라 바뀌므로</strong> 실제 값은 <a href="https://www.netlify.com/pricing/" target="_blank" rel="noopener">공식 요금 페이지</a>에서 확인하세요. 한도가 걱정될 만큼 트래픽이 늘었다면 Cloudflare 쪽이 대안이 됩니다.</p>
+<p>개인 학습·포트폴리오 수준에서는 무료 플랜으로 충분하고, <strong>상업용 사이트도 무료 플랜에서 배포할 수 있습니다</strong>(Vercel Hobby와 다른 점). 다만 2025년 9월부터 신규 계정은 <strong>크레딧 기반 요금제</strong>로 바뀌어, Free 플랜은 월 300 크레딧이 상한이고 대역폭·빌드 시간이 모두 여기서 차감됩니다. <strong>이 숫자는 정책에 따라 바뀌므로</strong> 실제 값은 <a href="https://www.netlify.com/pricing/" target="_blank" rel="noopener">공식 요금 페이지</a>에서 확인하세요. 한도가 걱정될 만큼 트래픽이 늘었다면 Cloudflare 쪽이 대안이 됩니다.</p>
 
 <hr>
 
