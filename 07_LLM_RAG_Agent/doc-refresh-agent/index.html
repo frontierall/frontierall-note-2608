@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>문서 최신화·팩트체크 에이전트 만들기 · 07 LLM_RAG_Agent</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@1.3.9/dist/web/static/pretendard.css">
+<style>
+  :root {
+    --primary: #0066cc; --primary-focus: #0071e3;
+    --canvas: #ffffff; --parchment: #f5f5f7;
+    --black: #000000; --ink: #1d1d1f; --ink-80: #333333; --ink-48: #7a7a7a;
+    --hairline: #e0e0e0;
+    --warn-bg: #fff8e6; --warn-line: #f0dba8;
+    --bad-bg: #fdeeee; --bad-line: #f0c0c0; --bad-ink: #a32d2d;
+    --good-bg: #e9f6ee; --good-line: #b9e0c8; --good-ink: #1c7a4a;
+    --accent: #7c5cff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--canvas); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', 'Apple SD Gothic Neo', 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-size: 17px; line-height: 1.47; letter-spacing: -0.374px;
+  }
+  .global-nav {
+    position: sticky; top: 0; z-index: 20; height: 44px; background: var(--black);
+    display: flex; align-items: center; justify-content: space-between; padding: 0 22px;
+  }
+  .global-nav .brand { color: #fff; font-size: 12px; font-weight: 600; letter-spacing: -0.12px; text-decoration: none; }
+  .global-nav .meta { color: rgba(255,255,255,0.72); font-size: 12px; letter-spacing: -0.12px; }
+  .sub-nav {
+    position: sticky; top: 44px; z-index: 19; min-height: 52px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 22px;
+    background: rgba(245,245,247,0.8);
+    -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+  .sub-nav .category { font-size: 21px; font-weight: 600; letter-spacing: 0.231px; color: var(--ink); text-decoration: none; }
+  .btn-primary {
+    display: inline-block; background: var(--primary); color: #fff; border: none;
+    border-radius: 9999px; padding: 8px 18px; font-size: 14px; font-family: inherit;
+    text-decoration: none; cursor: pointer; transition: transform .15s; white-space: nowrap;
+  }
+  .btn-primary:active { transform: scale(0.95); }
+  .btn-primary:focus-visible { outline: 2px solid var(--primary-focus); outline-offset: 2px; }
+
+  main.content { max-width: 720px; margin: 0 auto; padding: 64px 24px 96px; }
+  .eyebrow { display: block; font-size: 14px; font-weight: 600; letter-spacing: -0.224px; color: var(--ink-48); margin-bottom: 12px; }
+  h1.headline { font-size: 40px; font-weight: 600; line-height: 1.10; letter-spacing: 0; margin: 0 0 14px; }
+  p.tagline { font-size: 28px; font-weight: 400; line-height: 1.14; letter-spacing: 0.196px; margin: 0 0 20px; color: var(--ink-80); }
+  p.byline { font-size: 14px; color: var(--ink-48); letter-spacing: -0.224px; margin: 0; }
+
+  .toc { background: var(--parchment); border-radius: 18px; padding: 20px 24px; margin-top: 32px; }
+  .toc strong { font-size: 15px; }
+  .toc ol { margin: 8px 0 0; padding-left: 22px; }
+  .toc li { margin: 5px 0; font-size: 15px; }
+  .toc a { color: var(--ink); text-decoration: none; }
+  .toc a:hover { color: var(--primary); text-decoration: underline; }
+
+  section.block { margin-top: 60px; scroll-margin-top: 110px; }
+  h2.h { font-size: 28px; font-weight: 600; line-height: 1.2; margin: 0 0 6px; letter-spacing: -0.4px; }
+  h2.h .num { color: var(--ink-48); font-weight: 600; margin-right: 10px; }
+  p.deck { font-size: 17px; color: var(--ink-80); margin: 0 0 24px; }
+  h3.sub { font-size: 19px; font-weight: 600; margin: 34px 0 10px; letter-spacing: -0.3px; }
+  h4.sub2 { font-size: 16px; font-weight: 600; margin: 22px 0 6px; }
+  p { margin: 0 0 16px; }
+
+  .callout { border: 1px solid var(--warn-line); background: var(--warn-bg); border-radius: 12px; padding: 14px 18px; margin: 20px 0; font-size: 15px; }
+  .callout.bad { border-color: var(--bad-line); background: var(--bad-bg); }
+  .callout.good { border-color: var(--good-line); background: var(--good-bg); }
+  .callout .lbl { display: block; font-weight: 600; margin-bottom: 4px; font-size: 14px; }
+  .callout.bad .lbl { color: var(--bad-ink); }
+  .callout.good .lbl { color: var(--good-ink); }
+  .callout p:last-child { margin-bottom: 0; }
+
+  .fig { margin: 28px 0; }
+  .fig svg { width: 100%; height: auto; display: block; }
+  .fig figcaption { font-size: 14px; color: var(--ink-48); letter-spacing: -0.224px; margin-top: 10px; }
+
+  .scroll { overflow-x: auto; margin: 20px 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--hairline); vertical-align: top; }
+  th { font-size: 13px; color: var(--ink-48); font-weight: 600; letter-spacing: -0.1px; border-bottom: 1.5px solid var(--hairline); white-space: nowrap; }
+  tbody tr:last-child td { border-bottom: none; }
+
+  pre { background: #1d1d1f; color: #f5f5f7; border-radius: 12px; padding: 16px 18px; overflow-x: auto;
+        font: 13px/1.6 ui-monospace, SFMono-Regular, Consolas, monospace; margin: 16px 0; letter-spacing: 0; }
+  code { font: 13px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace; background: var(--parchment);
+         padding: 1px 6px; border-radius: 5px; letter-spacing: 0; }
+  pre code { background: none; padding: 0; color: inherit; font-size: 13px; }
+
+  ul.plain { margin: 0 0 16px; padding-left: 22px; }
+  ul.plain li { margin: 7px 0; }
+
+  .scene { border: 1px solid var(--hairline); border-radius: 18px; padding: 22px 24px; margin: 22px 0; }
+  .scene .tag { display: inline-block; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; margin-bottom: 10px; }
+  .scene .tag.f { background: var(--bad-bg); color: var(--bad-ink); }
+  .scene .tag.s { background: var(--good-bg); color: var(--good-ink); }
+  .scene h4 { font-size: 19px; font-weight: 600; margin: 0 0 10px; letter-spacing: -0.3px; }
+  .scene .lesson { margin: 14px 0 0; padding-top: 14px; border-top: 1px solid var(--hairline); font-size: 15px; }
+  .scene .lesson b { color: var(--primary); }
+
+  .check { list-style: none; margin: 0; padding: 0; }
+  .check li { border-top: 1px solid var(--hairline); padding: 14px 0 14px 30px; position: relative; font-size: 16px; }
+  .check li:last-child { border-bottom: 1px solid var(--hairline); }
+  .check li::before { position: absolute; left: 0; top: 13px; font-size: 15px; font-weight: 700; }
+  .check.yes li::before { content: "○"; color: var(--good-ink); }
+  .check.no li::before { content: "✕"; color: var(--bad-ink); }
+  .check li b { display: block; margin-bottom: 2px; }
+  .check li span { color: var(--ink-80); font-size: 15px; }
+
+  .kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; margin: 22px 0; }
+  .kpi div { border: 1px solid var(--hairline); border-radius: 14px; padding: 16px 18px; }
+  .kpi .v { font-size: 26px; font-weight: 600; letter-spacing: -0.5px; display: block; }
+  .kpi .k { font-size: 13px; color: var(--ink-48); }
+
+  .related { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin-top: 16px; }
+  a.related-card {
+    display: block; background: var(--canvas); border: 1px solid var(--hairline);
+    border-radius: 16px; padding: 20px; text-decoration: none; color: var(--ink);
+    transition: border-color .15s;
+  }
+  a.related-card:hover { border-color: var(--primary); }
+  a.related-card .name { font-size: 16px; font-weight: 600; letter-spacing: -0.374px; margin-bottom: 6px; }
+  a.related-card .meta { font-size: 13.5px; color: var(--ink-48); letter-spacing: -0.224px; }
+
+  footer.site-footer { background: var(--parchment); color: var(--ink-80); padding: 64px 24px 32px; }
+  .footer-links { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px 32px; }
+  .footer-links a { display: block; font-size: 17px; line-height: 2.41; color: var(--ink-80); text-decoration: none; }
+  .footer-links a:hover { color: var(--ink); }
+  .footer-legal { max-width: 1000px; margin: 32px auto 0; padding-top: 16px; border-top: 1px solid var(--hairline); font-size: 12px; color: var(--ink-48); letter-spacing: -0.12px; }
+
+  @media (max-width: 640px) {
+    main.content { padding: 48px 20px 72px; }
+    h1.headline { font-size: 28px; }
+    p.tagline { font-size: 20px; }
+    h2.h { font-size: 23px; }
+    .sub-nav { padding: 0 16px; }
+    .sub-nav .category { font-size: 17px; }
+    .footer-links { grid-template-columns: repeat(2, 1fr); gap: 4px 20px; }
+  }
+  @media (max-width: 380px) { .global-nav .meta { display: none; } }
+</style>
+</head>
+<body>
+  <nav class="global-nav">
+    <a class="brand" href="../../index.html">AI 프로덕트 마스터</a>
+    <span class="meta">인공지능 심화(160H)</span>
+  </nav>
+  <nav class="sub-nav">
+    <a class="category" href="../index.html">07 LLM_RAG_Agent</a>
+    <a class="btn-primary" href="../index.html">카테고리로</a>
+  </nav>
+
+  <main class="content">
+    <span class="eyebrow">PART 07 · 실습 교안</span>
+    <h1 class="headline">문서 최신화 ·<br>팩트체크 에이전트 만들기</h1>
+    <p class="tagline">리서치 → 팩트체크 → 작성, 3단계로 나눠 문서를 안전하게 갱신하는 에이전트 설계와 사용법.</p>
+    <p class="byline">2026-09-05 · 실습 교안 · 대상: 서브 에이전트 개념을 익힌 분</p>
+
+    <div class="toc">
+      <strong>이 문서의 순서</strong>
+      <ol>
+        <li><a href="#s1">왜 이런 에이전트가 필요한가</a></li>
+        <li><a href="#s2">설계 원칙 — 왜 역할을 3개로 쪼개나</a></li>
+        <li><a href="#s3">전체 구조 한눈에 보기</a></li>
+        <li><a href="#s4">1단계 — 서브 에이전트 3개 만들기</a></li>
+        <li><a href="#s5">2단계 — 오케스트레이션 스킬 만들기</a></li>
+        <li><a href="#s6">저장 위치 정하기 — 이 프로젝트, 아니면 여러 프로젝트</a></li>
+        <li><a href="#s7">실제로 써보기</a></li>
+        <li><a href="#s8">체크리스트</a></li>
+        <li><a href="#s9">용어 정리 & 더 읽어보기</a></li>
+      </ol>
+    </div>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s1">
+      <h2 class="h"><span class="num">01</span>왜 이런 에이전트가 필요한가</h2>
+      <p class="deck">AI가 쓴 문서든 사람이 쓴 문서든, 시간이 지나면 낡습니다.</p>
+
+      <p>가격, 버전, 정책, API 스펙, 링크 — 문서에 적힌 이런 내용은 시간이 지나면 틀린 정보가 됩니다. 게다가 LLM에게 "이거 최신 정보로 고쳐줘"라고 그냥 시키면, 두 가지 문제가 생깁니다.</p>
+
+      <ul class="plain">
+        <li><b>모델이 자기 학습 데이터로 답한다.</b> 학습 시점 이후 바뀐 내용은 알 수가 없는데도, 마치 아는 것처럼 자신 있게 틀린 답을 씁니다.</li>
+        <li><b>검색을 하더라도, 검색 결과 하나를 그대로 믿는다.</b> 첫 번째로 나온 블로그 글이 틀렸거나 오래됐어도 그걸 그대로 옮겨 적습니다.</li>
+      </ul>
+
+      <p>이 문서에서 만드는 에이전트는 이 두 문제를 <b>구조로</b> 막습니다. "조사하는 사람"과 "그 조사가 맞는지 다시 확인하는 사람"을 분리하고, 사람이 승인하기 전에는 파일을 건드리지 않게 만드는 것이 핵심입니다.</p>
+
+      <div class="callout good">
+        <span class="lbl">이 교안에서 실제로 만드는 것</span>
+        <p>문서/대본을 읽고 → 웹 검색으로 최신 정보와 대조하고 → 근거(출처)와 확신도를 붙여 변경을 제안하고 → 사람이 승인한 것만 실제로 반영하는 에이전트 파이프라인입니다. 아래 예시 코드는 실제로 이 강의 자료 저장소에 적용한 것을 그대로 가져왔습니다.</p>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s2">
+      <h2 class="h"><span class="num">02</span>설계 원칙 — 왜 역할을 3개로 쪼개나</h2>
+      <p class="deck">에이전트 하나가 검색부터 수정까지 한 번에 하면, 실수가 그대로 파일에 들어갑니다.</p>
+
+      <h3 class="sub">원칙 1 — 조사와 검증은 반드시 다른 질문이어야 한다</h3>
+      <p><a href="../subagent-orchestration-case/index.html#s5">서브에이전트 11개 사례 연구</a>에서 다룬 함정이 정확히 여기서 재발합니다. 검증 담당에게 "이 리서처가 맞다고 했는데, 맞아?"라고 물으면 같은 출처를 보고 같은 답을 하기 쉽습니다. 그래서 검증 담당에게는 <b>"이 사실을 원출처에서 처음부터 다시 확인해봐"</b>라고 시켜야 합니다. 질문 자체가 다르면, 같은 실수를 그대로 반복할 확률이 줄어듭니다.</p>
+
+      <h3 class="sub">원칙 2 — 조사·검증 단계는 파일을 건드릴 수 없어야 한다</h3>
+      <p>리서처와 팩트체커에게는 아예 Write/Edit 도구를 주지 않습니다. 결과가 "제안 목록"으로만 나오게 강제하는 것입니다. 이러면 중간에 판단이 틀려도 파일에는 아직 아무 영향이 없습니다.</p>
+
+      <h3 class="sub">원칙 3 — 검증을 통과한 것만, 그리고 사람이 승인한 것만 반영한다</h3>
+      <p>팩트체커가 "확인됨(CONFIRMED)"이라고 판정한 항목만 작성 단계로 넘깁니다. 그리고 작성 단계가 만든 초안(diff)도 곧바로 파일에 쓰지 않고, <b>사람에게 먼저 보여주고 승인을 받은 뒤에만</b> 실제로 수정합니다.</p>
+
+      <div class="callout">
+        <span class="lbl">한 줄로 요약하면</span>
+        <p>조사(Research) → 독립 검증(Verify) → 초안 작성(Draft) → <b>사람 승인</b> → 반영(Apply). 이 5단계 중 앞 세 단계는 전부 되돌릴 수 있는 "제안"일 뿐이고, 실제로 파일이 바뀌는 건 마지막 단계뿐입니다.</p>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s3">
+      <h2 class="h"><span class="num">03</span>전체 구조 한눈에 보기</h2>
+      <p class="deck">에이전트 3개 + 이들을 부르는 스킬 1개, 총 4개 파일로 이뤄집니다.</p>
+
+      <figure class="fig">
+        <svg viewBox="0 0 660 300" role="img" aria-labelledby="fig1t">
+          <title id="fig1t">doc-refresh 스킬이 doc-researcher, doc-fact-checker, doc-writer를 순서대로 호출하고 마지막에 사람 승인을 거쳐 파일에 반영하는 파이프라인 다이어그램</title>
+          <rect x="10" y="16" width="150" height="46" rx="10" fill="#fff" stroke="#0066cc" stroke-width="1.5"/>
+          <text x="85" y="44" text-anchor="middle" font-size="13" font-weight="600" fill="#1d1d1f">doc-refresh 스킬</text>
+
+          <path d="M85 62 L85 90" stroke="#0066cc" stroke-width="1.3" marker-end="url(#a1)"/>
+          <defs><marker id="a1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#0066cc"/></marker></defs>
+
+          <rect x="10" y="92" width="150" height="56" rx="10" fill="#eaf3fc" stroke="#bcd9f2"/>
+          <text x="85" y="114" text-anchor="middle" font-size="12.5" font-weight="600" fill="#1d1d1f">doc-researcher</text>
+          <text x="85" y="132" text-anchor="middle" font-size="11" fill="#7a7a7a">웹 검색 · 제안 목록</text>
+
+          <path d="M85 148 L85 176" stroke="#7a7a7a" stroke-width="1.3" marker-end="url(#a2)"/>
+          <defs><marker id="a2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#7a7a7a"/></marker></defs>
+          <text x="100" y="166" font-size="11" fill="#7a7a7a">다른 질문으로</text>
+
+          <rect x="10" y="178" width="150" height="56" rx="10" fill="#f1eeff" stroke="#d3c9f7"/>
+          <text x="85" y="200" text-anchor="middle" font-size="12.5" font-weight="600" fill="#1d1d1f">doc-fact-checker</text>
+          <text x="85" y="218" text-anchor="middle" font-size="11" fill="#7a7a7a">원출처 재확인 · 판정</text>
+
+          <path d="M160 206 L230 206" stroke="#1c7a4a" stroke-width="1.3" marker-end="url(#a3)"/>
+          <defs><marker id="a3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#1c7a4a"/></marker></defs>
+          <text x="195" y="196" text-anchor="middle" font-size="10.5" fill="#1c7a4a">CONFIRMED만</text>
+
+          <rect x="232" y="178" width="150" height="56" rx="10" fill="#e9f6ee" stroke="#b9e0c8"/>
+          <text x="307" y="200" text-anchor="middle" font-size="12.5" font-weight="600" fill="#1d1d1f">doc-writer</text>
+          <text x="307" y="218" text-anchor="middle" font-size="11" fill="#7a7a7a">문서 톤에 맞춘 diff</text>
+
+          <path d="M382 206 L450 206" stroke="#7a7a7a" stroke-width="1.3" marker-end="url(#a4)"/>
+          <defs><marker id="a4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#7a7a7a"/></marker></defs>
+
+          <rect x="452" y="178" width="196" height="56" rx="10" fill="#fff8e6" stroke="#f0dba8"/>
+          <text x="550" y="200" text-anchor="middle" font-size="12.5" font-weight="600" fill="#1d1d1f">사람 승인</text>
+          <text x="550" y="218" text-anchor="middle" font-size="11" fill="#7a7a7a">여기서만 실제 파일이 바뀜</text>
+
+          <path d="M550 234 L550 260" stroke="#a32d2d" stroke-width="1.3" marker-end="url(#a5)"/>
+          <defs><marker id="a5" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#a32d2d"/></marker></defs>
+          <text x="452" y="256" font-size="11.5" fill="#a32d2d">승인 후에만 Edit</text>
+
+          <rect x="452" y="262" width="196" height="30" rx="8" fill="#fdeeee" stroke="#f0c0c0"/>
+          <text x="550" y="282" text-anchor="middle" font-size="12" font-weight="600" fill="#a32d2d">문서 파일 반영</text>
+
+          <text x="12" y="270" font-size="12" fill="#333">읽기 전용 세 단계</text>
+          <rect x="6" y="10" width="410" height="228" rx="14" fill="none" stroke="#e0e0e0" stroke-dasharray="4 3"/>
+        </svg>
+        <figcaption>그림 1. 점선 박스 안 세 에이전트는 전부 읽기 전용. 실제 수정은 사람 승인 뒤 마지막 한 칸에서만 일어난다.</figcaption>
+      </figure>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s4">
+      <h2 class="h"><span class="num">04</span>1단계 — 서브 에이전트 3개 만들기</h2>
+      <p class="deck">서브 에이전트는 frontmatter가 있는 마크다운 파일 한 장입니다. 코드가 아닙니다.</p>
+
+      <p>서브 에이전트 정의 파일은 <code>이름.md</code> 하나로 끝납니다. 맨 위에 이런 형식의 frontmatter를 씁니다.</p>
+
+<pre><code>---
+name: doc-researcher
+description: 언제 이 에이전트를 써야 하는지 한 문단으로. 오케스트레이터가
+             이 설명만 보고 호출 여부를 판단하므로 구체적으로 쓸수록 좋다.
+tools: Read, Grep, Glob, WebSearch, WebFetch
+model: sonnet
+permissionMode: default
+---
+
+# 본문에는 이 에이전트가 지켜야 할 규칙을 자연어로 적는다.
+# "무엇을 받고, 무엇을 하고, 무엇을 돌려주는가"를 명확히.</code></pre>
+
+      <ul class="plain">
+        <li><b>name</b> — 다른 에이전트/스킬에서 이 이름으로 호출한다.</li>
+        <li><b>description</b> — 언제 써야 하는지. 이 설명이 부실하면 필요할 때 안 불려오거나, 엉뚱할 때 불려온다.</li>
+        <li><b>tools</b> — <b>이 목록이 안전장치의 핵심이다.</b> 조사·검증 담당에게는 Write/Edit을 아예 주지 않는다.</li>
+      </ul>
+
+      <h3 class="sub">doc-researcher — 읽기 전용 조사자</h3>
+      <p>문서를 읽고, 검색으로 최신 정보와 대조해서, <b>근거와 확신도가 붙은 변경 제안 목록</b>만 돌려줍니다. 실제 정의 파일의 핵심 부분입니다.</p>
+<pre><code>tools: Read, Grep, Glob, WebSearch, WebFetch   # Write/Edit 없음
+
+## 무엇을 만드는가 (발췌)
+각 항목마다:
+- 위치 — 문서 어디인지
+- 현재 내용 / 제안 변경
+- 근거 — 출처 URL과 그 출처가 뒷받침하는 구체적 사실
+- 확신도 — 확인됨 / 추정 / 불확실
+
+## 지켜야 할 규칙
+- 학습 데이터로 "이미 안다"고 판단하지 말고, 시간에 민감한 내용은
+  전부 실제로 검색해서 재확인한다.
+- 근거 없는 주장("최신이 아닌 것 같다")은 항목으로 인정하지 않는다.</code></pre>
+
+      <h3 class="sub">doc-fact-checker — 독립적으로 다시 확인하는 검증자</h3>
+      <p>여기가 이 설계의 핵심입니다. 리서처가 낸 근거를 <b>그냥 다시 열어보고 끄덕이는 게 아니라</b>, 원출처를 처음부터 다시 찾아 스스로 다시 도출합니다.</p>
+<pre><code>tools: Read, Grep, Glob, WebSearch, WebFetch   # 여기도 Write/Edit 없음
+
+## 무엇을 다르게 하는가
+1. 인용된 URL을 열어보되, 리서처의 요약을 보기 전에 원문에서
+   직접 사실을 다시 뽑아본다.
+2. 그 출처가 이 주장에 권위 있는 출처인지 따진다
+   (공식 문서/체인지로그 > 뉴스 > 블로그 > 포럼).
+3. 그 출처보다 더 최신 자료가 있는지 한 번 더 찾아본다.
+
+## 판정
+CONFIRMED / INCORRECT / UNCERTAIN 중 하나 + 근거.
+"리서처가 틀렸다"고 말하는 걸 주저하지 않는다 — 그게 이 단계의 존재 이유다.</code></pre>
+
+      <h3 class="sub">doc-writer — 톤을 맞춰 초안만 쓰는 작성자</h3>
+<pre><code>tools: Read, Grep, Glob   # 검색도, 쓰기도 없음 — 이미 확인된 사실만 문장으로
+
+## 무엇을 받는가
+CONFIRMED 판정을 받은 항목만. UNCERTAIN/INCORRECT는 애초에 넘어오지 않는다.
+
+## 무엇을 만드는가
+항목마다 위치 / 기존 문장 / 새 문장 을 문서의 기존 문체·형식에 맞춰 작성.
+문서를 훑다가 확인 목록에 없는 다른 문제를 발견해도 고치지 않고
+"별도 제안"으로만 남긴다 — 검증 안 된 내용이 슬쩍 끼어드는 걸 막기 위해.</code></pre>
+
+      <div class="callout bad">
+        <span class="lbl">자주 하는 실수</span>
+        <p>세 역할을 한 에이전트에 다 몰아넣고 "검색하고, 확인하고, 고쳐줘"라고 시키는 것. 이러면 원칙 1·2가 전부 무너집니다 — 검색한 사람과 확인한 사람이 같은 존재가 돼버리고, 확인이 끝나기도 전에 파일을 고칠 도구를 이미 쥐고 있게 됩니다.</p>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s5">
+      <h2 class="h"><span class="num">05</span>2단계 — 오케스트레이션 스킬 만들기</h2>
+      <p class="deck">스킬은 "이 셋을 어떤 순서로, 무엇을 주고받으며 부를지"를 정하는 대본입니다.</p>
+
+      <p>스킬 파일은 <code>스킬이름/SKILL.md</code> 경로에 둡니다. frontmatter는 <code>name</code>과 <code>description</code>만 있으면 됩니다 — 나머지 본문이 곧 실행 절차입니다.</p>
+
+<pre><code>---
+name: doc-refresh
+description: 문서/스크립트를 웹 리서치로 최신화하고, 모든 제안을
+             원출처에서 독립적으로 재검증한 뒤 초안을 작성한다 —
+             파일이 실제로 바뀌기 전에. "이 문서 최신화해줘",
+             "팩트체크 해줘" 같은 요청에 사용.
+---
+
+## 절차
+1. 대상 문서와 점검 범위를 확인한다.
+2. doc-researcher를 불러 제안 목록(근거·확신도 포함)을 받는다.
+3. doc-fact-checker에게 원문서 + 그 제안 목록을 통째로 넘겨
+   독립적으로 재검증하게 한다.
+4. CONFIRMED만 골라 doc-writer에게 넘겨 초안(diff)을 받는다.
+5. 초안 + 출처 + (INCORRECT/UNCERTAIN 항목)을 사람에게 보여주고
+   승인을 받는다. 승인 전에는 Edit을 호출하지 않는다.
+6. 승인 후 실제로 파일을 고치고, 무엇을 반영/보류했는지 보고한다.</code></pre>
+
+      <div class="callout good">
+        <span class="lbl">스킬과 서브 에이전트의 역할 차이</span>
+        <p>서브 에이전트 3개는 각자 좁은 규칙만 압니다("나는 검증만 한다"). <b>전체 순서와 승인 게이트를 아는 건 스킬뿐</b>입니다. 이 분리 덕분에 나중에 "리서처를 두 개로 나눠 병렬로 돌리자" 같은 절차 변경을 스킬 한 파일만 고쳐서 반영할 수 있습니다.</p>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s6">
+      <h2 class="h"><span class="num">06</span>저장 위치 정하기 — 이 프로젝트, 아니면 여러 프로젝트</h2>
+      <p class="deck">파일을 어디에 두느냐가 곧 "누가 이 에이전트를 쓸 수 있는가"를 정합니다.</p>
+
+      <div class="scroll">
+        <table>
+          <thead><tr><th>저장 위치</th><th>적용 범위</th><th>이런 경우에</th></tr></thead>
+          <tbody>
+            <tr><td><code>&lt;프로젝트&gt;/.claude/agents/</code>, <code>.claude/skills/</code></td><td>그 프로젝트만</td><td>이 강의 자료처럼 한 저장소에서만 쓸 때</td></tr>
+            <tr><td><code>~/.claude/agents/</code>, <code>~/.claude/skills/</code></td><td>이 컴퓨터의 모든 프로젝트</td><td>대부분의 저장소가 비슷한 성격일 때</td></tr>
+            <tr><td>별도 공유 저장소 + <b>심볼릭 링크</b></td><td>연결한 프로젝트만</td><td>이 컴퓨터에 성격이 다른 프로젝트도 섞여 있을 때</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>이 강의 자료 시리즈처럼 <b>비슷한 성격의 저장소 몇 개</b>가 같은 에이전트를 쓰고 싶은데, 같은 컴퓨터에 무관한 프로젝트도 섞여 있다면 세 번째 방식이 맞습니다. 실체 파일은 홈 폴더의 별도 저장소(예: <code>~/shared-claude-config/</code>)에 두고, 쓰고 싶은 프로젝트에서만 심볼릭 링크를 걸어 연결합니다.</p>
+
+<pre><code># ~/shared-claude-config/install.sh — 연결하고 싶은 저장소 루트에서 실행
+SRC="$HOME/shared-claude-config"
+mkdir -p .claude/agents .claude/skills
+for agent in doc-researcher doc-fact-checker doc-writer; do
+  ln -sf "$SRC/agents/$agent.md" ".claude/agents/$agent.md"
+done
+ln -sf "$SRC/skills/doc-refresh" ".claude/skills/doc-refresh"</code></pre>
+
+      <p>이렇게 하면 실체는 <code>~/shared-claude-config</code> 한 곳에서만 관리하면서, 필요한 저장소에만 골라서 연결할 수 있습니다. 심볼릭 링크는 절대경로라 다른 컴퓨터에서 이 저장소를 clone하면 깨지므로, <b>연결한 프로젝트의 <code>.gitignore</code>에 링크 경로를 추가</b>해서 커밋되지 않게 해두는 걸 잊지 마세요.</p>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s7">
+      <h2 class="h"><span class="num">07</span>실제로 써보기</h2>
+      <p class="deck">파일 4개(에이전트 3개 + 스킬 1개)를 두었다면, 다음 세션부터 바로 잡힙니다.</p>
+
+      <ol class="plain" style="list-style: decimal;">
+        <li>연결한 프로젝트를 새로 열거나 새 세션을 시작합니다. (이미 켜져 있던 세션은 시작할 때 스킬 목록을 이미 불러온 상태라 인식하지 못할 수 있습니다.)</li>
+        <li><code>/doc-refresh &lt;점검할 문서 경로&gt;</code> 처럼 스킬 이름을 직접 부르거나, "이 문서 최신 정보로 갱신해줘" 처럼 자연어로 요청합니다. 스킬의 <code>description</code>이 이런 요청과 맞아떨어지면 자동으로 호출됩니다.</li>
+        <li>진행되는 동안 리서처 → 팩트체커 → 라이터 순으로 결과가 쌓입니다. 중간에 UNCERTAIN이나 INCORRECT로 판정된 항목도 함께 보고되니 눈여겨보세요 — 이것도 값진 결과입니다.</li>
+        <li>마지막에 위치/기존/변경/근거가 정리된 초안을 받습니다. <b>여기서 검토하고 승인해야</b> 실제 파일이 바뀝니다.</li>
+      </ol>
+
+      <div class="callout">
+        <span class="lbl">처음 써볼 때 좋은 대상</span>
+        <p>분량이 짧고, 사실 관계가 명확한 문서로 먼저 시도해보세요. 예: "이 프레임워크 버전이 최신인지 확인해줘" 같은 좁은 범위. 결과 품질을 눈으로 확인한 뒤 점점 범위를 넓히는 게 안전합니다.</p>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s8">
+      <h2 class="h"><span class="num">08</span>체크리스트</h2>
+
+      <h3 class="sub">만들 때 지킬 것</h3>
+      <ul class="check yes">
+        <li><b>조사·검증 에이전트에는 Write/Edit을 주지 않는다</b><span>tools 목록에서 아예 뺀다. "쓰지 말라고 프롬프트에 적기"보다 훨씬 확실하다.</span></li>
+        <li><b>검증 단계는 리서처와 다른 질문을 던지게 시킨다</b><span>"맞는지 다시 봐줘"가 아니라 "원출처에서 처음부터 다시 확인해줘".</span></li>
+        <li><b>사람 승인 게이트를 스킬 절차에 명시한다</b><span>승인 전에는 Edit을 부르지 않는다고 SKILL.md에 문장으로 못박는다.</span></li>
+        <li><b>확신도/판정을 강제로 붙이게 한다</b><span>"확인됨/추정/불확실"이 없으면 나중에 뭘 더 검증해야 할지 알 수 없다.</span></li>
+      </ul>
+
+      <h3 class="sub">쓰지 말아야 할 때</h3>
+      <ul class="check no">
+        <li><b>문서에 시간에 민감한 내용이 거의 없을 때</b><span>개념 설명 위주 문서는 이 파이프라인을 돌릴 이유가 없다.</span></li>
+        <li><b>사람 리뷰 없이 자동으로 계속 바뀌어야 할 때</b><span>이 설계는 승인 게이트가 핵심이라 완전 자동화와는 맞지 않는다. 자동화하려면 게이트를 없애는 게 아니라, 승인 대상을 사람이 아닌 별도 검증 기준으로 바꿔야 한다.</span></li>
+      </ul>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s9">
+      <h2 class="h"><span class="num">09</span>용어 정리 & 더 읽어보기</h2>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>용어</th><th>뜻</th></tr></thead>
+          <tbody>
+            <tr><td><b>오케스트레이션 스킬</b></td><td>여러 서브 에이전트를 어떤 순서·조건으로 부를지 정하는 절차 정의. 이 문서의 <code>doc-refresh</code>.</td></tr>
+            <tr><td><b>승인 게이트</b></td><td>자동화된 절차 중, 실제로 상태를 바꾸기 직전에 사람의 확인을 반드시 거치게 만든 지점.</td></tr>
+            <tr><td><b>확신도(Confidence)</b></td><td>발견된 사실이 얼마나 확실한지 나타내는 표시. 확인됨/추정/불확실 3단계.</td></tr>
+            <tr><td><b>독립 재검증</b></td><td>앞 단계의 결과물(출처 포함)을 그대로 신뢰하지 않고, 원본에서 스스로 다시 도출해보는 검증 방식.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="related">
+        <a class="related-card" href="../subagent-intro/index.html">
+          <div class="name">서브 에이전트란 무엇인가?</div>
+          <div class="meta">이 교안의 전제가 되는 기본 개념 — 메인/서브 관계, 컨텍스트 격리</div>
+        </a>
+        <a class="related-card" href="../subagent-orchestration-case/index.html">
+          <div class="name">서브에이전트 11개 사례 연구</div>
+          <div class="meta">"같은 질문 = 편향 복제" 함정을 실제 사례로 확인</div>
+        </a>
+        <a class="related-card" href="../multi-agent-case-study/index.html">
+          <div class="name">서브에이전트 3개 실전 사례</div>
+          <div class="meta">역할별 에이전트로 분석 보고서를 만든 실제 프롬프트</div>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-links">
+      <a href="../../00_사전학습/index.html">00 사전 학습</a>
+      <a href="../../01_오리엔테이션/index.html">01 오리엔테이션</a>
+      <a href="../../02_바이브코딩/index.html">02 바이브코딩</a>
+      <a href="../../03_UXUI디자인/index.html">03 UXUI디자인</a>
+      <a href="../../04_노코드프로토타이핑/index.html">04 노코드프로토타이핑</a>
+      <a href="../../05_서비스기획/index.html">05 서비스기획</a>
+      <a href="../../06_데이터ML/index.html">06 데이터ML</a>
+      <a href="../../07_LLM_RAG_Agent/index.html">07 LLM_RAG_Agent</a>
+      <a href="../../08_해커톤/index.html">08 해커톤</a>
+    </div>
+    <div class="footer-legal">AI 프로덕트 마스터 · frontierall</div>
+  </footer>
+</body>
+</html>
