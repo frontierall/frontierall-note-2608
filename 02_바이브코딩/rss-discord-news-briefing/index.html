@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GitHub Actions + RSS + Discord로 뉴스 브리핑 자동화하기 · 02 바이브코딩</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@1.3.9/dist/web/static/pretendard.css">
+<style>
+  :root {
+    --primary: #0066cc; --primary-focus: #0071e3;
+    --canvas: #ffffff; --parchment: #f5f5f7;
+    --black: #000000; --ink: #1d1d1f; --ink-80: #333333; --ink-48: #7a7a7a;
+    --hairline: #e0e0e0;
+    --warn-bg: #fff8e6; --warn-line: #f0dba8;
+    --bad-bg: #fdeeee; --bad-line: #f0c0c0; --bad-ink: #a32d2d;
+    --good-bg: #e9f6ee; --good-line: #b9e0c8; --good-ink: #1c7a4a;
+    --accent: #7c5cff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--canvas); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', 'Apple SD Gothic Neo', 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-size: 17px; line-height: 1.47; letter-spacing: -0.374px;
+  }
+  .global-nav {
+    position: sticky; top: 0; z-index: 20; height: 44px; background: var(--black);
+    display: flex; align-items: center; justify-content: space-between; padding: 0 22px;
+  }
+  .global-nav .brand { color: #fff; font-size: 12px; font-weight: 600; letter-spacing: -0.12px; text-decoration: none; }
+  .global-nav .meta { color: rgba(255,255,255,0.72); font-size: 12px; letter-spacing: -0.12px; }
+  .sub-nav {
+    position: sticky; top: 44px; z-index: 19; min-height: 52px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 22px;
+    background: rgba(245,245,247,0.8);
+    -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+  .sub-nav .category { font-size: 21px; font-weight: 600; letter-spacing: 0.231px; color: var(--ink); text-decoration: none; }
+  .btn-primary {
+    display: inline-block; background: var(--primary); color: #fff; border: none;
+    border-radius: 9999px; padding: 8px 18px; font-size: 14px; font-family: inherit;
+    text-decoration: none; cursor: pointer; transition: transform .15s; white-space: nowrap;
+  }
+  .btn-primary:active { transform: scale(0.95); }
+  .btn-primary:focus-visible { outline: 2px solid var(--primary-focus); outline-offset: 2px; }
+
+  main.content { max-width: 720px; margin: 0 auto; padding: 64px 24px 96px; }
+  .eyebrow { display: block; font-size: 14px; font-weight: 600; letter-spacing: -0.224px; color: var(--ink-48); margin-bottom: 12px; }
+  h1.headline { font-size: 40px; font-weight: 600; line-height: 1.10; letter-spacing: 0; margin: 0 0 14px; }
+  p.tagline { font-size: 28px; font-weight: 400; line-height: 1.14; letter-spacing: 0.196px; margin: 0 0 20px; color: var(--ink-80); }
+  p.byline { font-size: 14px; color: var(--ink-48); letter-spacing: -0.224px; margin: 0; }
+
+  .toc { background: var(--parchment); border-radius: 18px; padding: 20px 24px; margin-top: 32px; }
+  .toc strong { font-size: 15px; }
+  .toc ol { margin: 8px 0 0; padding-left: 22px; }
+  .toc li { margin: 5px 0; font-size: 15px; }
+  .toc a { color: var(--ink); text-decoration: none; }
+  .toc a:hover { color: var(--primary); text-decoration: underline; }
+
+  section.block { margin-top: 60px; scroll-margin-top: 110px; }
+  h2.h { font-size: 28px; font-weight: 600; line-height: 1.2; margin: 0 0 6px; letter-spacing: -0.4px; }
+  h2.h .num { color: var(--ink-48); font-weight: 600; margin-right: 10px; }
+  p.deck { font-size: 17px; color: var(--ink-80); margin: 0 0 24px; }
+  h3.sub { font-size: 19px; font-weight: 600; margin: 34px 0 10px; letter-spacing: -0.3px; }
+  h4.sub2 { font-size: 16px; font-weight: 600; margin: 22px 0 6px; }
+  p { margin: 0 0 16px; }
+
+  .callout { border: 1px solid var(--warn-line); background: var(--warn-bg); border-radius: 12px; padding: 14px 18px; margin: 20px 0; font-size: 15px; }
+  .callout.bad { border-color: var(--bad-line); background: var(--bad-bg); }
+  .callout.good { border-color: var(--good-line); background: var(--good-bg); }
+  .callout .lbl { display: block; font-weight: 600; margin-bottom: 4px; font-size: 14px; }
+  .callout.bad .lbl { color: var(--bad-ink); }
+  .callout.good .lbl { color: var(--good-ink); }
+  .callout p:last-child { margin-bottom: 0; }
+
+  .fig { margin: 28px 0; }
+  .fig svg { width: 100%; height: auto; display: block; }
+  .fig figcaption { font-size: 14px; color: var(--ink-48); letter-spacing: -0.224px; margin-top: 10px; }
+
+  .scroll { overflow-x: auto; margin: 20px 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--hairline); vertical-align: top; }
+  th { font-size: 13px; color: var(--ink-48); font-weight: 600; letter-spacing: -0.1px; border-bottom: 1.5px solid var(--hairline); white-space: nowrap; }
+  tbody tr:last-child td { border-bottom: none; }
+
+  pre { background: #1d1d1f; color: #f5f5f7; border-radius: 12px; padding: 16px 18px; overflow-x: auto;
+        font: 13px/1.6 ui-monospace, SFMono-Regular, Consolas, monospace; margin: 16px 0; letter-spacing: 0; }
+  code { font: 13px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace; background: var(--parchment);
+         padding: 1px 6px; border-radius: 5px; letter-spacing: 0; }
+  pre code { background: none; padding: 0; color: inherit; font-size: 13px; }
+
+  ul.plain { margin: 0 0 16px; padding-left: 22px; }
+  ul.plain li { margin: 7px 0; }
+
+  .scene { border: 1px solid var(--hairline); border-radius: 18px; padding: 22px 24px; margin: 22px 0; }
+  .scene .tag { display: inline-block; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; margin-bottom: 10px; }
+  .scene .tag.f { background: var(--bad-bg); color: var(--bad-ink); }
+  .scene .tag.s { background: var(--good-bg); color: var(--good-ink); }
+  .scene h4 { font-size: 19px; font-weight: 600; margin: 0 0 10px; letter-spacing: -0.3px; }
+  .scene .lesson { margin: 14px 0 0; padding-top: 14px; border-top: 1px solid var(--hairline); font-size: 15px; }
+  .scene .lesson b { color: var(--primary); }
+
+  .check { list-style: none; margin: 0; padding: 0; }
+  .check li { border-top: 1px solid var(--hairline); padding: 14px 0 14px 30px; position: relative; font-size: 16px; }
+  .check li:last-child { border-bottom: 1px solid var(--hairline); }
+  .check li::before { position: absolute; left: 0; top: 13px; font-size: 15px; font-weight: 700; }
+  .check.yes li::before { content: "○"; color: var(--good-ink); }
+  .check.no li::before { content: "✕"; color: var(--bad-ink); }
+  .check li b { display: block; margin-bottom: 2px; }
+  .check li span { color: var(--ink-80); font-size: 15px; }
+
+  .kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; margin: 22px 0; }
+  .kpi div { border: 1px solid var(--hairline); border-radius: 14px; padding: 16px 18px; }
+  .kpi .v { font-size: 26px; font-weight: 600; letter-spacing: -0.5px; display: block; }
+  .kpi .k { font-size: 13px; color: var(--ink-48); }
+
+  .related { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin-top: 16px; }
+  a.related-card {
+    display: block; background: var(--canvas); border: 1px solid var(--hairline);
+    border-radius: 16px; padding: 20px; text-decoration: none; color: var(--ink);
+    transition: border-color .15s;
+  }
+  a.related-card:hover { border-color: var(--primary); }
+  a.related-card .name { font-size: 16px; font-weight: 600; letter-spacing: -0.374px; margin-bottom: 6px; }
+  a.related-card .meta { font-size: 13.5px; color: var(--ink-48); letter-spacing: -0.224px; }
+
+  footer.site-footer { background: var(--parchment); color: var(--ink-80); padding: 64px 24px 32px; }
+  .footer-links { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px 32px; }
+  .footer-links a { display: block; font-size: 17px; line-height: 2.41; color: var(--ink-80); text-decoration: none; }
+  .footer-links a:hover { color: var(--ink); }
+  .footer-legal { max-width: 1000px; margin: 32px auto 0; padding-top: 16px; border-top: 1px solid var(--hairline); font-size: 12px; color: var(--ink-48); letter-spacing: -0.12px; }
+
+  @media (max-width: 640px) {
+    main.content { padding: 48px 20px 72px; }
+    h1.headline { font-size: 28px; }
+    p.tagline { font-size: 20px; }
+    h2.h { font-size: 23px; }
+    .sub-nav { padding: 0 16px; }
+    .sub-nav .category { font-size: 17px; }
+    .footer-links { grid-template-columns: repeat(2, 1fr); gap: 4px 20px; }
+  }
+  @media (max-width: 380px) { .global-nav .meta { display: none; } }
+</style>
+</head>
+<body>
+  <nav class="global-nav">
+    <a class="brand" href="../../index.html">프론티어올 러닝 노트</a>
+    <span class="meta">인공지능 심화(160H)</span>
+  </nav>
+  <nav class="sub-nav">
+    <a class="category" href="../index.html">02 바이브코딩</a>
+    <a class="btn-primary" href="../index.html">카테고리로</a>
+  </nav>
+
+  <main class="content">
+    <span class="eyebrow">PART 02 · 실습 교안 · 종합 프로젝트</span>
+    <h1 class="headline">GitHub Actions + RSS + Discord로<br>뉴스 브리핑 자동화하기</h1>
+    <p class="tagline">분야별 RSS를 2시간마다 모아 화면에 보여주고, 하루 한 번 Claude 요약과 함께 Discord로 보내는 실전 파이프라인.</p>
+    <p class="byline">2026-09-05 · 실습 교안 · 대상: Claude Code로 프로젝트를 만들고 배포까지 해본 분</p>
+
+    <div class="toc">
+      <strong>이 문서의 순서</strong>
+      <ol>
+        <li><a href="#s1">왜 이런 자동화가 필요한가</a></li>
+        <li><a href="#s2">전체 구조 한눈에 보기</a></li>
+        <li><a href="#s3">1단계 — 분야별 RSS로 뉴스 모으기</a></li>
+        <li><a href="#s4">2단계 — 분야별로 화면에 보여주기</a></li>
+        <li><a href="#s5">3단계 — Claude로 요약해 Discord로 보내기</a></li>
+        <li><a href="#s6">4단계 — GitHub Actions로 자동 실행하기</a></li>
+        <li><a href="#s7">실전에서 만난 함정 — KST/UTC 날짜 버그</a></li>
+        <li><a href="#s8">체크리스트</a></li>
+        <li><a href="#s9">용어 정리 & 더 읽어보기</a></li>
+      </ol>
+    </div>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s1">
+      <h2 class="h"><span class="num">01</span>왜 이런 자동화가 필요한가</h2>
+      <p class="deck">여러 언론사 사이트를 하루에도 몇 번씩 직접 돌아다니는 대신, 서버 없이 자동으로 모으고 정리하고 보내게 만듭니다.</p>
+
+      <p>이번 교안은 지금까지 따로 배운 조각들 — <a href="../claude-code-new-project/index.html">Claude Code로 프로젝트 만들기</a>, <a href="../vercel-intro/index.html">Vercel 배포</a>, <a href="../gh-cli-course/index.html">GitHub CLI</a>, <a href="../secrets-env-vars/index.html">Secrets 등록</a> — 를 하나로 엮어 실제로 매일 돌아가는 서비스를 만드는 종합 실습입니다. 결과물은 세 가지입니다.</p>
+
+      <ul class="plain">
+        <li><b>2시간마다</b> 분야별 RSS 피드에서 새 기사를 자동 수집</li>
+        <li><b>웹 페이지</b>로 분야별 정리 + 급상승 키워드 하이라이트</li>
+        <li><b>하루 1회</b> Claude가 분야별로 요약한 브리핑을 Discord 채널에 자동 전송</li>
+      </ul>
+
+      <div class="callout good">
+        <span class="lbl">이 실습에서 새로 배우는 것</span>
+        <p>지금까지는 "만들고 한 번 배포"까지였다면, 이번엔 <b>서버 없이 정기적으로 실행되는 자동화</b>(GitHub Actions 스케줄)와 <b>레포지토리 자체를 데이터 저장소로 쓰는 방식</b>, 그리고 <b>Webhook으로 외부 서비스(Discord)에 결과를 밀어넣는 법</b>을 다룹니다.</p>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s2">
+      <h2 class="h"><span class="num">02</span>전체 구조 한눈에 보기</h2>
+      <p class="deck">서버도, 별도 데이터베이스도 없습니다. GitHub Actions 두 개 + 리포지토리에 커밋하는 JSON 파일 + Vercel의 Git 연동이 전부입니다.</p>
+
+      <figure class="fig">
+        <svg viewBox="0 0 800 300" role="img" aria-labelledby="fig1t">
+          <title id="fig1t">2시간마다 도는 수집 파이프라인이 데이터를 커밋하면 Vercel이 자동 재배포하고, 매일 21시에 도는 다이제스트 파이프라인이 같은 데이터를 읽어 Claude로 요약해 Discord로 보내는 구조도</title>
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+              <path d="M0 0 L10 5 L0 10 z" fill="#0066cc"/>
+            </marker>
+            <marker id="arrow2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+              <path d="M0 0 L10 5 L0 10 z" fill="#1c7a4a"/>
+            </marker>
+          </defs>
+
+          <rect x="4" y="4" width="632" height="90" rx="14" fill="none" stroke="#e0e0e0" stroke-dasharray="4 3"/>
+          <text x="14" y="20" font-size="11.5" fill="#7a7a7a">collect-news · 2시간마다 (cron 0 */2 * * *)</text>
+
+          <rect x="10" y="28" width="140" height="50" rx="10" fill="#eaf3fc" stroke="#bcd9f2"/>
+          <text x="80" y="49" text-anchor="middle" font-size="12" font-weight="600" fill="#1d1d1f">GitHub Actions</text>
+          <text x="80" y="65" text-anchor="middle" font-size="10.5" fill="#7a7a7a">collect-news.yml</text>
+
+          <path d="M150 53 L170 53" stroke="#0066cc" stroke-width="1.3" marker-end="url(#arrow)"/>
+          <rect x="170" y="28" width="140" height="50" rx="10" fill="#f1eeff" stroke="#d3c9f7"/>
+          <text x="240" y="49" text-anchor="middle" font-size="12" font-weight="600" fill="#1d1d1f">RSS 피드 9개</text>
+          <text x="240" y="65" text-anchor="middle" font-size="10.5" fill="#7a7a7a">수집 · 중복 제거</text>
+
+          <path d="M310 53 L330 53" stroke="#0066cc" stroke-width="1.3" marker-end="url(#arrow)"/>
+          <rect x="330" y="28" width="140" height="50" rx="10" fill="#fdeeee" stroke="#f0c0c0"/>
+          <text x="400" y="49" text-anchor="middle" font-size="12" font-weight="600" fill="#1d1d1f">data/news/*.json</text>
+          <text x="400" y="65" text-anchor="middle" font-size="10.5" fill="#7a7a7a">커밋 · 푸시</text>
+
+          <path d="M470 53 L490 53" stroke="#0066cc" stroke-width="1.3" marker-end="url(#arrow)"/>
+          <rect x="490" y="28" width="140" height="50" rx="10" fill="#e9f6ee" stroke="#b9e0c8"/>
+          <text x="560" y="49" text-anchor="middle" font-size="12" font-weight="600" fill="#1d1d1f">Vercel</text>
+          <text x="560" y="65" text-anchor="middle" font-size="10.5" fill="#7a7a7a">push 감지 → 자동 재배포</text>
+
+          <path d="M400 78 L400 210" stroke="#7a7a7a" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#arrow2)"/>
+          <text x="410" y="150" font-size="11" fill="#7a7a7a">같은 data/news/*.json</text>
+          <text x="410" y="164" font-size="11" fill="#7a7a7a">파일을 읽음</text>
+
+          <rect x="4" y="196" width="792" height="90" rx="14" fill="none" stroke="#e0e0e0" stroke-dasharray="4 3"/>
+          <text x="14" y="212" font-size="11.5" fill="#7a7a7a">send-discord-digest · 매일 21시 KST (cron 0 12 * * *, UTC 기준)</text>
+
+          <rect x="330" y="220" width="140" height="50" rx="10" fill="#eaf3fc" stroke="#bcd9f2"/>
+          <text x="400" y="241" text-anchor="middle" font-size="12" font-weight="600" fill="#1d1d1f">오늘자 JSON 읽기</text>
+          <text x="400" y="257" text-anchor="middle" font-size="10.5" fill="#7a7a7a">분야별로 그룹화</text>
+
+          <path d="M470 245 L490 245" stroke="#1c7a4a" stroke-width="1.3" marker-end="url(#arrow2)"/>
+          <rect x="490" y="220" width="140" height="50" rx="10" fill="#fff8e6" stroke="#f0dba8"/>
+          <text x="560" y="241" text-anchor="middle" font-size="12" font-weight="600" fill="#1d1d1f">Claude Haiku</text>
+          <text x="560" y="257" text-anchor="middle" font-size="10.5" fill="#7a7a7a">분야별 3~5줄 요약</text>
+
+          <path d="M630 245 L650 245" stroke="#1c7a4a" stroke-width="1.3" marker-end="url(#arrow2)"/>
+          <rect x="650" y="220" width="140" height="50" rx="10" fill="#f1eeff" stroke="#d3c9f7"/>
+          <text x="720" y="241" text-anchor="middle" font-size="12" font-weight="600" fill="#1d1d1f">Discord</text>
+          <text x="720" y="257" text-anchor="middle" font-size="10.5" fill="#7a7a7a">Webhook으로 Embed 전송</text>
+        </svg>
+        <figcaption>그림 1. 두 워크플로우는 서로 호출하지 않고, 같은 리포지토리의 JSON 파일을 통해서만 데이터를 주고받습니다.</figcaption>
+      </figure>
+
+      <div class="callout">
+        <span class="lbl">왜 별도 데이터베이스를 안 쓰나요?</span>
+        <p>수집 주기(2시간)와 트래픽 규모를 생각하면, <b>리포지토리에 JSON을 직접 커밋</b>하는 것으로 충분합니다. Vercel은 Git 연동이 되어 있으면 push를 감지해서 알아서 재배포하므로, "데이터가 바뀌면 화면도 갱신된다"는 흐름을 DB 없이 그대로 얻을 수 있습니다. 트래픽이 커지면 그때 Postgres·KV 등으로 옮기면 됩니다.</p>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s3">
+      <h2 class="h"><span class="num">03</span>1단계 — 분야별 RSS로 뉴스 모으기</h2>
+      <p class="deck">분야마다 피드를 여러 개 등록할 수 있게 설계하면, 나중에 소스를 바꾸거나 추가하기 쉽습니다.</p>
+
+      <p>카테고리마다 "RSS 주소 + 이 주소의 출처 이름"을 짝지어 배열로 관리합니다. 예를 들어 AI 분야는 이렇게 구성했습니다.</p>
+
+<pre><code>// src/lib/categories.ts
+export const CATEGORIES = [
+  {
+    key: "ai",
+    label: "AI",
+    emoji: "🤖",
+    feeds: [
+      { url: "https://www.aitimes.com/rss/allArticle.xml", source: "AI타임스" },
+      { url: "http://rss.etnews.com/04046.xml", source: "전자신문" },
+      { url: "http://rss.etnews.com/04.xml", source: "전자신문" },
+    ],
+  },
+  // ... IT, 경제는 직접 지정한 피드, 정치·세계·스포츠·연예는
+  // 아직 Google News RSS로 유지 (source를 안 적으면 제목의
+  // "헤드라인 - 출처" 패턴에서 파싱)
+];</code></pre>
+
+      <p>수집 스크립트는 카테고리마다 등록된 피드를 전부 병렬로 가져온 뒤, <b>링크(URL)를 해시한 값을 id로 써서 중복을 제거</b>합니다. 이미 오늘 저장된 기사와 새로 가져온 기사를 합칠 때, 같은 id가 있으면 새로 추가하지 않습니다.</p>
+
+<pre><code>// scripts/collect-news.ts (핵심만 발췌)
+function articleId(link) {
+  return crypto.createHash("sha1").update(link).digest("hex").slice(0, 16);
+}
+
+const existing = await readArticlesForDate(today);      // 오늘 이미 저장된 기사
+const existingById = new Map(existing.map(a => [a.id, a]));
+
+for (const article of 새로_수집한_기사들) {
+  if (!existingById.has(article.id)) {
+    existingById.set(article.id, article);               // 새 기사만 추가
+  }
+}</code></pre>
+
+      <div class="callout">
+        <span class="lbl">"오늘" 파일은 어느 시간대 기준인가</span>
+        <p>서버(GitHub Actions 러너)는 UTC로 돕니다. 그런데 사용자는 한국 시간(KST)으로 "오늘"을 생각합니다. 그래서 파일 이름을 정할 때는 <code>new Date().toISOString()</code>이 아니라, KST로 변환한 날짜 문자열을 직접 계산해서 씁니다 — 이 부분을 대충 넘어가면 <a href="#s7">7장</a>에서 다루는 버그로 이어집니다.</p>
+      </div>
+
+      <p>카테고리별로 최대 개수를 정해두고(여기선 80건) 발행일 기준 최신순으로 잘라내면, 파일이 무한정 커지는 걸 막을 수 있습니다.</p>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s4">
+      <h2 class="h"><span class="num">04</span>2단계 — 분야별로 화면에 보여주기</h2>
+      <p class="deck">Next.js 서버 컴포넌트에서 파일을 직접 읽으면, 별도 API 없이 화면을 만들 수 있습니다.</p>
+
+      <p>화면(<code>src/app/page.tsx</code>)은 서버 컴포넌트 안에서 <code>fs</code>로 최근 며칠 치 JSON을 읽어 합친 뒤, 카테고리별로 나눠 보여줍니다. 데이터가 파일이라 별도 API 라우트 없이 바로 읽을 수 있는 게 이 구조의 장점입니다.</p>
+
+<pre><code>export default async function Home() {
+  const articles = await readRecentArticles(2);   // 최근 2일치 KST 날짜 파일을 합침
+  const trending = extractTrendingKeywords(articles, 12);
+  // ... CATEGORIES를 순회하며 분야별 섹션 렌더링
+}</code></pre>
+
+      <p>급상승 키워드는 형태소 분석기 없이, <b>제목을 공백 기준으로 쪼개고 불용어를 거른 뒤 등장 빈도를 세는</b> 단순한 방식으로 뽑습니다. 정교하진 않지만 "오늘 여러 매체에서 반복되는 단어"를 잡아내는 데는 이 정도로도 충분합니다.</p>
+
+      <div class="callout good">
+        <span class="lbl">배포 후 화면이 자동으로 갱신되는 이유</span>
+        <p>페이지는 <code>export const revalidate = 3600</code>으로 정적 생성됩니다. 데이터 자체는 GitHub Actions가 새로 커밋해야 바뀌므로, "커밋 → Vercel 재배포 → 새 정적 페이지"가 곧 갱신 주기입니다. 즉 이 페이지의 신선도는 revalidate 값이 아니라 <b>수집 워크플로우 주기(2시간)</b>가 사실상 결정합니다.</p>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s5">
+      <h2 class="h"><span class="num">05</span>3단계 — Claude로 요약해 Discord로 보내기</h2>
+      <p class="deck">기사 본문 전체가 아니라 제목 목록만 넘겨도, 오늘의 핵심 이슈를 뽑아내는 데는 충분합니다.</p>
+
+      <p>분야별로 그날 모인 기사 제목을 최대 25개까지 모아 Claude(<code>claude-haiku-4-5</code>)에 넘기고, 3~5개의 불릿으로 요약해달라고 요청합니다. 본문을 긁어오지 않아도 되니 구조가 단순해집니다.</p>
+
+<pre><code>// scripts/send-discord-digest.ts (핵심만 발췌)
+const message = await client.messages.create({
+  model: "claude-haiku-4-5-20251001",
+  max_tokens: 400,
+  messages: [{
+    role: "user",
+    content: `다음은 오늘 "${label}" 분야 뉴스 제목 목록이다.
+중복·비슷한 내용은 묶어서, 가장 중요한 이슈 3~5개를 한국어 불릿(-)으로
+간결하게 요약해줘. 각 불릿은 한 줄, 서두 설명 없이 핵심만.
+
+${titles.join("\\n")}`,
+  }],
+});</code></pre>
+
+      <p>Discord로는 <b>분야별 Embed</b> 하나씩(제목=이모지+분야명, 설명=요약+대표 링크 3개) 묶어서 한 번의 Webhook 호출로 보냅니다. Discord Embed는 메시지 하나에 최대 10개까지 넣을 수 있어, 카테고리 6~7개 정도는 여유 있게 들어갑니다.</p>
+
+<pre><code>await fetch(webhookUrl, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    content: `📰 **${today} 오늘의 뉴스 브리핑**`,
+    embeds: [트렌드_키워드_embed, ...분야별_embed_목록],
+  }),
+});</code></pre>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s6">
+      <h2 class="h"><span class="num">06</span>4단계 — GitHub Actions로 자동 실행하기</h2>
+      <p class="deck">워크플로우 파일 두 개가 각각 다른 주기로 돕니다. 하나는 데이터를 모으고, 하나는 그 데이터를 읽어 보냅니다.</p>
+
+<pre><code># .github/workflows/collect-news.yml
+on:
+  schedule:
+    - cron: "0 */2 * * *"       # 2시간마다
+  workflow_dispatch: {}          # 수동 실행 버튼도 함께 열어둔다
+
+permissions:
+  contents: write                 # 워크플로우가 직접 커밋·푸시하려면 필요
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: npm }
+      - run: npm ci
+      - run: npx tsx scripts/collect-news.ts
+      - name: Commit and push if changed
+        run: |
+          git config user.name "news-bot"
+          git config user.email "news-bot@users.noreply.github.com"
+          git add data/news
+          git diff --cached --quiet || git commit -m "chore: collect news $(date -u +%FT%TZ)" && git push</code></pre>
+
+      <p>다이제스트 쪽은 <code>cron: "0 12 * * *"</code> — <b>UTC 12시 = KST 21시</b>입니다. GitHub Actions의 cron은 항상 UTC 기준이라는 걸 기억해두면 스케줄을 헷갈리지 않습니다.</p>
+
+      <div class="callout">
+        <span class="lbl">Secrets는 어디서 오는가</span>
+        <p>다이제스트 워크플로우가 쓰는 <code>DISCORD_WEBHOOK_URL</code>, <code>ANTHROPIC_API_KEY</code>는 코드에 적지 않고, 저장소 Settings → Secrets and variables → Actions에 등록한 값을 <code>secrets.DISCORD_WEBHOOK_URL</code> 형태로 불러 씁니다. 등록 방법은 <a href="../secrets-env-vars/index.html">GitHub Secrets · Vercel 환경변수 등록하기</a>에서 다룹니다.</p>
+      </div>
+
+      <p>새 워크플로우를 만들면 스케줄이 실제로 실행될 때까지 기다리는 대신, <code>workflow_dispatch</code>를 열어두고 <code>gh workflow run collect-news.yml</code>로 바로 수동 실행해서 확인하는 게 훨씬 빠릅니다.</p>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s7">
+      <h2 class="h"><span class="num">07</span>실전에서 만난 함정 — KST/UTC 날짜 버그</h2>
+      <p class="deck">실제로 이 프로젝트를 만들면서 겪은 버그입니다. 화면을 프로덕션 빌드까지 마쳤는데, 자정 근처 시간대에 기사가 전부 사라지는 문제가 있었습니다.</p>
+
+      <div class="scene">
+        <span class="tag f">버그</span>
+        <h4>"오늘 기사"를 UTC 문자열과 KST 문자열로 비교했다</h4>
+        <p><i>화면에서 "오늘 수집된 기사만" 보여주려고, 기사의 <code>pubDate</code>(UTC ISO 문자열)가 <code>kstDateString()</code>(KST 기준 "YYYY-MM-DD")로 시작하는지 검사했다. 그런데 한국은 UTC보다 9시간 빠르므로, KST로는 이미 다음 날인데 UTC 문자열은 아직 전날 날짜로 남아있는 시간대가 매일 9시간씩 존재한다.</i></p>
+        <p class="lesson"><b>날짜 문자열을 비교할 땐 두 값이 같은 시간대 기준인지부터 확인해야 합니다.</b> 이 프로젝트처럼 "파일은 KST로 나누고, 타임스탬프는 UTC로 저장한다"는 조합은 흔하지만, 그만큼 이런 어긋남이 생기기 쉽습니다.</p>
+      </div>
+
+      <div class="scene">
+        <span class="tag s">해결</span>
+        <h4>날짜로 다시 거르지 않고, 파일 자체를 신뢰했다</h4>
+        <p><i>애초에 <code>readRecentArticles()</code>가 <b>파일 이름 자체가 이미 KST 날짜 기준</b>으로 나뉘어 있으므로, 읽어온 결과를 다시 문자열 비교로 거를 필요가 없었다. 화면 컴포넌트에서 중복 필터링 코드를 통째로 지우고, 파일 단위로 이미 걸러진 데이터를 그대로 썼다.</i></p>
+        <p class="lesson">가장 안전한 시간대 버그 수정은 "변환을 더 정확히 하는 것"이 아니라, <b>애초에 시간대 변환이 필요한 지점 자체를 줄이는 것</b>입니다. 데이터를 저장할 때 이미 한 번 KST로 정리해뒀다면, 읽는 쪽에서 또 변환·비교할 필요가 없습니다.</p>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s8">
+      <h2 class="h"><span class="num">08</span>체크리스트</h2>
+
+      <h3 class="sub">만들 때 지킬 것</h3>
+      <ul class="check yes">
+        <li><b>링크 해시로 중복을 제거한다</b><span>같은 기사가 여러 피드에 겹쳐 올라와도(예: 전자신문 04046과 04) 한 번만 저장된다.</span></li>
+        <li><b>날짜 기준 시간대를 한 곳에서만 계산한다</b><span>파일을 나눌 때 KST로 한 번 정리했다면, 읽는 쪽에서 다시 변환·비교하지 않는다.</span></li>
+        <li><b>워크플로우에 workflow_dispatch를 열어둔다</b><span>스케줄이 돌 때까지 기다리지 않고 바로 수동 실행해서 검증할 수 있다.</span></li>
+        <li><b>Secrets는 코드가 아니라 저장소 설정에 둔다</b><span>레포에는 <code>.env.example</code>만 남기고, 실제 값은 Actions Secrets와 로컬 <code>.env</code>(gitignore)에만 존재한다.</span></li>
+      </ul>
+
+      <h3 class="sub">흔한 실수</h3>
+      <ul class="check no">
+        <li><b>UTC로 저장한 타임스탬프를 KST 날짜 문자열과 그대로 비교하기</b><span>7장에서 다룬 버그. 자정 근처 몇 시간 동안 데이터가 통째로 안 보이게 된다.</span></li>
+        <li><b>모든 기사 본문을 통째로 LLM에 넣기</b><span>제목만으로도 "오늘의 핵심 이슈" 요약엔 충분하고, 비용과 실패 지점(스크래핑 실패, 페이월)을 줄일 수 있다.</span></li>
+        <li><b>cron을 로컬 시간 기준으로 착각하기</b><span>GitHub Actions의 cron은 항상 UTC. "매일 21시(KST)"는 <code>0 12 * * *</code>로 적어야 한다.</span></li>
+      </ul>
+    </section>
+
+    <!-- ================================================================= -->
+    <section class="block" id="s9">
+      <h2 class="h"><span class="num">09</span>용어 정리 & 더 읽어보기</h2>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>용어</th><th>뜻</th></tr></thead>
+          <tbody>
+            <tr><td><b>Webhook</b></td><td>특정 이벤트가 발생하면 미리 등록해둔 URL로 서버가 알아서 HTTP 요청을 보내주는 방식. 이 프로젝트에서는 Discord가 제공하는 Webhook URL로 메시지를 전송한다.</td></tr>
+            <tr><td><b>cron 표현식</b></td><td><code>분 시 일 월 요일</code> 5칸으로 반복 주기를 표현하는 문법. GitHub Actions의 <code>schedule</code>은 항상 UTC 기준으로 해석된다.</td></tr>
+            <tr><td><b>workflow_dispatch</b></td><td>GitHub Actions 워크플로우를 스케줄과 별개로, 웹 UI나 <code>gh workflow run</code>으로 즉시 수동 실행할 수 있게 여는 트리거.</td></tr>
+            <tr><td><b>커밋-백(commit-back) 패턴</b></td><td>자동화 워크플로우가 작업 결과를 별도 저장소(DB 등) 대신, 실행 중인 바로 그 리포지토리에 커밋해서 되돌려놓는 방식.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="related">
+        <a class="related-card" href="../secrets-env-vars/index.html">
+          <div class="name">GitHub Secrets · Vercel 환경변수 등록하기</div>
+          <div class="meta">이 교안의 Discord/Claude API 키를 실제로 등록하는 방법</div>
+        </a>
+        <a class="related-card" href="../gh-cli-course/index.html">
+          <div class="name">GitHub CLI 설치부터 Clone과 퍼블리시까지</div>
+          <div class="meta">저장소 생성·push, 이 교안에서 워크플로우를 수동 실행할 때도 쓰는 gh 명령</div>
+        </a>
+        <a class="related-card" href="../vercel-intro/index.html">
+          <div class="name">Vercel이 무엇인가</div>
+          <div class="meta">Git 연동 자동 배포 개념 — 이 교안의 화면이 갱신되는 원리</div>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-links">
+      <a href="../../00_사전학습/index.html">00 사전 학습</a>
+      <a href="../../01_오리엔테이션/index.html">01 오리엔테이션</a>
+      <a href="../../02_바이브코딩/index.html">02 바이브코딩</a>
+      <a href="../../03_UXUI디자인/index.html">03 UXUI디자인</a>
+      <a href="../../04_노코드프로토타이핑/index.html">04 노코드프로토타이핑</a>
+      <a href="../../05_서비스기획/index.html">05 서비스기획</a>
+      <a href="../../06_데이터ML/index.html">06 데이터ML</a>
+      <a href="../../07_LLM_RAG_Agent/index.html">07 LLM_RAG_Agent</a>
+      <a href="../../08_해커톤/index.html">08 해커톤</a>
+    </div>
+    <div class="footer-legal">프론티어올 러닝 노트 · frontierall</div>
+  </footer>
+</body>
+</html>
