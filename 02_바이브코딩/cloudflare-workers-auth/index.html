@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>배포한 정적 사이트에 로그인 걸기 · AI 프로덕트 마스터</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@1.3.9/dist/web/static/pretendard.css">
+<style>
+  :root {
+    --primary: #0066cc; --primary-focus: #0071e3;
+    --canvas: #ffffff; --parchment: #f5f5f7; --pearl: #fafafc;
+    --black: #000000; --ink: #1d1d1f; --ink-80: #333333; --ink-48: #7a7a7a;
+    --hairline: #e0e0e0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--canvas); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', 'Apple SD Gothic Neo', 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-size: 17px; line-height: 1.47; letter-spacing: -0.374px;
+  }
+  .global-nav {
+    position: sticky; top: 0; z-index: 20; height: 44px; background: var(--black);
+    display: flex; align-items: center; justify-content: space-between; padding: 0 22px;
+  }
+  .global-nav .brand { color: #fff; font-size: 12px; font-weight: 600; letter-spacing: -0.12px; text-decoration: none; }
+  .global-nav .meta { color: rgba(255,255,255,0.72); font-size: 12px; letter-spacing: -0.12px; }
+  .sub-nav {
+    position: sticky; top: 44px; z-index: 19; height: 52px;
+    display: flex; align-items: center; justify-content: space-between; padding: 0 22px;
+    background: rgba(245,245,247,0.8);
+    -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+  .sub-nav .category { font-size: 21px; font-weight: 600; letter-spacing: 0.231px; color: var(--ink); text-decoration: none; }
+  .btn-primary {
+    display: inline-block; background: var(--primary); color: #fff; border: none;
+    border-radius: 9999px; padding: 8px 18px; font-size: 14px; font-family: inherit;
+    text-decoration: none; cursor: pointer; transition: transform .15s;
+  }
+  .btn-primary:active { transform: scale(0.95); }
+  .btn-primary:focus-visible { outline: 2px solid var(--primary-focus); outline-offset: 2px; }
+
+  article { max-width: 720px; margin: 0 auto; padding: 64px 24px 96px; }
+
+  .eyebrow { display: block; font-size: 14px; font-weight: 600; letter-spacing: -0.224px; color: var(--ink-48); margin-bottom: 12px; }
+  h1 { font-size: 40px; font-weight: 600; line-height: 1.10; letter-spacing: 0; margin: 0 0 28px; }
+  h2 {
+    font-size: 28px; font-weight: 600; line-height: 1.14; letter-spacing: 0.196px;
+    margin: 56px 0 16px; padding-top: 32px; border-top: 1px solid var(--hairline);
+  }
+  h3 { font-size: 21px; font-weight: 600; line-height: 1.19; letter-spacing: 0.231px; margin: 32px 0 12px; }
+  p { color: var(--ink); font-size: 17px; line-height: 1.47; letter-spacing: -0.374px; }
+  ul, ol { font-size: 17px; line-height: 1.47; letter-spacing: -0.374px; }
+  li { margin-bottom: 6px; }
+  strong { color: var(--ink); }
+
+  code {
+    background: var(--pearl); border: 1px solid var(--hairline);
+    border-radius: 5px; padding: 2px 6px; font-size: 14px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+  }
+  pre {
+    background: var(--pearl); border: 1px solid var(--hairline);
+    border-radius: 8px; padding: 18px 20px; overflow-x: auto;
+  }
+  pre code { background: none; border: none; padding: 0; font-size: 14px; line-height: 1.6; }
+
+  blockquote {
+    margin: 24px 0; padding: 4px 0 4px 20px; border-left: 2px solid var(--hairline);
+  }
+  blockquote p { margin: 0; font-size: 14px; letter-spacing: -0.224px; color: var(--ink-80); }
+
+  img {
+    max-width: 100%; border-radius: 8px; border: 1px solid var(--hairline);
+    display: block; margin: 16px 0 8px;
+  }
+  .caption { font-size: 13px; color: var(--ink-48); letter-spacing: -0.154px; margin: 0 0 24px; }
+
+  table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; border-collapse: collapse; font-size: 14px; margin: 16px 0; }
+  th, td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--hairline); white-space: nowrap; }
+  th { color: var(--ink-48); font-weight: 600; letter-spacing: -0.224px; }
+
+  hr { border: none; height: 1px; background: var(--hairline); margin: 48px 0; }
+
+  @media (max-width: 640px) {
+    article { padding: 48px 20px 72px; }
+    h1 { font-size: 28px; }
+    h2 { font-size: 21px; }
+    .sub-nav { padding: 0 16px; }
+    .sub-nav .category { font-size: 17px; }
+  }
+  @media (max-width: 380px) {
+    .global-nav .meta { display: none; }
+  }
+</style>
+</head>
+<body>
+  <nav class="global-nav">
+    <a class="brand" href="../../index.html">AI 프로덕트 마스터</a>
+    <span class="meta">인공지능 심화(160H)</span>
+  </nav>
+  <nav class="sub-nav">
+    <a class="category" href="../index.html">02 바이브코딩</a>
+    <a class="btn-primary" href="../../index.html">전체 커리큘럼</a>
+  </nav>
+
+  <article>
+
+<span class="eyebrow">PART 02 · 바이브코딩 교안</span>
+<h1>배포한 정적 사이트에 로그인 걸기</h1>
+<p>Cloudflare Workers에 정적 사이트를 올리면 <strong>주소를 아는 사람은 누구나 열 수 있습니다.</strong> 개인 메모처럼 나만 봐야 하는 사이트라면 앞단에 로그인을 세워야 합니다. 이 자료는 방법을 비교하고, 그중 <strong>카드 등록 없이 되는 방식(Worker가 직접 인증)</strong>을 처음부터 끝까지 따라 하도록 정리한 것입니다.</p>
+
+<ul>
+<li>정적 파일에 "로그인 화면만 붙이는" 방식이 왜 보안이 아닌지</li>
+<li>Cloudflare Access와 Worker 자체 인증 중 무엇을 고를지</li>
+<li><code>assets.run_worker_first</code>로 정적 파일 앞에 인증 코드 세우기</li>
+<li>비밀번호를 저장소에 남기지 않고 주입하는 방법(Workers Secrets)</li>
+<li>정말 막혔는지 <code>curl</code>로 확인하는 법</li>
+</ul>
+
+<hr>
+
+<h2>1. 먼저 알아야 할 것 — 화면만 가리는 건 자물쇠가 아니다</h2>
+<p>가장 흔히 떠올리는 방법은 페이지 안에 로그인 화면을 넣고, 자바스크립트로 통과했을 때만 내용을 보여주는 것입니다. Firebase Auth를 붙이는 방식도 여기에 해당합니다. <strong>이건 자물쇠가 아니라 자물쇠 그림입니다.</strong></p>
+<p>브라우저가 자바스크립트를 실행하려면 <strong>HTML을 먼저 내려받아야</strong> 합니다. 그 시점에 파일은 이미 전달이 끝난 상태이고, 로그인 화면은 그 뒤에 그려질 뿐입니다. 그래서 브라우저를 거치지 않는 요청 한 줄이면 그대로 내용이 나옵니다.</p>
+<pre><code>curl https://&lt;워커이름&gt;.&lt;계정서브도메인&gt;.workers.dev/</code></pre>
+<p>로그인 화면은 뜨지 않고 본문 HTML이 그대로 출력됩니다. <strong>막으려면 파일이 나가기 전에, 서버 쪽에서 판단해야 합니다.</strong></p>
+
+<h2>2. 방법 비교</h2>
+<table>
+<thead>
+<tr><th>방법</th><th>결제수단</th><th>실제 차단</th><th>코드</th></tr>
+</thead>
+<tbody>
+<tr><td>Cloudflare Access (Zero Trust)</td><td>필요 (청구 $0)</td><td>O</td><td>없음</td></tr>
+<tr><td><strong>Worker 자체 인증</strong></td><td>불필요</td><td>O</td><td>약 30줄</td></tr>
+<tr><td>Firebase Auth를 페이지에 삽입</td><td>불필요</td><td><strong>X — 못 막음</strong></td><td>중간</td></tr>
+<tr><td>Firebase + 서버에서 토큰 검증</td><td>Blaze 필요</td><td>O</td><td>많음</td></tr>
+</tbody>
+</table>
+
+<h3>2-1. Cloudflare Access — 코드는 0줄, 대신 카드 등록</h3>
+<p>Cloudflare가 사이트 앞단에서 로그인을 강제하는 방식입니다. 애플리케이션 코드를 한 줄도 건드리지 않고, <code>*.workers.dev</code> 주소에도 걸 수 있습니다. 다만 Zero Trust를 처음 켤 때 결제수단을 요구합니다. 공식 문서의 표현은 이렇습니다.</p>
+<blockquote>
+<p>Complete your onboarding by selecting a subscription plan and entering your payment details. <strong>If you chose the Zero Trust Free plan, this step is still needed but you will not be charged.</strong></p>
+</blockquote>
+<p>즉 <strong>카드는 등록하되 요금은 청구되지 않습니다</strong>(Free는 50명까지). 카드 등록이 부담이 아니라면 이 방법이 가장 간단합니다. 설정은 <strong>Workers &amp; Pages → 해당 Worker → Access 탭 → Protect this Worker behind Access</strong>에서 하고, 이때 <strong>All traffic</strong>을 골라야 합니다. <em>Previews only</em>를 고르면 정작 본 사이트는 그대로 열려 있습니다.</p>
+<p>Worker 단위로 걸면 그 Worker에 붙은 <strong>모든 주소</strong>(workers.dev, 프리뷰, 나중에 붙일 커스텀 도메인)가 한꺼번에 보호됩니다. 반면 호스트명 하나만 지정하는 방식은 나중에 커스텀 도메인을 붙였을 때 그 주소가 뚫린 채로 열립니다.</p>
+
+<h3>2-2. Firebase는 이 용도에 맞지 않는다</h3>
+<p>카드 등록을 피하려고 Firebase를 떠올리기 쉽지만, 결론은 이렇습니다.</p>
+<ul>
+<li><strong>클라이언트에 Auth만 붙이는 것</strong> — 위 1번에서 본 대로 못 막습니다.</li>
+<li><strong>서버에서 토큰을 검증하는 것</strong> — Cloud Functions/Cloud Run이 필요하고 <strong>Blaze 플랜 = 결제수단 등록</strong>입니다. 같은 카드를 등록하면서 코드만 훨씬 많아집니다.</li>
+<li><strong>내용을 Firestore에 저장하고 보안 규칙으로 막는 것</strong> — 카드 없이 되지만, "폴더=카테고리, 파일=노트"인 정적 저장소 구조를 통째로 버리게 됩니다.</li>
+</ul>
+
+<h2>3. Worker 자체 인증 — 정적 파일 앞에 코드 세우기</h2>
+<p>핵심은 <code>assets.run_worker_first</code> 한 줄입니다. 이걸 켜면 정적 파일을 내보내기 <strong>전에</strong> 내 코드가 먼저 실행됩니다.</p>
+<pre><code>// wrangler.jsonc
+{
+  "name": "&lt;워커이름&gt;",
+  "compatibility_date": "2026-08-29",
+  "main": "./worker/index.js",
+  "assets": {
+    "directory": "./",
+    "binding": "ASSETS",
+    "run_worker_first": true
+  }
+}</code></pre>
+<p>워커의 뼈대는 이렇습니다. 쿠키가 유효하면 <code>ASSETS</code> 바인딩으로 넘기고, 아니면 로그인 화면으로 보냅니다.</p>
+<pre><code>export default {
+  async fetch(request, env) {
+    const url = new URL(request.url);
+
+    if (url.pathname === '/login') {
+      return request.method === 'POST'
+        ? handleLogin(request, env)
+        : loginPage();
+    }
+
+    if (await isAuthenticated(request, env)) {
+      return env.ASSETS.fetch(request);   // 통과 → 정적 파일
+    }
+
+    const next = encodeURIComponent(url.pathname + url.search);
+    return Response.redirect(new URL('/login?next=' + next, url), 302);
+  },
+};</code></pre>
+
+<h3>3-1. 쿠키는 서명해서 발급한다</h3>
+<p>비밀번호가 맞으면 <strong>만료시각과 그 시각의 HMAC 서명</strong>을 쿠키에 담습니다. 서명이 있어야 사용자가 쿠키를 위조해 만료를 늘리는 것을 막을 수 있습니다.</p>
+<pre><code>const expires = Date.now() + 14 * 24 * 60 * 60 * 1000;
+const token = expires + '.' + await sign(String(expires), env.AUTH_SECRET);
+
+// Set-Cookie 헤더
+// note_session=&lt;token&gt;; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=1209600</code></pre>
+<p><code>HttpOnly</code>는 자바스크립트가 쿠키를 못 읽게 하고, <code>Secure</code>는 HTTPS에서만 전송되게 합니다.</p>
+
+<h3>3-2. 비밀번호 비교는 시간차를 남기지 않는다</h3>
+<p><code>a === b</code>로 비교하면 앞글자가 몇 개 맞았는지에 따라 응답 시간이 미세하게 달라집니다. 양쪽을 HMAC으로 한 번 씌운 뒤 바이트를 비교하면 길이와 내용이 모두 가려집니다.</p>
+<pre><code>const [ha, hb] = await Promise.all([
+  crypto.subtle.sign('HMAC', key, enc.encode(a)),
+  crypto.subtle.sign('HMAC', key, enc.encode(b)),
+]);
+const x = new Uint8Array(ha), y = new Uint8Array(hb);
+let diff = 0;
+for (let i = 0; i &lt; x.length; i++) diff |= x[i] ^ y[i];
+return diff === 0;</code></pre>
+
+<h3>3-3. 로그인 후 돌아갈 주소는 검증한다</h3>
+<p><code>?next=</code>를 그대로 <code>Location</code>에 넣으면 <strong>오픈 리다이렉트</strong>가 됩니다. 공격자가 <code>?next=//evil.com</code>이 담긴 링크를 뿌리면, 우리 로그인 화면을 거쳐 외부 사이트로 튕겨 보낼 수 있습니다. <strong>같은 사이트의 절대 경로만</strong> 허용합니다.</p>
+<pre><code>function safeNext(value) {
+  const next = String(value ?? '');
+  if (!next.startsWith('/') || next.startsWith('//')) return '/';
+  if (next.startsWith('/login')) return '/';   // 로그인 무한루프 방지
+  return next;
+}</code></pre>
+
+<h2>4. 비밀번호는 저장소에 두지 않는다</h2>
+<p>비밀번호와 서명키는 <strong>Workers Secrets</strong>로 주입합니다. 코드에도, 저장소에도 남기지 않습니다.</p>
+<pre><code>npx wrangler secret put NOTE_PASSWORD
+npx wrangler secret put AUTH_SECRET</code></pre>
+<p>대시보드에서도 됩니다 — <strong>Workers &amp; Pages → 해당 Worker → Settings → Variables and Secrets → Add</strong>에서 타입을 반드시 <strong>Secret</strong>으로 고릅니다(Text로 넣으면 값이 화면에 그대로 보입니다). 대시보드 Git 연동으로 배포한 경우라면 <code>wrangler login</code> 없이 이 방법이 더 간단합니다.</p>
+<p><code>AUTH_SECRET</code>은 사람이 정하는 비밀번호가 아니라 <strong>쿠키 서명키</strong>입니다. 외우기 쉬운 문자열을 쓰면 서명이 약해지므로 무작위 값을 씁니다.</p>
+<pre><code>node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"</code></pre>
+<p>로컬에서 <code>wrangler dev</code>로 시험할 때는 <code>.dev.vars</code> 파일을 쓰되 <strong>반드시 <code>.gitignore</code>에 넣습니다.</strong> 아래 값은 <strong>설명용 가짜 값</strong>입니다. 그대로 쓰지 않습니다.</p>
+<pre><code># .dev.vars  ← .gitignore 에 반드시 추가
+NOTE_PASSWORD=여기에-로컬-시험용-임시값
+AUTH_SECRET=여기에-무작위-16진수-문자열</code></pre>
+<p>실제로 쓸 값은 <strong>오직 Workers Secrets에만</strong> 넣습니다.</p>
+
+<h2>5. 배포 순서 — 시크릿 먼저, push 나중</h2>
+<p>Git 연동 배포는 <code>main</code>에 push하는 순간 자동 재배포됩니다. 그래서 <strong>순서를 지키지 않으면 사이트가 통째로 죽습니다.</strong></p>
+<ol>
+<li>시크릿 2개 등록 (<code>NOTE_PASSWORD</code>, <code>AUTH_SECRET</code>)</li>
+<li>그다음에 <code>git push</code></li>
+<li>배포 후 <code>curl</code>로 차단 확인</li>
+</ol>
+<p>시크릿 없이 먼저 push하면, 워커가 시크릿을 찾지 못해 <strong>모든 경로가 500을 냅니다.</strong> 열리는 것이 아니라 안 열립니다. 코드에 이 상황을 명시적으로 처리해 두면 원인을 바로 알 수 있습니다.</p>
+<pre><code>if (!env.NOTE_PASSWORD || !env.AUTH_SECRET) {
+  return new Response('시크릿이 등록되지 않았습니다.', { status: 500 });
+}</code></pre>
+
+<h2>6. 정말 막혔는지 확인하기</h2>
+<p>브라우저는 이미 로그인 쿠키를 갖고 있어서 <strong>"내 브라우저에서 열리네"는 확인이 되지 않습니다.</strong> 쿠키가 없는 <code>curl</code>로 봐야 합니다.</p>
+<pre><code>curl -s -o /dev/null -w "%{http_code} -&gt; %{redirect_url}\n" \
+  https://&lt;워커이름&gt;.&lt;계정서브도메인&gt;.workers.dev/</code></pre>
+<table>
+<thead>
+<tr><th>확인 항목</th><th>기대 결과</th></tr>
+</thead>
+<tbody>
+<tr><td>쿠키 없이 최상위</td><td>302 → <code>/login</code></td></tr>
+<tr><td>쿠키 없이 내부 파일 직접 요청</td><td>302 → <code>/login</code></td></tr>
+<tr><td>틀린 비밀번호</td><td>401</td></tr>
+<tr><td>맞는 비밀번호</td><td>302 + <code>Set-Cookie</code></td></tr>
+<tr><td>발급받은 쿠키로 재요청</td><td>200 (본문)</td></tr>
+<tr><td>위조한 쿠키</td><td>302 → <code>/login</code></td></tr>
+<tr><td><code>?next=//evil.com</code></td><td><code>/</code> 로 차단</td></tr>
+</tbody>
+</table>
+<p><strong>200이 뜨면 실패입니다.</strong> 그 자리에서 내용이 새고 있다는 뜻입니다.</p>
+
+<h2>7. 겪게 되는 함정 둘</h2>
+
+<h3>7-1. <code>wrangler dev</code>가 무한 재시작한다</h3>
+<p><code>assets.directory</code>를 저장소 루트(<code>"./"</code>)로 두면, wrangler가 자기 작업 폴더 <code>.wrangler/</code>를 정적 파일로 감시하다가 스스로를 계속 재시작시킵니다. 로그에 <code>Reloading local server...</code>가 끝없이 찍힙니다.</p>
+<p><strong><code>.assetsignore</code>로는 해결되지 않습니다.</strong> 그 파일은 <em>업로드에서 제외</em>할 뿐 dev의 파일 감시는 막지 않습니다. 상태 폴더를 프로젝트 밖으로 빼야 합니다.</p>
+<pre><code>npx wrangler dev --persist-to ../.wrangler-state</code></pre>
+<p>그와 별개로 <code>.assetsignore</code>는 워커 소스와 설정이 정적 파일로 공개되지 않도록 넣어 둡니다.</p>
+<pre><code># .assetsignore (.gitignore 와 같은 형식)
+worker
+wrangler.jsonc
+.assetsignore
+.wrangler
+.dev.vars</code></pre>
+
+<h3>7-2. <code>.html</code> 요청에 307이 뜬다</h3>
+<p>정적 파일 라우터가 확장자를 떼면서 보내는 <strong>정상 동작</strong>이며 인증과 무관합니다. <code>curl -L</code>로 따라가면 최종 200이 나옵니다. 인증이 깨진 것으로 오해하기 쉬우니 구분해서 봅니다.</p>
+
+<h2>8. 이 방식의 한계 — 언제 갈아탈까</h2>
+<p>읽기 전용 개인 메모라면 이 정도로 충분합니다. 다만 아래는 감안하고 씁니다.</p>
+<ul>
+<li><strong>비밀번호 하나를 공유하는 방식</strong>입니다. 새면 아는 사람은 모두 들어옵니다. 2단계 인증도 없습니다.</li>
+<li><strong>무차별 대입 방어가 약합니다.</strong> 실패 시 지연을 주는 정도이므로, 짧은 비밀번호는 쓰지 않습니다.</li>
+<li><strong>누가 언제 들어왔는지 기록이 남지 않습니다.</strong></li>
+</ul>
+<p>남과 공유해서 사람별 권한이 필요해지거나, 접속 기록이 남아야 하거나, 유출되면 곤란한 내용이 들어가는 시점이 갈아탈 때입니다. 그때는 <strong>Cloudflare Access로 옮기고 워커 인증 코드를 지우면</strong> 됩니다. 정적 파일 구조는 그대로라서 되돌리는 비용이 거의 없습니다.</p>
+
+  </article>
+</body>
+</html>
